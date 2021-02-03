@@ -9,14 +9,16 @@ plotNorm(DGEdata, plotType = "box", normalize = "tmm")
 \arguments{
 \item{DGEdata}{A DGEobj or counts matrix.}
 
-\item{plotType}{One of "box" or "density." (Default = "box")}
+\item{plotType}{Plot type must be canvasXpress or ggplot (Default to canvasXpress).}
 
 \item{normalize}{Default = "TMM" and invokes TMM normalization. Other allowed
 values are: "RLE", "upperquartile", or "none". Invokes edgeR::calcNormFactors for
 normalization.}
+
+\item{plotValue}{One of "box" or "density." (Default = "box")}
 }
 \value{
-A faceted ggplot plot showing before/after log2CPM normalization.
+A faceted canvasXpress/ggplot plot showing before/after log2CPM normalization.
 }
 \description{
 Takes a DGEobj containing counts or a counts matrix as input. Returns a ggplot object containing
@@ -29,8 +31,8 @@ data.  Thus this function is only appropriate for count-based data.
 }
 \examples{
 \dontrun{
-   myNormPlotBox <- plotNorm(myDGEobj, plotType = "box")
-   myNormPlotDensity <- plotNorm(counts, plotType = "density")
+   myNormPlotBox <- plotNorm(myDGEobj, plotValue = "box")
+   myNormPlotDensity <- plotNorm(counts, plotValue = "density")
 }
 
 }

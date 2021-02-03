@@ -8,17 +8,18 @@
 #' data.  Thus this function is only appropriate for count-based data.
 #'
 #' @param DGEdata  A DGEobj or counts matrix.
-#' @param plotType  One of "box" or "density." (Default = "box")
+#' @param plotType Plot type must be canvasXpress or ggplot (Default to canvasXpress).
+#' @param plotValue  One of "box" or "density." (Default = "box")
 #' @param normalize Default = "TMM" and invokes TMM normalization. Other allowed
 #'   values are: "RLE", "upperquartile", or "none". Invokes edgeR::calcNormFactors for
 #'   normalization.
 #'
-#' @return A faceted ggplot plot showing before/after log2CPM normalization.
+#' @return A faceted canvasXpress/ggplot plot showing before/after log2CPM normalization.
 #'
 #' @examples
 #' \dontrun{
-#'    myNormPlotBox <- plotNorm(myDGEobj, plotType = "box")
-#'    myNormPlotDensity <- plotNorm(counts, plotType = "density")
+#'    myNormPlotBox <- plotNorm(myDGEobj, plotValue = "box")
+#'    myNormPlotDensity <- plotNorm(counts, plotValue = "density")
 #' }
 #'
 #' @import magrittr ggplot2
