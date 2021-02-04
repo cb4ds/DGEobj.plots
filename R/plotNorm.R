@@ -88,21 +88,22 @@ plotNorm <- function(DGEdata,
                 none = subset(tall, tolower(Normalization) == "none")["Log2CPM"],
                 TMM = subset(tall, tolower(Normalization) == normalize)["Log2CPM"]
             )
-        names(cx.data) <- c("none", normalize)
-        var.annot <- data.frame(SampleID = subset(tall, tolower(Normalization) == "none")["SampleID"])
+        names(cx.data) <- c("none", toupper(normalize))
+        var.annot <-
+            data.frame(SampleID = subset(tall, tolower(Normalization) == "none")["SampleID"])
+        xlab <- "Log2CPM"
+        ylab <- "density"
         if (plotType == "canvasXpress") {
             resultPlot <- canvasXpress::canvasXpress(data                    = cx.data,
-                                                     #smpAnnot                = tall[c("Normalization")],
                                                      varAnnot                = var.annot,
                                                      colorBy                 = "SampleID",
                                                      histogramData           = TRUE,
-                                                     #histogramStat="count",
                                                      graphType               = "Scatter2D",
+                                                     xAxisTitle              = xlab,
+                                                     yAxisTitle              = ylab,
                                                      hideHistogram           = TRUE,
                                                      showHistogramDensity    = TRUE,
-                                                     #segregateVariablesBy    = "Normalization",
-                                                     segregateSamplesBy      =list("sample"),
-                                                     #colors                  = "SampleID",
+                                                     segregateSamplesBy      = list("sample"),
                                                      title                   = title,
                                                      showLegend              = FALSE)
         } else {
