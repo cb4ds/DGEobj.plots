@@ -83,13 +83,17 @@ plotNorm <- function(DGEdata,
     title <- stringr::str_c("Log2CPM before/after", normalize, "normalization", sep = " ")
 
     if (tolower(plotValue) == "density") {
-        cx.data <- tall %>%
-            tidyr::pivot_wider(names_from = Normalization,
-                               values_from = Log2CPM)
+        cx.data <-
+            data.frame(
+                none = subset(tall, tolower(Normalization) == "none")["Log2CPM"],
+                TMM = subset(tall, tolower(Normalization) == normalize)["Log2CPM"]
+            )
+        names(cx.data) <- c("none", normalize)
+        var.annot <- data.frame(SampleID = subset(tall, tolower(Normalization) == "none")["SampleID"])
         if (plotType == "canvasXpress") {
-            resultPlot <- canvasXpress::canvasXpress(data                    = cx.data[c("none", "TMM")],
+            resultPlot <- canvasXpress::canvasXpress(data                    = cx.data,
                                                      #smpAnnot                = tall[c("Normalization")],
-                                                     varAnnot                = cx.data[c("SampleID")],
+                                                     varAnnot                = var.annot,
                                                      colorBy                 = "SampleID",
                                                      histogramData           = TRUE,
                                                      #histogramStat="count",
