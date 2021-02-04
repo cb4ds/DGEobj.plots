@@ -29,12 +29,15 @@
 #'
 #' @export
 plotNorm <- function(DGEdata,
-                     plotType = "box",
+                     plotType = "canvasXpress",
+                     plotValue = "box",
                      normalize = "tmm") {
 
     assertthat::assert_that(any(c("matrix", "DGEobj") %in% class(DGEdata)),
                             msg = "DGEdata must be of either class 'matrix' or 'DGEobj'.")
-    assertthat::assert_that(tolower(plotType) %in% c("box", "density"),
+    assertthat::assert_that(plotType %in% c("ggplot", "canvasXpress"),
+                            msg = "Plot type must be either ggplot or canvasXpress.")
+    assertthat::assert_that(tolower(plotValue) %in% c("box", "density"),
                             msg = "plotType must be one of 'box' or 'density'.")
     assertthat::assert_that(tolower(normalize) %in% c("tmm", "rle", "upperquartile", "none"),
                             msg = "normalize must be one of 'TMM', 'RLE', 'upperquartile', or 'none'.")
@@ -77,21 +80,43 @@ plotNorm <- function(DGEdata,
 
     tall <- tall %>%
         rbind(tall_tmm)
+    title <- stringr::str_c("Log2CPM before/after", normalize, "normalization", sep = " ")
 
-    if (tolower(plotType) == "density") {
-        resultPlot <- ggplot(tall, aes(x = Log2CPM, color = SampleID)) +
-            geom_density() +
-            facet_grid(~Normalization) +
-            ggtitle(stringr::str_c("Log2CPM before/after", normalize, "normalization", sep = " "))  +
-            theme_gray() +
-            theme(legend.position = "none")
+    if (tolower(plotValue) == "density") {
+        cx.data <- tall %>%
+            tidyr::pivot_wider(names_from = Normalization,
+                               values_from = Log2CPM)
+        if (plotType == "canvasXpress") {
+            resultPlot <- canvasXpress::canvasXpress(data                    = cx.data[c("none", "TMM")],
+                                                     #smpAnnot                = tall[c("Normalization")],
+                                                     varAnnot                = cx.data[c("SampleID")],
+                                                     colorBy                 = "SampleID",
+                                                     histogramData           = TRUE,
+                                                     #histogramStat="count",
+                                                     graphType               = "Scatter2D",
+                                                     hideHistogram           = TRUE,
+                                                     showHistogramDensity    = TRUE,
+                                                     #segregateVariablesBy    = "Normalization",
+                                                     segregateSamplesBy      =list("sample"),
+                                                     #colors                  = "SampleID",
+                                                     title                   = title,
+                                                     showLegend              = FALSE)
+        } else {
+            resultPlot <- ggplot(tall, aes(x = Log2CPM, color = SampleID)) +
+                geom_density() +
+                facet_grid(~Normalization) +
+                ggtitle(title)  +
+                theme_gray() +
+                theme(legend.position = "none")
+        }
+
     }
 
-    if (tolower(plotType == "box")) {
+    if (tolower(plotValue == "box")) {
         resultPlot <- ggplot(tall, aes(x = SampleID, y = Log2CPM, color = SampleID)) +
             geom_boxplot(alpha = 0.5) +
             facet_grid(~Normalization) +
-            ggtitle(stringr::str_c("Log2CPM before/after", normalize, "normalization", sep = " "))  +
+            ggtitle(title)  +
             theme_gray() +
             theme(axis.text.x = element_blank(),
                   legend.position = "none")
