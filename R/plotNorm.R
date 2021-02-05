@@ -83,29 +83,22 @@ plotNorm <- function(DGEdata,
     title <- stringr::str_c("Log2CPM before/after", normalize, "normalization", sep = " ")
 
     if (tolower(plotValue) == "density") {
-        cx.data <-
-            data.frame(
-                none = subset(tall, tolower(Normalization) == "none")["Log2CPM"],
-                TMM = subset(tall, tolower(Normalization) == normalize)["Log2CPM"]
-            )
-        names(cx.data) <- c("none", toupper(normalize))
-        var.annot <-
-            data.frame(SampleID = subset(tall, tolower(Normalization) == "none")["SampleID"])
-        xlab <- "Log2CPM"
-        ylab <- "density"
         if (plotType == "canvasXpress") {
-            resultPlot <- canvasXpress::canvasXpress(data                    = cx.data,
-                                                     varAnnot                = var.annot,
-                                                     colorBy                 = "SampleID",
+            cx.data <- build_cx_density_data(tall)
+            xlab <- "Log2CPM"
+            ylab <- "density"
+            resultPlot <- canvasXpress::canvasXpress(data                    = cx.data[,-c(1, 2)],
+                                                     varAnnot                = cx.data[, c(1, 2)],
                                                      histogramData           = TRUE,
                                                      graphType               = "Scatter2D",
                                                      xAxisTitle              = xlab,
                                                      yAxisTitle              = ylab,
                                                      hideHistogram           = TRUE,
                                                      showHistogramDensity    = TRUE,
-                                                     segregateSamplesBy      = list("sample"),
+                                                     segregateVariablesBy    = list("Normalization"),
                                                      title                   = title,
-                                                     showLegend              = FALSE)
+                                                     showLegend              = FALSE,
+                                                     colorScheme             = "GGPlot")
         } else {
             resultPlot <- ggplot(tall, aes(x = Log2CPM, color = SampleID)) +
                 geom_density() +
@@ -115,17 +108,52 @@ plotNorm <- function(DGEdata,
                 theme(legend.position = "none")
         }
 
-    }
-
-    if (tolower(plotValue == "box")) {
-        resultPlot <- ggplot(tall, aes(x = SampleID, y = Log2CPM, color = SampleID)) +
-            geom_boxplot(alpha = 0.5) +
-            facet_grid(~Normalization) +
-            ggtitle(title)  +
-            theme_gray() +
-            theme(axis.text.x = element_blank(),
-                  legend.position = "none")
+    } else {
+        if (tolower(plotValue == "box")) {
+            resultPlot <-
+                ggplot(tall, aes(
+                    x = SampleID,
+                    y = Log2CPM,
+                    color = SampleID
+                )) +
+                geom_boxplot(alpha = 0.5) +
+                facet_grid( ~ Normalization) +
+                ggtitle(title)  +
+                theme_gray() +
+                theme(axis.text.x = element_blank(),
+                      legend.position = "none")
+        }
     }
 
     return(resultPlot)
+}
+
+# refactor to apply
+build_cx_density_data <- function(data) {
+    cx.data <- data.frame()
+    for (sample in levels(as.factor(data$SampleID))) {
+        if (nrow(cx.data) == 0) {
+            cx.data <- select_sample(data, sample, TRUE)
+        } else {
+            cx.data <-
+                cbind(cx.data, select_sample(data, sample))
+        }
+
+    }
+    return(cx.data)
+}
+
+select_sample <- function(data, sampleID, select_all = FALSE) {
+    if (select_all) {
+        sample <-
+            subset(data, SampleID == sampleID,
+                   select = c("GeneID", "Normalization", "Log2CPM"))
+        colnames(sample)[3] = sampleID
+    } else {
+        sample <-
+            subset(data, SampleID == sampleID, select = c("Log2CPM"))
+        colnames(sample)[1] = sampleID
+    }
+
+    return(sample)
 }
