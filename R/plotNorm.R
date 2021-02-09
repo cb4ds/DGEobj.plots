@@ -8,8 +8,8 @@
 #' data.  Thus this function is only appropriate for count-based data.
 #'
 #' @param DGEdata  A DGEobj or counts matrix.
-#' @param plotCategory Plot type must be canvasXpress or ggplot (Default to canvasXpress).
-#' @param plotValue  One of "box" or "density." (Default = "box")
+#' @param plotType Plot type must be canvasXpress or ggplot (Default to canvasXpress).
+#' @param plotCategory  One of "box" or "density." (Default = "box")
 #' @param normalize Default = "TMM" and invokes TMM normalization. Other allowed
 #'   values are: "RLE", "upperquartile", or "none". Invokes edgeR::calcNormFactors for
 #'   normalization.
@@ -18,8 +18,8 @@
 #'
 #' @examples
 #' \dontrun{
-#'    myNormPlotBox <- plotNorm(myDGEobj, plotValue = "box")
-#'    myNormPlotDensity <- plotNorm(counts, plotValue = "density")
+#'    myNormPlotBox <- plotNorm(myDGEobj, plotCategory = "box")
+#'    myNormPlotDensity <- plotNorm(counts, plotCategory = "density")
 #' }
 #'
 #' @import magrittr ggplot2
@@ -29,15 +29,15 @@
 #'
 #' @export
 plotNorm <- function(DGEdata,
-                     plotCategory = "canvasXpress",
-                     plotValue = "box",
+                     plotType = "canvasXpress",
+                     plotCategory = "box",
                      normalize = "tmm") {
 
     assertthat::assert_that(any(c("matrix", "DGEobj") %in% class(DGEdata)),
                             msg = "DGEdata must be of either class 'matrix' or 'DGEobj'.")
-    assertthat::assert_that(plotCategory %in% c("ggplot", "canvasXpress"),
-                            msg = "Plot type must be either ggplot or canvasXpress.")
-    assertthat::assert_that(tolower(plotValue) %in% c("box", "density"),
+    assertthat::assert_that(plotType %in% c("ggplot", "canvasXpress"),
+                            msg = "plotType must be either ggplot or canvasXpress.")
+    assertthat::assert_that(tolower(plotCategory) %in% c("box", "density"),
                             msg = "plotCategory must be one of 'box' or 'density'.")
     assertthat::assert_that(tolower(normalize) %in% c("tmm", "rle", "upperquartile", "none"),
                             msg = "normalize must be one of 'TMM', 'RLE', 'upperquartile', or 'none'.")
@@ -82,17 +82,17 @@ plotNorm <- function(DGEdata,
         rbind(tall_tmm)
     title <- stringr::str_c("Log2CPM before/after", normalize, "normalization", sep = " ")
 
-    if (tolower(plotValue) == "density") {
-        if (plotCategory == "canvasXpress") {
-            build_cx_density_plot(tall, title)
+    if (tolower(plotCategory) == "density") {
+        if (plotType == "canvasXpress") {
+            resultPlot <- build_cx_density_plot(tall, title)
         } else {
-            build_gg_density_plot(tall, title)
+            resultPlot <- build_gg_density_plot(tall, title)
         }
     } else {
-        if (plotCategory == "canvasXpress") {
-            build_cx_box_plot(tall, title)
+        if (plotType == "canvasXpress") {
+            resultPlot <- build_cx_box_plot(tall, title)
         } else {
-            build_gg_box_plot(tall, title)
+            resultPlot <- build_gg_box_plot(tall, title)
         }
     }
 
