@@ -84,63 +84,15 @@ plotNorm <- function(DGEdata,
 
     if (tolower(plotValue) == "density") {
         if (plotCategory == "canvasXpress") {
-            cx.data <- build_cx_density_data(tall)
-            xlab <- "Log2CPM"
-            ylab <- "density"
-            resultPlot <- canvasXpress::canvasXpress(data                    = cx.data[,-c(1, 2)],
-                                                     varAnnot                = cx.data[, c(1, 2)],
-                                                     histogramData           = TRUE,
-                                                     graphType               = "Scatter2D",
-                                                     xAxisTitle              = xlab,
-                                                     yAxisTitle              = ylab,
-                                                     hideHistogram           = TRUE,
-                                                     showHistogramDensity    = TRUE,
-                                                     segregateVariablesBy    = list("Normalization"),
-                                                     title                   = title,
-                                                     showLegend              = FALSE,
-                                                     colorScheme             = "GGPlot")
+            build_cx_density_plot(tall, title)
         } else {
-            if (plotCategory == "canvasXpress") {
-                cx.data <- build_cx_density_data(tall)
-                xlab <- "Log2CPM"
-                ylab <- "SampleID"
-                y <- as.data.frame(cx.data[,-c(1, 2)])
-                resultPlot <- canvasXpress::canvasXpress(data                    = y,
-                                                         smpAnnot                = cx.data[, c(1, 2)],
-                                                         graphType               = "Boxplot",
-                                                         title                   = title,
-                                                          showLegend              = FALSE,
-                                                         xAxisTitle              = xlab,
-                                                         yAxisTitle              = ylab,
-                                                          segregateSamplesBy      = list("Normalization"),
-                                                          groupingFactors         = list("Normalization"),
-                                                          graphOrientation        = "vertical",
-                                                          colorScheme             = "GGPlot")
-            } else {
-                resultPlot <- ggplot(tall, aes(x = Log2CPM, color = SampleID)) +
-                    geom_density() +
-                    facet_grid(~Normalization) +
-                    ggtitle(title)  +
-                    theme_gray() +
-                    theme(legend.position = "none")
-            }
-
+            build_gg_density_plot(tall, title)
         }
-
     } else {
-        if (tolower(plotValue == "box")) {
-            resultPlot <-
-                ggplot(tall, aes(
-                    x = SampleID,
-                    y = Log2CPM,
-                    color = SampleID
-                )) +
-                geom_boxplot(alpha = 0.5) +
-                facet_grid( ~ Normalization) +
-                ggtitle(title)  +
-                theme_gray() +
-                theme(axis.text.x = element_blank(),
-                      legend.position = "none")
+        if (plotCategory == "canvasXpress") {
+            build_cx_box_plot(tall, title)
+        } else {
+            build_gg_box_plot(tall, title)
         }
     }
 
@@ -175,4 +127,69 @@ select_sample <- function(data, sampleID, select_all = FALSE) {
     }
 
     return(sample)
+}
+
+build_cx_density_plot <- function(data, title) {
+    cx.data <- build_cx_density_data(data)
+    xlab <- "Log2CPM"
+    ylab <- "density"
+    resultPlot <- canvasXpress::canvasXpress(data                    = cx.data[,-c(1, 2)],
+                                             varAnnot                = cx.data[, c(1, 2)],
+                                             histogramData           = TRUE,
+                                             graphType               = "Scatter2D",
+                                             xAxisTitle              = xlab,
+                                             yAxisTitle              = ylab,
+                                             hideHistogram           = TRUE,
+                                             showHistogramDensity    = TRUE,
+                                             segregateVariablesBy    = list("Normalization"),
+                                             title                   = title,
+                                             showLegend              = FALSE,
+                                             colorScheme             = "GGPlot")
+    return(resultPlot)
+}
+
+build_cx_box_plot <- function(data, title) {
+    cx.data <- build_cx_density_data(data)
+    xlab <- "Log2CPM"
+    ylab <- "SampleID"
+    y <- as.data.frame(t(cx.data[,-c(1, 2)]))
+    resultPlot <- canvasXpress::canvasXpress(data                    = y,
+                                             smpAnnot                = cx.data[, c(1, 2)],
+                                             graphType               = "Boxplot",
+                                             title                   = title,
+                                             showLegend              = FALSE,
+                                             xAxisTitle              = xlab,
+                                             yAxisTitle              = ylab,
+                                             segregateSamplesBy      = list("Normalization"),
+                                             groupingFactors         = list("Normalization"),
+                                             graphOrientation        = "vertical",
+                                             colorScheme             = "GGPlot")
+    return(resultPlot)
+}
+
+
+build_gg_density_plot <- function(data, title) {
+    resultPlot <- ggplot(data, aes(x = Log2CPM, color = SampleID)) +
+        geom_density() +
+        facet_grid(~Normalization) +
+        ggtitle(title)  +
+        theme_gray() +
+        theme(legend.position = "none")
+    return(resultPlot)
+}
+
+build_gg_box_plot <- function(data, title) {
+    resultPlot <-
+        ggplot(data, aes(
+            x = SampleID,
+            y = Log2CPM,
+            color = SampleID
+        )) +
+        geom_boxplot(alpha = 0.5) +
+        facet_grid( ~ Normalization) +
+        ggtitle(title)  +
+        theme_gray() +
+        theme(axis.text.x = element_blank(),
+              legend.position = "none")
+    return(resultPlot)
 }
