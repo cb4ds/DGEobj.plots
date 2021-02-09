@@ -100,12 +100,31 @@ plotNorm <- function(DGEdata,
                                                      showLegend              = FALSE,
                                                      colorScheme             = "GGPlot")
         } else {
-            resultPlot <- ggplot(tall, aes(x = Log2CPM, color = SampleID)) +
-                geom_density() +
-                facet_grid(~Normalization) +
-                ggtitle(title)  +
-                theme_gray() +
-                theme(legend.position = "none")
+            if (plotCategory == "canvasXpress") {
+                cx.data <- build_cx_density_data(tall)
+                xlab <- "Log2CPM"
+                ylab <- "SampleID"
+                y <- as.data.frame(cx.data[,-c(1, 2)])
+                resultPlot <- canvasXpress::canvasXpress(data                    = y,
+                                                         smpAnnot                = cx.data[, c(1, 2)],
+                                                         graphType               = "Boxplot",
+                                                         title                   = title,
+                                                          showLegend              = FALSE,
+                                                         xAxisTitle              = xlab,
+                                                         yAxisTitle              = ylab,
+                                                          segregateSamplesBy      = list("Normalization"),
+                                                          groupingFactors         = list("Normalization"),
+                                                          graphOrientation        = "vertical",
+                                                          colorScheme             = "GGPlot")
+            } else {
+                resultPlot <- ggplot(tall, aes(x = Log2CPM, color = SampleID)) +
+                    geom_density() +
+                    facet_grid(~Normalization) +
+                    ggtitle(title)  +
+                    theme_gray() +
+                    theme(legend.position = "none")
+            }
+
         }
 
     } else {
