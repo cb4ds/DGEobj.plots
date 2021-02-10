@@ -99,7 +99,6 @@ plotNorm <- function(DGEdata,
     return(resultPlot)
 }
 
-# refactor to apply
 build_cx_density_data <- function(data) {
     cx.data <- data.frame()
     for (sample in levels(as.factor(data$SampleID))) {
@@ -133,6 +132,19 @@ build_cx_density_plot <- function(data, title) {
     cx.data <- build_cx_density_data(data)
     xlab <- "Log2CPM"
     ylab <- "density"
+    events <- htmlwidgets::JS(
+        "{ 'mousemove' : function(o, e, t) {
+                           if (o != null && o != false) {
+                             if (o.objectType == 'Density' &&
+                                o.display != null &&
+                                o.display.indexOf('-') > -1) {
+                                sampleID = o.display.split('-')[2];
+                                t.showInfoSpan(e,
+                                '<b>Sample ID</b>: ' + sampleID );
+                             } else {
+                               t.showInfoSpan(e, o.display);
+                             };
+                          }; }}")
     resultPlot <- canvasXpress::canvasXpress(data                    = cx.data[,-c(1, 2)],
                                              varAnnot                = cx.data[, c(1, 2)],
                                              histogramData           = TRUE,
@@ -144,7 +156,8 @@ build_cx_density_plot <- function(data, title) {
                                              segregateVariablesBy    = list("Normalization"),
                                              title                   = title,
                                              showLegend              = FALSE,
-                                             colorScheme             = "GGPlot")
+                                             colorScheme             = "GGPlot",
+                                             events                  = events)
     return(resultPlot)
 }
 
@@ -153,6 +166,18 @@ build_cx_box_plot <- function(data, title) {
     xlab <- "Log2CPM"
     ylab <- "SampleID"
     y <- as.data.frame(t(cx.data[,-c(1, 2)]))
+    # events <- htmlwidgets::JS("{ 'mousemove' : function(o, e, t) {
+    #                                             if (o != null &&
+    #                                                 o != false &&
+    #                                                 o.w != null &&
+    #                                                 o.w.vars != null) {
+    #                                                 console.log(o);
+    #                                                 t.showInfoSpan(e,
+    #                                                     '<b>Sample ID</b>: ' + o.w.vars[0] );
+    #
+    #                                             } else {
+    #                                                     t.showInfoSpan(e, o.display);
+    #                                                 }; }}")
     resultPlot <- canvasXpress::canvasXpress(data                    = y,
                                              smpAnnot                = cx.data[, c(1, 2)],
                                              graphType               = "Boxplot",
