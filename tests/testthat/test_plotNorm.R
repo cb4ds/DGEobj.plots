@@ -25,7 +25,10 @@ test_that("plotNorm.R: plotNorm()", {
     expect_s3_class(norm_plot, c("canvasXpress", "htmlwidget"))
 
     # testing with DGEobj count matrix and plotType ggplot - plotCategory density
-    norm_plot <- plotNorm(t_obj1$counts, plotType = "ggplot",  plotCategory = "density")
+    norm_plot <-
+        plotNorm(t_obj1$counts,
+                 plotType = "ggplot",
+                 plotCategory = "density")
     expect_s3_class(norm_plot, c("gg", "ggplot"))
 
     # testing with DGEobj object and plotType cx - plotCategory density
@@ -33,18 +36,19 @@ test_that("plotNorm.R: plotNorm()", {
     expect_s3_class(norm_plot, c("canvasXpress", "htmlwidget"))
 
     # testing with DGEobj object and plotType ggplot - plotCategory density
-    norm_plot <- plotNorm(t_obj1, plotType = "ggplot",  plotCategory = "density")
+    norm_plot <-
+        plotNorm(t_obj1, plotType = "ggplot",  plotCategory = "density")
     expect_s3_class(norm_plot, c("gg", "ggplot"))
 
 
 
     ######### testing assert statements ####################
     expect_error(plotNorm(NULL),
-                  regexp = "DGEdata must be of either class 'matrix' or 'DGEobj'.")
+                 regexp = "DGEdata must be of either class 'matrix' or 'DGEobj'.")
     expect_error(plotNorm(t_obj1, plotCategory = "heatmap"),
-                  regexp = "plotCategory must be one of 'box' or 'density'.")
+                 regexp = "plotCategory must be one of 'box' or 'density'.")
     expect_error(plotNorm(t_obj1, normalize = "xyz"),
-                  regexp = "normalize must be one of 'TMM', 'RLE', 'upperquartile', or 'none'.")
+                 regexp = "normalize must be one of 'TMM', 'RLE', 'upperquartile', or 'none'.")
     expect_error(plotNorm(t_obj1, plotType = "myplot"),
                  regexp = "plotType must be either ggplot or canvasXpress.")
 })

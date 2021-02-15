@@ -34,7 +34,6 @@ plotNorm <- function(DGEdata,
                      plotType = "canvasXpress",
                      plotCategory = "box",
                      normalize = "tmm") {
-
     assertthat::assert_that(any(c("matrix", "DGEobj") %in% class(DGEdata)),
                             msg = "DGEdata must be of either class 'matrix' or 'DGEobj'.")
     assertthat::assert_that(plotType %in% c("canvasXpress", "ggplot"),
@@ -135,18 +134,21 @@ build_cx_density_plot <- function(data, title) {
     xlab <- "Log2CPM"
     ylab <- "density"
     events <- JS(
-        "{ 'mousemove' : function(o, e, t) {
-                           if (o != null && o != false) {
-                             if (o.objectType == 'Density' &&
-                                o.display != null &&
-                                o.display.indexOf('-') > -1) {
-                                sampleID = o.display.split('-')[2];
-                                t.showInfoSpan(e,
-                                '<b>Sample ID</b>: ' + sampleID );
-                             } else {
-                               t.showInfoSpan(e, o.display);
-                             };
-                          }; }}")
+        "{'mousemove' :
+            function(o, e, t) {
+                if (o != null && o != false) {
+                    if (o.objectType == 'Density' &&
+                        o.display != null &&
+                        o.display.indexOf('-') > -1) {
+                        sampleID = o.display.split('-')[2];
+                        t.showInfoSpan(e, '<b>Sample ID</b>: ' + sampleID);
+                    } else {
+                        t.showInfoSpan(e, o.display);
+                    };
+                };
+           }
+        }"
+    )
     resultPlot <- canvasXpress(data                    = cx.data[,-c(1, 2)],
                                              varAnnot                = cx.data[, c(1, 2)],
                                              histogramData           = TRUE,
