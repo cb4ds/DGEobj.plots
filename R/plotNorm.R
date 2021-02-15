@@ -100,7 +100,7 @@ plotNorm <- function(DGEdata,
     return(resultPlot)
 }
 
-build_cx_density_data <- function(data) {
+build_cx_data <- function(data) {
     cx.data <- data.frame()
     for (sample in levels(as.factor(data$SampleID))) {
         if (nrow(cx.data) == 0) {
@@ -130,7 +130,7 @@ select_sample <- function(data, sampleID, select_all = FALSE) {
 }
 
 build_cx_density_plot <- function(data, title) {
-    cx.data <- build_cx_density_data(data)
+    cx.data <- build_cx_data(data)
     xlab <- "Log2CPM"
     ylab <- "density"
     events <- JS(
@@ -150,8 +150,8 @@ build_cx_density_plot <- function(data, title) {
         }"
     )
     resultPlot <- canvasXpress(
-        data                    = cx.data[, -c(1, 2)],
-        varAnnot                = cx.data[, c(1, 2)],
+        data                    = subset(cx.data, select = -c(GeneID, Normalization)),
+        varAnnot                = cx.data[, c("GeneID", "Normalization")],
         histogramData           = TRUE,
         graphType               = "Scatter2D",
         xAxisTitle              = xlab,
@@ -168,13 +168,13 @@ build_cx_density_plot <- function(data, title) {
 }
 
 build_cx_box_plot <- function(data, title) {
-    cx.data <- build_cx_density_data(data)
+    cx.data <- build_cx_data(data)
     xlab <- "Log2CPM"
     ylab <- "SampleID"
-    y <- as.data.frame(t(cx.data[,-c(1, 2)]))
+    y <- as.data.frame(t(subset(cx.data, select = -c(GeneID, Normalization))))
     resultPlot <- canvasXpress(
         data                    = y,
-        smpAnnot                = cx.data[, c(1, 2)],
+        smpAnnot                = cx.data[, c("GeneID", "Normalization")],
         graphType               = "Boxplot",
         title                   = title,
         showLegend              = FALSE,
