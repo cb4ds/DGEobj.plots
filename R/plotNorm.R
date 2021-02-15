@@ -149,19 +149,21 @@ build_cx_density_plot <- function(data, title) {
            }
         }"
     )
-    resultPlot <- canvasXpress(data                    = cx.data[,-c(1, 2)],
-                                             varAnnot                = cx.data[, c(1, 2)],
-                                             histogramData           = TRUE,
-                                             graphType               = "Scatter2D",
-                                             xAxisTitle              = xlab,
-                                             yAxisTitle              = ylab,
-                                             hideHistogram           = TRUE,
-                                             showHistogramDensity    = TRUE,
-                                             segregateVariablesBy    = list("Normalization"),
-                                             title                   = title,
-                                             showLegend              = FALSE,
-                                             colorScheme             = "GGPlot",
-                                             events                  = events)
+    resultPlot <- canvasXpress(
+        data                    = cx.data[, -c(1, 2)],
+        varAnnot                = cx.data[, c(1, 2)],
+        histogramData           = TRUE,
+        graphType               = "Scatter2D",
+        xAxisTitle              = xlab,
+        yAxisTitle              = ylab,
+        hideHistogram           = TRUE,
+        showHistogramDensity    = TRUE,
+        segregateVariablesBy    = list("Normalization"),
+        title                   = title,
+        showLegend              = FALSE,
+        colorScheme             = "GGPlot",
+        events                  = events
+    )
     return(resultPlot)
 }
 
@@ -170,29 +172,19 @@ build_cx_box_plot <- function(data, title) {
     xlab <- "Log2CPM"
     ylab <- "SampleID"
     y <- as.data.frame(t(cx.data[,-c(1, 2)]))
-    # events <- JS("{ 'mousemove' : function(o, e, t) {
-    #                                             if (o != null &&
-    #                                                 o != false &&
-    #                                                 o.w != null &&
-    #                                                 o.w.vars != null) {
-    #                                                 console.log(o);
-    #                                                 t.showInfoSpan(e,
-    #                                                     '<b>Sample ID</b>: ' + o.w.vars[0] );
-    #
-    #                                             } else {
-    #                                                     t.showInfoSpan(e, o.display);
-    #                                                 }; }}")
-    resultPlot <- canvasXpress(data                    = y,
-                                             smpAnnot                = cx.data[, c(1, 2)],
-                                             graphType               = "Boxplot",
-                                             title                   = title,
-                                             showLegend              = FALSE,
-                                             xAxisTitle              = xlab,
-                                             yAxisTitle              = ylab,
-                                             segregateSamplesBy      = list("Normalization"),
-                                             groupingFactors         = list("Normalization"),
-                                             graphOrientation        = "vertical",
-                                             colorScheme             = "GGPlot")
+    resultPlot <- canvasXpress(
+        data                    = y,
+        smpAnnot                = cx.data[, c(1, 2)],
+        graphType               = "Boxplot",
+        title                   = title,
+        showLegend              = FALSE,
+        xAxisTitle              = xlab,
+        yAxisTitle              = ylab,
+        segregateSamplesBy      = list("Normalization"),
+        groupingFactors         = list("Normalization"),
+        graphOrientation        = "vertical",
+        colorScheme             = "GGPlot"
+    )
     return(resultPlot)
 }
 
