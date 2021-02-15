@@ -183,6 +183,7 @@ build_cx_box_plot <- function(data, title) {
         segregateSamplesBy      = list("Normalization"),
         groupingFactors         = list("Normalization"),
         graphOrientation        = "vertical",
+        boxplotOutliersRatio    = "2",
         colorScheme             = "ColorScpectrum"
     )
     return(resultPlot)
