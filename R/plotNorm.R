@@ -37,7 +37,7 @@ plotNorm <- function(DGEdata,
 
     assertthat::assert_that(any(c("matrix", "DGEobj") %in% class(DGEdata)),
                             msg = "DGEdata must be of either class 'matrix' or 'DGEobj'.")
-    assertthat::assert_that(plotType %in% c("ggplot", "canvasXpress"),
+    assertthat::assert_that(plotType %in% c("canvasXpress", "ggplot"),
                             msg = "plotType must be either ggplot or canvasXpress.")
     assertthat::assert_that(tolower(plotCategory) %in% c("box", "density"),
                             msg = "plotCategory must be one of 'box' or 'density'.")
