@@ -84,15 +84,15 @@ plotNorm <- function(DGEdata,
         rbind(tall_tmm)
     title <- stringr::str_c("Log2CPM before/after", normalize, "normalization", sep = " ")
 
-    if (tolower(plotCategory) == "density") {
-        if (plotType == "canvasXpress") {
-            resultPlot <- build_cx_density_plot(tall, title)
+    if (tolower(plotType) == "canvasxpress") {
+        if (tolower(plotCategory) == "box") {
+            resultPlot <- build_cx_box_plot(tall, title)
         } else {
-            resultPlot <- build_gg_density_plot(tall, title)
+            resultPlot <- build_cx_density_plot(tall, title)
         }
     } else {
-        if (plotType == "canvasXpress") {
-            resultPlot <- build_cx_box_plot(tall, title)
+        if (tolower(plotCategory) == "density") {
+            resultPlot <- build_gg_density_plot(tall, title)
         } else {
             resultPlot <- build_gg_box_plot(tall, title)
         }
