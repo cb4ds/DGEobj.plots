@@ -161,7 +161,7 @@ build_cx_density_plot <- function(data, title) {
         segregateVariablesBy    = list("Normalization"),
         title                   = title,
         showLegend              = FALSE,
-        colorScheme             = "GGPlot",
+        colorScheme             = "ColorScpectrum",
         events                  = events
     )
     return(resultPlot)
@@ -183,7 +183,7 @@ build_cx_box_plot <- function(data, title) {
         segregateSamplesBy      = list("Normalization"),
         groupingFactors         = list("Normalization"),
         graphOrientation        = "vertical",
-        colorScheme             = "GGPlot"
+        colorScheme             = "ColorScpectrum"
     )
     return(resultPlot)
 }
