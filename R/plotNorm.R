@@ -26,6 +26,8 @@
 #' @importFrom stringr str_c
 #' @importFrom DGEobj getItem
 #' @importFrom assertthat assert_that
+#' @importFrom canvasXpress canvasXpress
+#' @importFrom htmlswidgets JS
 #'
 #' @export
 plotNorm <- function(DGEdata,
@@ -132,7 +134,7 @@ build_cx_density_plot <- function(data, title) {
     cx.data <- build_cx_density_data(data)
     xlab <- "Log2CPM"
     ylab <- "density"
-    events <- htmlwidgets::JS(
+    events <- JS(
         "{ 'mousemove' : function(o, e, t) {
                            if (o != null && o != false) {
                              if (o.objectType == 'Density' &&
@@ -145,7 +147,7 @@ build_cx_density_plot <- function(data, title) {
                                t.showInfoSpan(e, o.display);
                              };
                           }; }}")
-    resultPlot <- canvasXpress::canvasXpress(data                    = cx.data[,-c(1, 2)],
+    resultPlot <- canvasXpress(data                    = cx.data[,-c(1, 2)],
                                              varAnnot                = cx.data[, c(1, 2)],
                                              histogramData           = TRUE,
                                              graphType               = "Scatter2D",
@@ -166,7 +168,7 @@ build_cx_box_plot <- function(data, title) {
     xlab <- "Log2CPM"
     ylab <- "SampleID"
     y <- as.data.frame(t(cx.data[,-c(1, 2)]))
-    # events <- htmlwidgets::JS("{ 'mousemove' : function(o, e, t) {
+    # events <- JS("{ 'mousemove' : function(o, e, t) {
     #                                             if (o != null &&
     #                                                 o != false &&
     #                                                 o.w != null &&
@@ -178,7 +180,7 @@ build_cx_box_plot <- function(data, title) {
     #                                             } else {
     #                                                     t.showInfoSpan(e, o.display);
     #                                                 }; }}")
-    resultPlot <- canvasXpress::canvasXpress(data                    = y,
+    resultPlot <- canvasXpress(data                    = y,
                                              smpAnnot                = cx.data[, c(1, 2)],
                                              graphType               = "Boxplot",
                                              title                   = title,
