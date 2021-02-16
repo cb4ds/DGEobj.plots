@@ -50,5 +50,5 @@ test_that("plotNorm.R: plotNorm()", {
     expect_error(plotNorm(t_obj1, normalize = "xyz"),
                  regexp = "normalize must be one of 'TMM', 'RLE', 'upperquartile', or 'none'.")
     expect_error(plotNorm(t_obj1, plotType = "myplot"),
-                 regexp = "plotType must be either ggplot or canvasXpress.")
+                 regexp = "plotType must be either canvasXpress or ggplot.")
 })

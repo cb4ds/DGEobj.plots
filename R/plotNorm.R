@@ -34,12 +34,13 @@ plotNorm <- function(DGEdata,
                      plotType = "canvasXpress",
                      plotCategory = "box",
                      normalize = "tmm") {
+    plotType     <- tolower(plotType)
     plotCategory <- tolower(plotCategory)
-    normalize <- tolower(normalize)
+    normalize    <- tolower(normalize)
     assertthat::assert_that(any(c("matrix", "DGEobj") %in% class(DGEdata)),
                             msg = "DGEdata must be of either class 'matrix' or 'DGEobj'.")
-    assertthat::assert_that(plotType %in% c("canvasXpress", "ggplot"),
-                            msg = "plotType must be either ggplot or canvasXpress.")
+    assertthat::assert_that(plotType %in% c("canvasxpress", "ggplot"),
+                            msg = "plotType must be either canvasXpress or ggplot.")
     assertthat::assert_that(plotCategory %in% c("box", "density"),
                             msg = "plotCategory must be one of 'box' or 'density'.")
     assertthat::assert_that(normalize %in% c("tmm", "rle", "upperquartile", "none"),
@@ -168,13 +169,13 @@ build_cx_density_plot <- function(data, title) {
 }
 
 build_cx_box_plot <- function(data, title) {
-    cx.data <- build_cx_data(data)
-    xlab    <- "Log2CPM"
-    ylab    <- "SampleID"
-    y       <- as.data.frame(t(subset(cx.data, select = -c(GeneID, Normalization))))
+    smp.data <- build_cx_data(data)
+    xlab     <- "Log2CPM"
+    ylab     <- "SampleID"
+    cx.data  <- as.data.frame(t(subset(smp.data, select = -c(GeneID, Normalization))))
     resultPlot <- canvasXpress(
-        data                    = y,
-        smpAnnot                = cx.data[, c("GeneID", "Normalization")],
+        data                    = cx.data,
+        smpAnnot                = smp.data[, c("GeneID", "Normalization")],
         graphType               = "Boxplot",
         title                   = title,
         showLegend              = FALSE,
