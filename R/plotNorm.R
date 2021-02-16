@@ -34,13 +34,15 @@ plotNorm <- function(DGEdata,
                      plotType = "canvasXpress",
                      plotCategory = "box",
                      normalize = "tmm") {
+    plotCategory <- tolower(plotCategory)
+    normalize <- tolower(normalize)
     assertthat::assert_that(any(c("matrix", "DGEobj") %in% class(DGEdata)),
                             msg = "DGEdata must be of either class 'matrix' or 'DGEobj'.")
     assertthat::assert_that(plotType %in% c("canvasXpress", "ggplot"),
                             msg = "plotType must be either ggplot or canvasXpress.")
-    assertthat::assert_that(tolower(plotCategory) %in% c("box", "density"),
+    assertthat::assert_that(plotCategory %in% c("box", "density"),
                             msg = "plotCategory must be one of 'box' or 'density'.")
-    assertthat::assert_that(tolower(normalize) %in% c("tmm", "rle", "upperquartile", "none"),
+    assertthat::assert_that(normalize %in% c("tmm", "rle", "upperquartile", "none"),
                             msg = "normalize must be one of 'TMM', 'RLE', 'upperquartile', or 'none'.")
 
     if ("matrix" %in% class(DGEdata)) {
@@ -83,14 +85,14 @@ plotNorm <- function(DGEdata,
         rbind(tall_tmm)
     title <- stringr::str_c("Log2CPM before/after", normalize, "normalization", sep = " ")
 
-    if (tolower(plotType) == "canvasxpress") {
-        if (tolower(plotCategory) == "box") {
+    if (plotType == "canvasxpress") {
+        if (plotCategory == "box") {
             resultPlot <- build_cx_box_plot(tall, title)
         } else {
             resultPlot <- build_cx_density_plot(tall, title)
         }
     } else {
-        if (tolower(plotCategory) == "density") {
+        if (plotCategory == "density") {
             resultPlot <- build_gg_density_plot(tall, title)
         } else {
             resultPlot <- build_gg_box_plot(tall, title)
