@@ -59,14 +59,16 @@ plotNorm <- function(DGEdata,
     log2cpm_colnames <- colnames(log2cpm)
     tall <- data.frame("GeneID" = row.names(log2cpm), log2cpm, row.names = NULL)
 
-    tall <-  stats::reshape(data          = tall,
-                            idvar         = "GeneID",
-                            varying       = log2cpm_colnames,
-                            v.names       = "Log2CPM",
-                            direction     = "long",
-                            timevar       = "SampleID",
-                            times         = log2cpm_colnames,
-                            new.row.names = sequence(prod(length(log2cpm_colnames), nrow(tall))))
+    tall <- stats::reshape(
+        data          = tall,
+        idvar         = "GeneID",
+        varying       = log2cpm_colnames,
+        v.names       = "Log2CPM",
+        direction     = "long",
+        timevar       = "SampleID",
+        times         = log2cpm_colnames,
+        new.row.names = sequence(prod(length(log2cpm_colnames), nrow(tall)))
+    )
     tall$Normalization = "none"
 
     log2cpm_tmm_colnames <- colnames(log2CPM_tmm)
@@ -108,8 +110,7 @@ build_cx_data <- function(data) {
         if (nrow(cx.data) == 0) {
             cx.data <- select_sample(data, sample, TRUE)
         } else {
-            cx.data <-
-                cbind(cx.data, select_sample(data, sample))
+            cx.data <- cbind(cx.data, select_sample(data, sample))
         }
 
     }
@@ -118,13 +119,11 @@ build_cx_data <- function(data) {
 
 select_sample <- function(data, sampleID, select_all = FALSE) {
     if (select_all) {
-        sample <-
-            subset(data, SampleID == sampleID,
-                   select = c("GeneID", "Normalization", "Log2CPM"))
+        sample <- subset(data, SampleID == sampleID,
+                         select = c("GeneID", "Normalization", "Log2CPM"))
         colnames(sample)[3] = sampleID
     } else {
-        sample <-
-            subset(data, SampleID == sampleID, select = c("Log2CPM"))
+        sample <- subset(data, SampleID == sampleID, select = c("Log2CPM"))
         colnames(sample)[1] = sampleID
     }
 
@@ -136,19 +135,18 @@ build_cx_density_plot <- function(data, title) {
     xlab <- "Log2CPM"
     ylab <- "density"
     events <- JS(
-        "{'mousemove' :
-            function(o, e, t) {
-                if (o != null && o != false) {
-                    if (o.objectType == 'Density' &&
-                        o.display != null &&
-                        o.display.indexOf('-') > -1) {
-                        sampleID = o.display.split('-')[2];
-                        t.showInfoSpan(e, '<b>Sample ID</b>: ' + sampleID);
-                    } else {
-                        t.showInfoSpan(e, o.display);
-                    };
-                };
-           }
+        "{'mousemove' : function(o, e, t) {
+                            if (o != null && o != false) {
+                                if (o.objectType == 'Density' &&
+                                    o.display != null &&
+                                    o.display.indexOf('-') > -1) {
+                                    sampleID = o.display.split('-')[2];
+                                    t.showInfoSpan(e, '<b>Sample ID</b>: ' + sampleID);
+                                } else {
+                                    t.showInfoSpan(e, o.display);
+                                };
+                            };
+                        }
         }"
     )
     resultPlot <- canvasXpress(
@@ -171,9 +169,9 @@ build_cx_density_plot <- function(data, title) {
 
 build_cx_box_plot <- function(data, title) {
     cx.data <- build_cx_data(data)
-    xlab <- "Log2CPM"
-    ylab <- "SampleID"
-    y <- as.data.frame(t(subset(cx.data, select = -c(GeneID, Normalization))))
+    xlab    <- "Log2CPM"
+    ylab    <- "SampleID"
+    y       <- as.data.frame(t(subset(cx.data, select = -c(GeneID, Normalization))))
     resultPlot <- canvasXpress(
         data                    = y,
         smpAnnot                = cx.data[, c("GeneID", "Normalization")],
