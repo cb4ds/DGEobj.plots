@@ -19,6 +19,16 @@ test_that("plotNorm.R: plotNorm()", {
     norm_plot <- plotNorm(t_obj1, plotType = "ggplot")
     expect_s3_class(norm_plot, c("gg", "ggplot"))
 
+    # testing with different normalization methods
+    norm_plot <- plotNorm(t_obj1$counts, normalize = "RLE")
+    expect_s3_class(norm_plot, c("canvasXpress", "htmlwidget"))
+
+    norm_plot <- plotNorm(t_obj1$counts, normalize = "upperquartile")
+    expect_s3_class(norm_plot, c("canvasXpress", "htmlwidget"))
+
+    norm_plot <- plotNorm(t_obj1$counts, normalize = "none")
+    expect_s3_class(norm_plot, c("canvasXpress", "htmlwidget"))
+
     ######### density test####################
     # testing with DGEobj count matrix and plotType cx - plotCategory density
     norm_plot <- plotNorm(t_obj1$counts,  plotCategory = "density")
@@ -40,7 +50,15 @@ test_that("plotNorm.R: plotNorm()", {
         plotNorm(t_obj1, plotType = "ggplot",  plotCategory = "density")
     expect_s3_class(norm_plot, c("gg", "ggplot"))
 
+    # testing with different normalization methods
+    norm_plot <- plotNorm(t_obj1$counts,  plotCategory = "density", normalize = "RLE")
+    expect_s3_class(norm_plot, c("canvasXpress", "htmlwidget"))
 
+    norm_plot <- plotNorm(t_obj1$counts,  plotCategory = "density", normalize = "upperquartile")
+    expect_s3_class(norm_plot, c("canvasXpress", "htmlwidget"))
+
+    norm_plot <- plotNorm(t_obj1$counts,  plotCategory = "density", normalize = "none")
+    expect_s3_class(norm_plot, c("canvasXpress", "htmlwidget"))
 
     ######### testing assert statements ####################
     expect_error(plotNorm(NULL),
