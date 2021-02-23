@@ -76,7 +76,6 @@
 #' @param footnote Optional string placed right justified at bottom of plot.
 #' @param footnoteSize Applies to footnote. (Default = 3)
 #' @param footnoteColor Applies to footnote. (Default = "black")
-#' @param footnoteJust Value 0-1. 0 is left justified, 1 is right justified, 0.5 is centered. (Default = 1)
 #'
 #' @return canvasxpress or ggplot object based on plotType selection
 #'
@@ -114,7 +113,7 @@ profilePlot <- function(contrastDF,
                         geneSymLabels,
                         geneSymCol,
                         xlab = NULL, ylab = NULL, title = NULL,
-                        symbolSize = c(4, 1, 4),
+                        symbolSize = c(10, 10, 4),
                         symbolShape = c(21, 20, 21),
                         symbolColor = c("black", "grey0", "grey25"),
                         symbolFill = c("red3", "deepskyblue4", "grey25"),
@@ -128,8 +127,7 @@ profilePlot <- function(contrastDF,
                         legendPosition = "right",
                         footnote,
                         footnoteSize = 3,
-                        footnoteColor = "black",
-                        footnoteJust = 1) {
+                        footnoteColor = "black") {
 
     # Make sure specified columns exist
     assertthat::assert_that(logRatioCol %in% colnames(contrastDF),
@@ -144,13 +142,12 @@ profilePlot <- function(contrastDF,
         assertthat::assert_that(geneSymCol %in% colnames(contrastDF),
                                 msg = "geneSymCol column not found in contrastDF.")
     }
-    if (!missing(symbolSize) || !missing(symbolShape) || !missing(symbolColor) || !missing(symbolFill)) {
-        assertthat::assert_that(!length(symbolSize) == 3,
-                                !length(symbolShape) == 3,
-                                !length(symbolColor) == 3,
-                                !length(symbolFill) == 3,
-                                msg = "All specified symbol arguments must be of length 3, including symbolSize, symbolShape, symbolColor, and symbolFill.")
-    }
+    assertthat::assert_that(length(symbolSize) == 3,
+                            length(symbolShape) == 3,
+                            length(symbolColor) == 3,
+                            length(symbolFill) == 3,
+                            msg = paste0("All specified symbol arguments must be of length 3, ",
+                                         "including symbolSize, symbolShape, symbolColor, and symbolFill."))
 
     groupNames <- c("Increased", "Decreased", "No Change")
 
@@ -167,41 +164,38 @@ profilePlot <- function(contrastDF,
         title <- ""
     }
 
-    x <- make.names(colnames(contrastDF)[colnames(contrastDF) == logIntCol])
-    y <- make.names(colnames(contrastDF)[colnames(contrastDF) == logRatioCol])
-    colnames(contrastDF)[colnames(contrastDF) == logIntCol] <- make.names(colnames(contrastDF)[colnames(contrastDF) == logIntCol])
-    colnames(contrastDF)[colnames(contrastDF) == logRatioCol] <- make.names(colnames(contrastDF)[colnames(contrastDF) == logRatioCol])
+    xlabel <- make.names(logIntCol)
+    ylabel <- make.names(logRatioCol)
+    colnames(contrastDF)[colnames(contrastDF) %in% logIntCol] <- xlabel
+    colnames(contrastDF)[colnames(contrastDF) %in% logRatioCol] <- ylabel
 
     # Need a NLP column for sizing
-    contrastDF$negLog10P <- -log10(contrastDF[[pvalCol]])
+    contrastDF$negLog10P <- -log10(subset(contrastDF, select = pvalCol, drop = TRUE))
 
     contrastDF$group <- NA
-    contrastDF$group <- ifelse(contrastDF[[pvalCol]] <= pthreshold,
-                               ifelse(contrastDF[[logRatioCol]] >= 0, "Increased", "Decreased"),
-                               "No Change")
-    contrastDF$group <- contrastDF$group %>%
-        factor(levels = groupNames)
+    pvalCol_boolean_vec <- subset(contrastDF, select = pvalCol, drop = TRUE) <= pthreshold
+    logRatio_boolean_vec <- subset(contrastDF, select = logRatioCol, drop = TRUE) >= 0
 
+    contrastDF$group <- ifelse(pvalCol_boolean_vec,
+                               ifelse(logRatio_boolean_vec, "Increased", "Decreased"),
+                               "No Change")
+    contrastDF$group <- factor(contrastDF$group, levels = groupNames)
     # Set an order field to force plotting of NoChange first
     contrastDF$order <- 0
     contrastDF$order[contrastDF$group %in% c("Increased", "Decreased")] <- 1
 
     # plotType
     if (plotType == "canvasXpress") {
-        symbolFill[1] <- paste(c("rgba(", paste(c(paste(col2rgb(symbolFill[1], alpha = FALSE), collapse = ","), 0.5), collapse = ","), ")"), collapse = "")
-        symbolFill[2] <- paste(c("rgba(", paste(c(paste(col2rgb(symbolFill[2], alpha = FALSE), collapse = ","), 0.5), collapse = ","), ")"), collapse = "")
-        symbolFill[3] <- paste(c("rgba(", paste(c(paste(col2rgb(symbolFill[3], alpha = FALSE), collapse = ","), 0.5), collapse = ","), ")"), collapse = "")
+        symbolFill <- sapply(symbolFill, rgbaConversion, alpha = alpha, USE.NAMES = FALSE)
+        cx.data <- subset(contrastDF, select = c(xlabel, ylabel))
 
-        ## Create the canvasXpress df and var annotation
-        cx.data <- data.frame(a = contrastDF[colnames(contrastDF) == x],
-                              b = contrastDF[colnames(contrastDF) == y])
-        colnames(cx.data) <- c(x, y)
-        var.annot <- data.frame(Group = contrastDF$group, nLog10pVal = contrastDF$negLog10P)
-        rownames(var.annot) <- rownames(cx.data)
+        var.annot <- subset(contrastDF, select = c(group, negLog10P))
+        colnames(var.annot) <- c("Group", "nLog10pVal")
         events <- NULL
 
         if (!missing(geneSymCol)) {
-            var.annot <- cbind(var.annot, GeneLabel = contrastDF[[geneSymCol]])
+            var.annot <- subset(contrastDF, select = c(group, negLog10P, geneSymCol))
+            colnames(var.annot) <- c("Group", "nLog10pVal", "GeneLabel")
             events <- htmlwidgets::JS("{ 'mousemove' : function(o, e, t) {
                                                 if (o != null && o != false) {
                                                     if (o.objectType == null) {
@@ -216,7 +210,7 @@ profilePlot <- function(contrastDF,
         }
 
         # Optional Decorations
-        sizeBy <- NULL
+        sizeBy <- "Group"
         sizeByShowLegend <- FALSE
         decorations <- list()
 
@@ -226,26 +220,29 @@ profilePlot <- function(contrastDF,
         }
 
         if (!is.null(referenceLine)) {
-            referenceLine <- paste(c("rgba(", paste(c(paste(col2rgb(referenceLine, alpha = FALSE), collapse = ","), 0.5), collapse = ","), ")"), collapse = "")
-            decorations <- list(line = list(list(color = referenceLine, width = refLineThickness, y = 0)))
+            referenceLine <- rgbaConversion(referenceLine, alpha = alpha)
+            decorations <- getCxPlotDecorations(decorations = decorations,
+                                                color = referenceLine,
+                                                width = refLineThickness,
+                                                y     = 0)
         }
 
         if (!is.null(foldChangeLines)) {
-            decorations <- list(line = append(decorations$line, list(list(color = symbolFill[which(groupNames == "Increased")],
-                                                                          width = refLineThickness,
-                                                                          y     = foldChangeLines),
-                                                                     list(color = symbolFill[which(groupNames == "Decreased")],
-                                                                          width = refLineThickness,
-                                                                          y     = -foldChangeLines)
-
-            )))
+            decorations <- getCxPlotDecorations(decorations = decorations,
+                                                color       = symbolFill[which(groupNames == "Increased")],
+                                                width       = refLineThickness,
+                                                y           = foldChangeLines)
+            decorations <- getCxPlotDecorations(decorations = decorations,
+                                                color       = symbolFill[which(groupNames == "Decreased")],
+                                                width       = refLineThickness,
+                                                y           = -1*foldChangeLines)
         }
 
         showLoessFit <- FALSE
         afterRender <- NULL
         if (!is.null(lineFitType)) {
             lineFitType <- cxSupportedLineFit(lineFitType)
-            lineFitColor <- paste(c("rgba(", paste(c(paste(col2rgb(lineFitColor, alpha = FALSE), collapse = ","), 0.5), collapse = ","), ")"), collapse = "")
+            lineFitColor <- rgbaConversion(lineFitColor, alpha = alpha)
 
             if (lineFitType == "lm") {
                 afterRender <- list(list("addRegressionLine"))
@@ -270,7 +267,7 @@ profilePlot <- function(contrastDF,
                                                   showDecorations         = TRUE,
                                                   showLoessFit            = showLoessFit,
                                                   fitLineColor            = lineFitColor,
-                                                  sizes                   = c(4, 10, 12, 14, 16, 18, 20, 22, 24, 26),
+                                                  sizes                   = symbolSize,
                                                   sizeByShowLegend        = sizeByShowLegend,
                                                   title                   = title,
                                                   xAxisTitle              = xlab,
@@ -290,18 +287,14 @@ profilePlot <- function(contrastDF,
         names(symbolColor) = groupNames
         names(symbolFill)  = groupNames
 
-        ssc = data.frame(group = groupNames,
-                         symbolShape = symbolShape,
-                         symbolSize = symbolSize,
-                         symbolColor = symbolColor,
-                         symbolFill = symbolFill,
-                         stringsAsFactors = FALSE)
+        ssc <- data.frame(group = factor(groupNames, levels = groupNames),
+                          symbolShape = symbolShape,
+                          symbolSize = symbolSize,
+                          symbolColor = symbolColor,
+                          symbolFill = symbolFill,
+                          stringsAsFactors = FALSE)
 
-
-        contrastDF <- contrastDF %>%
-            dplyr::left_join(ssc)
-
-        profilePlot <- ggplot(contrastDF, aes_string(x = x, y = y)) +
+        profilePlot <- ggplot(contrastDF, aes_string(x = xlabel, y = ylabel)) +
             aes(shape = group,
                 size = group,
                 color = group,
@@ -365,7 +358,6 @@ profilePlot <- function(contrastDF,
                                 show.legend = FALSE)
         }
 
-
         if (!is.null(title)) {
             profilePlot <- profilePlot +
                 ggtitle(title)
@@ -376,8 +368,7 @@ profilePlot <- function(contrastDF,
             profilePlot <- addFootnote(profilePlot,
                                        footnoteText = footnote,
                                        footnoteSize = footnoteSize,
-                                       footnoteColor = footnoteColor,
-                                       footnoteJust = footnoteJust)
+                                       footnoteColor = footnoteColor)
         }
 
         profilePlot <- setLegendPosition(profilePlot, legendPosition)
