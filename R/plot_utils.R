@@ -149,21 +149,6 @@ addFootnote <- function(my.ggp,
                  vjust = 1)
 }
 
-cxSupportedLineFit <- function(linefit) {
-    if (!(linefit %in% c("lm", "loess"))) {
-        if (linefit == "glm") {
-            linefit <- "lm"
-        } else if (linefit == "gam") {
-            linefit <- "loess"
-        }
-        else
-            linefit <- NULL
-        warning("Model type is not supported for canvasXpress charts and ", linefit," is being used")
-    }
-
-    return(linefit)
-}
-
 rgbaConversion <- function(color, alpha = 0.5){
     rgbaVal <- paste(c(col2rgb(color), alpha), collapse = ",")
     rgbaStr <- paste0("rgba(", rgbaVal, ")")
