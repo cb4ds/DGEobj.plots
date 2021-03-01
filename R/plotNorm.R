@@ -78,32 +78,6 @@ plotNorm <- function(DGEdata,
     }
 }
 
-build_cx_data <- function(data) {
-    cx.data <- data.frame()
-    for (sample in levels(as.factor(data$SampleID))) {
-        if (nrow(cx.data) == 0) {
-            cx.data <- select_sample(data, sample, TRUE)
-        } else {
-            cx.data <- cbind(cx.data, select_sample(data, sample))
-        }
-
-    }
-    return(cx.data)
-}
-
-select_sample <- function(data, sampleID, select_all = FALSE) {
-    if (select_all) {
-        sample <- subset(data, SampleID == sampleID,
-                         select = c("GeneID", "Normalization", "Log2CPM"))
-        colnames(sample)[3] = sampleID
-    } else {
-        sample <- subset(data, SampleID == sampleID, select = c("Log2CPM"))
-        colnames(sample)[1] = sampleID
-    }
-
-    return(sample)
-}
-
 build_cx_density_plot <- function(data, title) {
     plot.data <- data %>%
         spread(SampleID, Log2CPM)
@@ -129,7 +103,7 @@ build_cx_density_plot <- function(data, title) {
                         }
         }"
     )
-    resultPlot <- canvasXpress(
+    canvasXpress(
         data                    = cx.data,
         varAnnot                = var.annot,
         histogramData           = TRUE,
@@ -146,13 +120,22 @@ build_cx_density_plot <- function(data, title) {
 }
 
 build_cx_box_plot <- function(data, title) {
-    smp.data <- build_cx_data(data)
+    plot.data <- data %>%
+        spread(SampleID, Log2CPM)
+    cx.data <- plot.data %>%
+        select(!c(GeneID, Normalization)) %>%
+        t() %>%
+        as.data.frame()
+    smp.data <- plot.data %>%
+        select(c(GeneID, Normalization))
+    rownames(smp.data) <- colnames(cx.data)
+
     xlab     <- "Log2CPM"
     ylab     <- "SampleID"
-    cx.data  <- as.data.frame(t(subset(smp.data, select = -c(GeneID, Normalization))))
-    resultPlot <- canvasXpress(
+
+    canvasXpress(
         data                    = cx.data,
-        smpAnnot                = smp.data[, c("GeneID", "Normalization")],
+        smpAnnot                = smp.data,
         graphType               = "Boxplot",
         title                   = title,
         showLegend              = FALSE,
@@ -162,9 +145,7 @@ build_cx_box_plot <- function(data, title) {
         groupingFactors         = list("Normalization"),
         graphOrientation        = "vertical",
         boxplotOutliersRatio    = "2",
-        colorScheme             = "ColorScpectrum"
     )
-    return(resultPlot)
 }
 
 
