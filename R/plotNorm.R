@@ -28,7 +28,7 @@
 #' @importFrom DGEobj getItem
 #' @importFrom assertthat assert_that
 #' @importFrom canvasXpress canvasXpress
-#' @importFrom htmlswidgets JS
+#' @importFrom htmlwidgets JS
 #'
 #' @export
 plotNorm <- function(DGEdata,
