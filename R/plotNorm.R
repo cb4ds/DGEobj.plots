@@ -1,8 +1,9 @@
 #' Plot log2CPM before and after normalization
 #'
-#' Takes a DGEobj containing counts or a counts matrix as input. Returns a ggplot object containing
-#' a faceted plot of log2CPM before and after normalization. Either a box plot or density plot
-#' type can be chosen.
+#' Takes a DGEobj containing counts or a counts matrix as input. Returns a canvasXpress or ggplot
+#' object containing a faceted plot of log2CPM before and after normalization.
+#'
+#' Either a box plot or density plot category can be chosen.
 #'
 #' Normalization is performed by edgeR::calcNormFactors. Note TMM is specifically tailored to count-based
 #' data.  Thus this function is only appropriate for count-based data.
@@ -37,6 +38,7 @@ plotNorm <- function(DGEdata,
     plotType     <- tolower(plotType)
     plotCategory <- tolower(plotCategory)
     normalize    <- tolower(normalize)
+
     assertthat::assert_that(any(c("matrix", "DGEobj") %in% class(DGEdata)),
                             msg = "DGEdata must be of either class 'matrix' or 'DGEobj'.")
     assertthat::assert_that(plotType %in% c("canvasxpress", "ggplot"),
@@ -162,7 +164,6 @@ build_cx_density_plot <- function(data, title) {
         segregateVariablesBy    = list("Normalization"),
         title                   = title,
         showLegend              = FALSE,
-        colorScheme             = "ColorScpectrum",
         events                  = events
     )
     return(resultPlot)

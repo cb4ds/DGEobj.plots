@@ -35,10 +35,7 @@ test_that("plotNorm.R: plotNorm()", {
     expect_s3_class(norm_plot, c("canvasXpress", "htmlwidget"))
 
     # testing with DGEobj count matrix and plotType ggplot - plotCategory density
-    norm_plot <-
-        plotNorm(t_obj1$counts,
-                 plotType = "ggplot",
-                 plotCategory = "density")
+    norm_plot <- plotNorm(t_obj1$counts, plotType = "ggplot", plotCategory = "density")
     expect_s3_class(norm_plot, c("gg", "ggplot"))
 
     # testing with DGEobj object and plotType cx - plotCategory density
@@ -46,8 +43,7 @@ test_that("plotNorm.R: plotNorm()", {
     expect_s3_class(norm_plot, c("canvasXpress", "htmlwidget"))
 
     # testing with DGEobj object and plotType ggplot - plotCategory density
-    norm_plot <-
-        plotNorm(t_obj1, plotType = "ggplot",  plotCategory = "density")
+    norm_plot <- plotNorm(t_obj1, plotType = "ggplot",  plotCategory = "density")
     expect_s3_class(norm_plot, c("gg", "ggplot"))
 
     # testing with different normalization methods
