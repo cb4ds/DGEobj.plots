@@ -68,42 +68,29 @@ plotDispersion <- function(DGEdata,
     assertthat::assert_that(tolower(plotCategory) %in% c("dispersion", "bcv"),
                             msg = "Plot Category must  either be dispersion or BCV.")
 
-
-
-    if (!assertthat::see_if(is.numeric(symbolSize),
-                            length(symbolSize) == 1)) {
-        warning("symbolSize must be a singular numeric value. Assigning a default value of 3.")
-        symbolSize <- 3
-    }
-
-    if (!assertthat::see_if(is.character(symbolColor),
-                            length(symbolColor) == 1)) {
-        warning("symbolColor must be a singular value of class character and must specify the name of the color or the rgb value. Assigning default value 'deepblue'.")
-        symbolColor <- "deepblue"
-    }
-
-    if (!assertthat::see_if(is.character(symbolFill),
-                            length(symbolFill) == 1)) {
-        warning("symbolFill must be a singular value of class character and must specify the name of the color or the rgb value. Assigning default value 'deepblue'.")
-        symbolColor <- "deepblue"
-    }
-
-    if (!assertthat::see_if(is.numeric(symbolAlpha),
-                            length(symbolAlpha) == 1,
-                            symbolAlpha >= 0 & symbolAlpha <= 1)) {
-        warning("symbolAlpha must be a singular numeric value and must be between 0 and 1. Assigning default value 0.3.")
-        symbolAlpha <- 0.3
-    }
-
     if (!is.null(lineFit)) {
         if (!assertthat::see_if(is.character(linefitColor),
                                 length(linefitColor) == 1)) {
-            warning("linefitColor must be of class 'character' and must specify the name of the color or the rgb value. Assigning default value 'yellow'.")
+            warning("linefitColor must be a singular value of class 'character' and must specify the name of the color or the rgb value. Assigning default value 'yellow'.")
             linefitColor <- "yellow"
         }
     }
 
     if (tolower(plotType) == "canvasxpress") {
+
+        if (!assertthat::see_if(is.numeric(symbolSize),
+                                length(symbolSize) == 1,
+                                symbolSize > 0)) {
+            warning("symbolSize must be a singular numeric value. Assigning a default value of 3.")
+            symbolSize <- 3
+        }
+
+        if (!assertthat::see_if(is.character(symbolColor),
+                                length(symbolColor) == 1)) {
+            warning("symbolColor must be a singular value of class character and must specify the name of the color or the rgb value. Assigning default value 'deepblue'.")
+            symbolColor <- "deepblue"
+        }
+
         if (!assertthat::see_if(is.character(symbolShape),
                                 length(symbolShape) == 1)) {
             warning("symbolShape must be a singular value of class 'character'. Assigning default value = 'circle'")
@@ -117,16 +104,36 @@ plotDispersion <- function(DGEdata,
                 lineFit <- NULL
             }
 
-
             if (!assertthat::see_if(is.character(lineType),
                                     length(lineType) == 1)) {
-                warning("lineType must be a must be of class 'character'. Refer help section for the list of line types supported. Assigning default value 'solid'.")
+                warning("lineType must be a must be a singular value of class 'character'. Refer help section for the list of line types supported. Assigning default value 'solid'.")
                 lineType = "solid"
             }
         }
     }
 
     if (tolower(plotType) == "ggplot") {
+        if (!assertthat::see_if(is.numeric(symbolSize))) {
+            warning("symbolSize must be of class numeric. Assigning a default value of 3.")
+            symbolSize <- 3
+        }
+
+        if (!assertthat::see_if(is.character(symbolColor))) {
+            warning("symbolColor must be of class character and must specify the name of the color or the rgb value. Assigning default value 'deepblue'.")
+            symbolColor <- "deepblue"
+        }
+
+        if (!assertthat::see_if(is.character(symbolFill))) {
+            warning("symbolFill must be of class character and must specify the name of the color or the rgb value. Assigning default value 'deepblue'.")
+            symbolColor <- "deepblue"
+        }
+
+        if (!assertthat::see_if(is.numeric(symbolAlpha),
+                                symbolAlpha >= 0 & symbolAlpha <= 1)) {
+            warning("symbolAlpha must be a singular numeric value and must be between 0 and 1. Assigning default value 0.3.")
+            symbolAlpha <- 0.3
+        }
+
         if (!assertthat::see_if(class(symbolShape) %in% c("character", "numeric"),
                                 length(symbolShape) == 1)) {
             warning("symbolShape must be a singular numeric value between 0 and 25 or must be of class 'character'. Refer help section for the list of shapes supported. Assigning default value 'circle'.")
@@ -164,6 +171,7 @@ plotDispersion <- function(DGEdata,
         ylab  <- "BCV"
     }
     rownames(plotdata) <- rownames(dgelist$counts)
+    MyDispPlot <- NULL
 
     if (plotType == "canvasXpress") {
         showLoessFit <- FALSE
@@ -176,37 +184,47 @@ plotDispersion <- function(DGEdata,
             }
         }
 
-        MyDispPlot <- canvasXpress::canvasXpress(data                    = plotdata,
-                                                 graphType               = "Scatter2D",
-                                                 colors                  = symbolColor,
-                                                 dataPointSize           = symbolSize,
-                                                 shapes                  = symbolShape,
-                                                 title                   = title,
-                                                 yAxisTitle              = ylab,
-                                                 showLoessFit            = showLoessFit,
-                                                 fitLineColor            = linefitColor,
-                                                 fitLineStyle            = lineType,
-                                                 afterRender             = afterRender)
+        tryCatch({
+            MyDispPlot <- canvasXpress::canvasXpress(data                    = plotdata,
+                                                    graphType               = "Scatter2D",
+                                                    colors                  = symbolColor,
+                                                    dataPointSize           = symbolSize,
+                                                    shapes                  = symbolShape,
+                                                    title                   = title,
+                                                    yAxisTitle              = ylab,
+                                                    showLoessFit            = showLoessFit,
+                                                    fitLineColor            = linefitColor,
+                                                    fitLineStyle            = lineType,
+                                                    afterRender             = afterRender)
+        },
+        error = function(e) {
+            warning('Unable to render the canvasXpress plot:', e)
+        })
     } else {
-        MyDispPlot <- ggplot(plotdata, aes(x = AveLogCPM, y = Dispersion)) +
-            geom_point(size  = symbolSize,
-                       shape = symbolShape,
-                       fill  = symbolFill,
-                       color = symbolColor,
-                       alpha = symbolAlpha)
+        tryCatch({
+            MyDispPlot <- ggplot(plotdata, aes(x = AveLogCPM, y = Dispersion)) +
+                geom_point(size  = symbolSize,
+                           shape = symbolShape,
+                           fill  = symbolFill,
+                           color = symbolColor,
+                           alpha = symbolAlpha)
 
-        if (!is.null(lineFit)) {
+            if (!is.null(lineFit)) {
+                MyDispPlot <- MyDispPlot +
+                    geom_smooth(formula  = y ~ x,
+                                method   = lineFit,
+                                color    = linefitColor,
+                                linetype = lineType)
+            }
+
             MyDispPlot <- MyDispPlot +
-                geom_smooth(formula  = y ~ x,
-                            method   = lineFit,
-                            color    = linefitColor,
-                            linetype = lineType)
-        }
-
-        MyDispPlot <- MyDispPlot +
-            ylab(ylab) +
-            ggtitle(title) +
-            expand_limits(x = 0, y = 0)
+                ylab(ylab) +
+                ggtitle(title) +
+                expand_limits(x = 0, y = 0)
+        },
+        error = function(e) {
+            warning('Unable to render ggplot:', e)
+        })
     }
 
     return(MyDispPlot)
