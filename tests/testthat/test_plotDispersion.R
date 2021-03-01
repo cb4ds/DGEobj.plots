@@ -66,8 +66,8 @@ test_that("plotDispersion.R: plotDispersion()", {
     plot_disp <- plotDispersion(DGEdata      = dgelist,
                                 designMatrix = designMatrix,
                                 lineFit      = "loess",
-                                plotType     = "canvasXpress")
-    expect_s3_class(plot_disp, c("canvasXpress", "htmlwidget"))
+                                plotType     = "ggplot")
+    expect_s3_class(plot_disp, c("gg", "ggplot"))
 
 
     #Testing symbol parameters
@@ -159,17 +159,17 @@ test_that("plotDispersion.R: plotDispersion()", {
                                   designMatrix = designMatrix,
                                   symbolSize   = 'a',
                                   plotType     = "ggplot"),
-                   regex = "symbolSize must be a singular numeric value. Assigning a default value of 3.")
+                   regex = "symbolSize must be of class numeric. Assigning a default value of 3.")
     expect_warning(plotDispersion(DGEdata      = dgelist,
                                   designMatrix = designMatrix,
                                   symbolColor  = 1,
                                   plotType     = "ggplot"),
-                   regex = "symbolColor must be a singular value of class character and must specify the name of the color or the rgb value. Assigning default value 'deepblue'")
+                   regex = "symbolColor must be of class character and must specify the name of the color or the rgb value. Assigning default value 'deepblue'.")
     expect_warning(plotDispersion(DGEdata      = dgelist,
                                   designMatrix = designMatrix,
                                   lineFit      = "loess",
                                   lineType     = 4),
-                   regexp = "lineType must be a must be of class 'character'. Refer help section for the list of line types supported. Assigning default value 'solid'.")
+                   regexp = "lineType must be a must be a singular value of class 'character'. Refer help section for the list of line types supported. Assigning default value 'solid'.")
     expect_warning(plotDispersion(DGEdata      = dgelist,
                                   designMatrix = designMatrix,
                                   lineFit      = "loess",
@@ -186,11 +186,11 @@ test_that("plotDispersion.R: plotDispersion()", {
                                   lineFit      = "loess",
                                   linefitColor = 4,
                                   plotType     = "ggplot"),
-                   regexp = "linefitColor must be of class 'character' and must specify the name of the color or the rgb value. Assigning default value 'yellow'.")
+                   regexp = "linefitColor must be a singular value of class 'character' and must specify the name of the color or the rgb value. Assigning default value 'yellow'.")
     expect_warning(plotDispersion(DGEdata      = dgelist,
                                   designMatrix = designMatrix,
                                   lineFit      = "loess",
                                   linefitColor = c(2,3),
                                   plotType     = "ggplot"),
-                   regexp = "linefitColor must be of class 'character' and must specify the name of the color or the rgb value. Assigning default value 'yellow'.")
+                   regexp = "linefitColor must be a singular value of class 'character' and must specify the name of the color or the rgb value. Assigning default value 'yellow'.")
 })
