@@ -62,6 +62,7 @@ plotNorm <- function(DGEdata,
 
     title <- stringr::str_c("Log2CPM before/after", normalize, "normalization", sep = " ")
 
+    resultPlot <- NULL
     if (plotType == "canvasxpress") {
         if (plotCategory == "box") {
             resultPlot <- build_cx_box_plot(tall, title)
@@ -75,8 +76,6 @@ plotNorm <- function(DGEdata,
             resultPlot <- build_gg_box_plot(tall, title)
         }
     }
-
-    return(resultPlot)
 }
 
 build_cx_data <- function(data) {
