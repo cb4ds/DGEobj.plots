@@ -29,6 +29,9 @@
 #' @importFrom assertthat assert_that
 #' @importFrom canvasXpress canvasXpress
 #' @importFrom htmlwidgets JS
+#' @importFrom tibble rownames_to_column
+#' @importFrom tidyr gather
+#' @importFrom dplyr mutate as_tibble
 #'
 #' @export
 plotNorm <- function(DGEdata,
@@ -55,40 +58,29 @@ plotNorm <- function(DGEdata,
     }
 
     # build normalized data for comparison
-    log2cpm <- DGEobj.utils::convertCounts(counts, unit = "cpm", log = TRUE, normalize = "none") %>%
-        as.data.frame
+    tall <- DGEobj.utils::convertCounts(counts, unit = "cpm", log = TRUE, normalize = "none") %>%
+        as_tibble() %>%
+        rownames_to_column(var = "GeneID") %>%
+        gather(key = "SampleID", val = "Log2CPM", -GeneID) %>%
+        mutate(Normalization = "none")
+
     log2CPM_normalized <- DGEobj.utils::convertCounts(counts, unit = "cpm", log = TRUE, normalize = normalize) %>%
         as.data.frame
 
-    log2cpm_colnames <- colnames(log2cpm)
-    tall <- log2cpm %>% tibble::rownames_to_column(var = "GeneID")
-
-    tall <- stats::reshape(
-        data          = tall,
-        idvar         = "GeneID",
-        varying       = log2cpm_colnames,
-        v.names       = "Log2CPM",
-        direction     = "long",
-        timevar       = "SampleID",
-        times         = log2cpm_colnames,
-        new.row.names = sequence(prod(length(log2cpm_colnames), nrow(tall)))
-    )
-    tall$Normalization = "none"
-
     log2CPM_normalized_colnames <- colnames(log2CPM_normalized)
-    tall_tmm <- data.frame("GeneID" = row.names(log2CPM_normalized), log2CPM_normalized, row.names = NULL)
-    tall_tmm <-  stats::reshape(data          = tall_tmm,
+    tall_normalized <- data.frame("GeneID" = row.names(log2CPM_normalized), log2CPM_normalized, row.names = NULL)
+    tall_normalized <-  stats::reshape(data          = tall_normalized,
                                 idvar         = "GeneID",
                                 varying       = log2CPM_normalized_colnames,
                                 v.names       = "Log2CPM",
                                 direction     = "long",
                                 timevar       = "SampleID",
                                 times         = log2CPM_normalized_colnames,
-                                new.row.names = sequence(prod(length(log2CPM_normalized_colnames), nrow(tall_tmm))))
-    tall_tmm$Normalization = toupper(normalize)
+                                new.row.names = sequence(prod(length(log2CPM_normalized_colnames), nrow(tall_normalized))))
+    tall_normalized$Normalization = toupper(normalize)
 
     tall <- tall %>%
-        rbind(tall_tmm)
+        rbind(tall_normalized)
     title <- stringr::str_c("Log2CPM before/after", normalize, "normalization", sep = " ")
 
     if (plotType == "canvasxpress") {
