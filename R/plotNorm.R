@@ -30,8 +30,8 @@
 #' @importFrom canvasXpress canvasXpress
 #' @importFrom htmlwidgets JS
 #' @importFrom tibble rownames_to_column
-#' @importFrom tidyr gather
-#' @importFrom dplyr mutate bind_rows
+#' @importFrom tidyr gather spread
+#' @importFrom dplyr mutate bind_rows select
 #'
 #' @export
 plotNorm <- function(DGEdata,
@@ -105,7 +105,13 @@ select_sample <- function(data, sampleID, select_all = FALSE) {
 }
 
 build_cx_density_plot <- function(data, title) {
-    cx.data <- build_cx_data(data)
+    plot.data <- data %>%
+        spread(SampleID, Log2CPM)
+    cx.data <- plot.data %>%
+        select(!c(GeneID, Normalization))
+    var.annot <- plot.data %>%
+        select(c("GeneID", "Normalization"))
+
     xlab <- "Log2CPM"
     ylab <- "density"
     events <- JS(
@@ -124,8 +130,8 @@ build_cx_density_plot <- function(data, title) {
         }"
     )
     resultPlot <- canvasXpress(
-        data                    = subset(cx.data, select = -c(GeneID, Normalization)),
-        varAnnot                = cx.data[, c("GeneID", "Normalization")],
+        data                    = cx.data,
+        varAnnot                = var.annot,
         histogramData           = TRUE,
         graphType               = "Scatter2D",
         xAxisTitle              = xlab,
@@ -137,7 +143,6 @@ build_cx_density_plot <- function(data, title) {
         showLegend              = FALSE,
         events                  = events
     )
-    return(resultPlot)
 }
 
 build_cx_box_plot <- function(data, title) {
