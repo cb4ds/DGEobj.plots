@@ -54,9 +54,10 @@ plotNorm <- function(DGEdata,
         counts <- DGEobj::getItem(DGEdata, "counts")
     }
 
+    # build normalized data for comparison
     log2cpm <- DGEobj.utils::convertCounts(counts, unit = "cpm", log = TRUE, normalize = "none") %>%
         as.data.frame
-    log2CPM_tmm <- DGEobj.utils::convertCounts(counts, unit = "cpm", log = TRUE, normalize = normalize) %>%
+    log2CPM_normalized <- DGEobj.utils::convertCounts(counts, unit = "cpm", log = TRUE, normalize = normalize) %>%
         as.data.frame
 
     log2cpm_colnames <- colnames(log2cpm)
@@ -74,16 +75,16 @@ plotNorm <- function(DGEdata,
     )
     tall$Normalization = "none"
 
-    log2cpm_tmm_colnames <- colnames(log2CPM_tmm)
-    tall_tmm <- data.frame("GeneID" = row.names(log2CPM_tmm), log2CPM_tmm, row.names = NULL)
+    log2CPM_normalized_colnames <- colnames(log2CPM_normalized)
+    tall_tmm <- data.frame("GeneID" = row.names(log2CPM_normalized), log2CPM_normalized, row.names = NULL)
     tall_tmm <-  stats::reshape(data          = tall_tmm,
                                 idvar         = "GeneID",
-                                varying       = log2cpm_tmm_colnames,
+                                varying       = log2CPM_normalized_colnames,
                                 v.names       = "Log2CPM",
                                 direction     = "long",
                                 timevar       = "SampleID",
-                                times         = log2cpm_tmm_colnames,
-                                new.row.names = sequence(prod(length(log2cpm_tmm_colnames), nrow(tall_tmm))))
+                                times         = log2CPM_normalized_colnames,
+                                new.row.names = sequence(prod(length(log2CPM_normalized_colnames), nrow(tall_tmm))))
     tall_tmm$Normalization = toupper(normalize)
 
     tall <- tall %>%
