@@ -31,7 +31,7 @@
 #' @importFrom htmlwidgets JS
 #' @importFrom tibble rownames_to_column
 #' @importFrom tidyr gather
-#' @importFrom dplyr mutate as_tibble
+#' @importFrom dplyr mutate bind_rows
 #'
 #' @export
 plotNorm <- function(DGEdata,
@@ -57,30 +57,9 @@ plotNorm <- function(DGEdata,
         counts <- DGEobj::getItem(DGEdata, "counts")
     }
 
-    # build normalized data for comparison
-    tall <- DGEobj.utils::convertCounts(counts, unit = "cpm", log = TRUE, normalize = "none") %>%
-        as_tibble() %>%
-        rownames_to_column(var = "GeneID") %>%
-        gather(key = "SampleID", val = "Log2CPM", -GeneID) %>%
-        mutate(Normalization = "none")
+    tall <- build_normalized_data(counts) %>%
+        bind_rows(build_normalized_data(counts, toupper(normalize)))
 
-    log2CPM_normalized <- DGEobj.utils::convertCounts(counts, unit = "cpm", log = TRUE, normalize = normalize) %>%
-        as.data.frame
-
-    log2CPM_normalized_colnames <- colnames(log2CPM_normalized)
-    tall_normalized <- data.frame("GeneID" = row.names(log2CPM_normalized), log2CPM_normalized, row.names = NULL)
-    tall_normalized <-  stats::reshape(data          = tall_normalized,
-                                idvar         = "GeneID",
-                                varying       = log2CPM_normalized_colnames,
-                                v.names       = "Log2CPM",
-                                direction     = "long",
-                                timevar       = "SampleID",
-                                times         = log2CPM_normalized_colnames,
-                                new.row.names = sequence(prod(length(log2CPM_normalized_colnames), nrow(tall_normalized))))
-    tall_normalized$Normalization = toupper(normalize)
-
-    tall <- tall %>%
-        rbind(tall_normalized)
     title <- stringr::str_c("Log2CPM before/after", normalize, "normalization", sep = " ")
 
     if (plotType == "canvasxpress") {
@@ -209,4 +188,12 @@ build_gg_box_plot <- function(data, title) {
         theme(axis.text.x = element_blank(),
               legend.position = "none")
     return(resultPlot)
+}
+
+build_normalized_data <- function(counts, normalize = "none") {
+    DGEobj.utils::convertCounts(counts, unit = "cpm", log = TRUE, normalize = normalize) %>%
+        as.data.frame() %>%
+        rownames_to_column(var = "GeneID") %>%
+        gather(key = "SampleID", val = "Log2CPM", -GeneID) %>%
+        mutate(Normalization = normalize)
 }
