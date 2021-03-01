@@ -165,29 +165,24 @@ build_cx_box_plot <- function(data, title) {
 
 
 build_gg_density_plot <- function(data, title) {
-    resultPlot <- ggplot(data, aes(x = Log2CPM, color = SampleID)) +
+    data %>%
+        ggplot(aes(x = Log2CPM, color = SampleID)) +
         geom_density() +
         facet_grid(~Normalization) +
         ggtitle(title)  +
         theme_gray() +
         theme(legend.position = "none")
-    return(resultPlot)
 }
 
 build_gg_box_plot <- function(data, title) {
-    resultPlot <-
-        ggplot(data, aes(
-            x = SampleID,
-            y = Log2CPM,
-            color = SampleID
-        )) +
+    data %>%
+        ggplot(aes(x = SampleID, y = Log2CPM, color = SampleID)) +
         geom_boxplot(alpha = 0.5) +
         facet_grid( ~ Normalization) +
         ggtitle(title)  +
         theme_gray() +
         theme(axis.text.x = element_blank(),
               legend.position = "none")
-    return(resultPlot)
 }
 
 build_normalized_data <- function(counts, normalize = "none") {
