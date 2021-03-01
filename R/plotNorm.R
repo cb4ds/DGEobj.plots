@@ -100,9 +100,8 @@ build_cx_density_plot <- function(data, title) {
                                     t.showInfoSpan(e, o.display);
                                 };
                             };
-                        }
-        }"
-    )
+                        }}")
+
     canvasXpress(
         data                    = cx.data,
         varAnnot                = var.annot,
@@ -133,6 +132,27 @@ build_cx_box_plot <- function(data, title) {
     xlab     <- "Log2CPM"
     ylab     <- "SampleID"
 
+    events <- JS(
+        "{'mousemove' : function(o, e, t) {
+                            if (o != null && o != false &&
+                                o.w != null && o.w.vars != null) {
+                                function round(num, decimals) {
+                                     tens = Math.pow(10, decimals);
+                                     return Math.round((num + Number.EPSILON) * tens)/tens;
+                                }
+                                t.showInfoSpan(e, '<h3>' + o.w.vars[0] + '<h3>' +
+                                                  '<b>1st IQR</b>: ' + round(o.w.iqr1[0], 2) + '<br>' +
+                                                  '<b>1st Qtl</b>: ' + round(o.w.qtl1[0], 2) + '<br>' +
+                                                  '<b>Median</b>: ' +  round(o.w.median[0], 2)+ '<br>'+
+                                                  '<b>3rd IQR</b>: ' + round(o.w.iqr3[0], 2) + '<br>' +
+                                                  '<b>3rd Qtl</b>: ' + round(o.w.qtl3[0], 2) + '<br>' +
+                                                  '<b>Outliers</b>: ' + o.w.out[0].length + '<br>' +
+                                                  '<b>N-Data</b>: ' + o.w.n[0] + '<br>');
+                            } else {
+                                t.showInfoSpan(e, o.display);
+                            };
+                        }}")
+
     canvasXpress(
         data                    = cx.data,
         smpAnnot                = smp.data,
@@ -145,6 +165,7 @@ build_cx_box_plot <- function(data, title) {
         groupingFactors         = list("Normalization"),
         graphOrientation        = "vertical",
         boxplotOutliersRatio    = "2",
+        events                  = events
     )
 }
 
