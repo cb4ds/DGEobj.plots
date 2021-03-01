@@ -61,7 +61,7 @@ plotNorm <- function(DGEdata,
         as.data.frame
 
     log2cpm_colnames <- colnames(log2cpm)
-    tall <- data.frame("GeneID" = row.names(log2cpm), log2cpm, row.names = NULL)
+    tall <- log2cpm %>% tibble::rownames_to_column(var = "GeneID")
 
     tall <- stats::reshape(
         data          = tall,
