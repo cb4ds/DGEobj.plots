@@ -16,7 +16,7 @@
 #'  symbolFill becomes the fill color  (default = "darkblue")
 #' @param symbolAlpha Transparency for the points. Value ranges from 0 to 1. Smaller
 #'   indicate more transparency (default = 0.3)
-#' @param linefitColor (default = "yellow")
+#' @param linefitColor (default = "red")
 #' @param lineFit (default = NULL) Any type supported by geom_smooth(if plotType is ggplot). Loess is
 #'   recommended.
 #' @param lineType Any ggplot2 lineType supported by geom_smooth (default = solid)
@@ -49,7 +49,7 @@ plotDispersion <- function(DGEdata,
                            symbolColor  = "darkblue",
                            symbolFill   = "darkblue",
                            symbolAlpha  = 0.3,
-                           linefitColor = "yellow",
+                           linefitColor = "red",
                            lineFit      = NULL,
                            lineType     = "solid",
                            ...) {
@@ -71,8 +71,8 @@ plotDispersion <- function(DGEdata,
     if (!is.null(lineFit)) {
         if (!assertthat::see_if(is.character(linefitColor),
                                 length(linefitColor) == 1)) {
-            warning("linefitColor must be a singular value of class 'character' and must specify the name of the color or the rgb value. Assigning default value 'yellow'.")
-            linefitColor <- "yellow"
+            warning("linefitColor must be a singular value of class 'character' and must specify the name of the color or the rgb value. Assigning default value 'red'.")
+            linefitColor <- "red"
         }
     }
 

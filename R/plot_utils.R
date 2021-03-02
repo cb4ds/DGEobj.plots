@@ -172,3 +172,16 @@ getCxPlotDecorations <- function(decorations, color, width, x, y) {
     decorations <- list(line = append(decorations$line, list(line)))
     return(decorations)
 }
+
+cxSupportedLineFit <- function(linefit) {
+    if (!(linefit %in% c("lm", "loess"))) {
+        if (linefit == "glm") {
+            linefit <- "lm"
+        } else if (linefit == "gam") {
+            linefit <- "loess"
+        }
+        warning("Model type is not supported for canvasXpress charts and ", linefit," is being used")
+    }
+
+    return(linefit)
+}

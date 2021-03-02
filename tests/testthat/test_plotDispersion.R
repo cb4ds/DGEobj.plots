@@ -174,7 +174,7 @@ test_that("plotDispersion.R: plotDispersion()", {
                                   designMatrix = designMatrix,
                                   lineFit      = "loess",
                                   linefitColor = 4),
-                   regexp = "linefitColor must be of class 'character' and must specify the name of the color or the rgb value. Assigning default value 'yellow'.")
+                   regexp = "linefitColor must be a singular value of class 'character' and must specify the name of the color or the rgb value. Assigning default value 'red'")
     expect_warning(plotDispersion(DGEdata      = dgelist,
                                   designMatrix = designMatrix,
                                   lineFit      = "loess",
@@ -186,11 +186,11 @@ test_that("plotDispersion.R: plotDispersion()", {
                                   lineFit      = "loess",
                                   linefitColor = 4,
                                   plotType     = "ggplot"),
-                   regexp = "linefitColor must be a singular value of class 'character' and must specify the name of the color or the rgb value. Assigning default value 'yellow'.")
+                   regexp = "linefitColor must be a singular value of class 'character' and must specify the name of the color or the rgb value. Assigning default value 'red'.")
     expect_warning(plotDispersion(DGEdata      = dgelist,
                                   designMatrix = designMatrix,
                                   lineFit      = "loess",
                                   linefitColor = c(2,3),
                                   plotType     = "ggplot"),
-                   regexp = "linefitColor must be a singular value of class 'character' and must specify the name of the color or the rgb value. Assigning default value 'yellow'.")
+                   regexp = "linefitColor must be a singular value of class 'character' and must specify the name of the color or the rgb value. Assigning default value 'red'.")
 })
