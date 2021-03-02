@@ -76,6 +76,7 @@ plotNorm <- function(DGEdata,
             resultPlot <- build_gg_box_plot(tall, title)
         }
     }
+    resultPlot
 }
 
 build_cx_density_plot <- function(data, title) {
