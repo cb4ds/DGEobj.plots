@@ -54,13 +54,13 @@ plotNorm <- function(DGEdata,
     if ("matrix" %in% class(DGEdata)) {
         counts <- DGEdata
     } else {
-        counts <- DGEobj::getItem(DGEdata, "counts")
+        counts <- getItem(DGEdata, "counts")
     }
 
     tall <- build_normalized_data(counts) %>%
         bind_rows(build_normalized_data(counts, toupper(normalize)))
 
-    title <- stringr::str_c("Log2CPM before/after", normalize, "normalization", sep = " ")
+    title <- str_c("Log2CPM before/after", normalize, "normalization", sep = " ")
 
     resultPlot <- NULL
     if (plotType == "canvasxpress") {
