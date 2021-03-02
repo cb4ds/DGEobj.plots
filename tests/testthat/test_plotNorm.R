@@ -23,11 +23,20 @@ test_that("plotNorm.R: plotNorm()", {
     norm_plot <- plotNorm(t_obj1$counts, normalize = "RLE")
     expect_s3_class(norm_plot, c("canvasXpress", "htmlwidget"))
 
+    norm_plot <- plotNorm(t_obj1, plotType = "ggplot", normalize = "RLE")
+    expect_s3_class(norm_plot, c("gg", "ggplot"))
+
     norm_plot <- plotNorm(t_obj1$counts, normalize = "upperquartile")
     expect_s3_class(norm_plot, c("canvasXpress", "htmlwidget"))
 
+    norm_plot <- plotNorm(t_obj1, plotType = "ggplot", normalize = "upperquartile")
+    expect_s3_class(norm_plot, c("gg", "ggplot"))
+
     norm_plot <- plotNorm(t_obj1$counts, normalize = "none")
     expect_s3_class(norm_plot, c("canvasXpress", "htmlwidget"))
+
+    norm_plot <- plotNorm(t_obj1, plotType = "ggplot", normalize = "none")
+    expect_s3_class(norm_plot, c("gg", "ggplot"))
 
     ######### density test####################
     # testing with DGEobj count matrix and plotType cx - plotCategory density
@@ -50,11 +59,23 @@ test_that("plotNorm.R: plotNorm()", {
     norm_plot <- plotNorm(t_obj1$counts,  plotCategory = "density", normalize = "RLE")
     expect_s3_class(norm_plot, c("canvasXpress", "htmlwidget"))
 
+    norm_plot <- plotNorm(t_obj1$counts, plotType = "ggplot", plotCategory = "density",
+                          normalize = "RLE")
+    expect_s3_class(norm_plot, c("gg", "ggplot"))
+
     norm_plot <- plotNorm(t_obj1$counts,  plotCategory = "density", normalize = "upperquartile")
     expect_s3_class(norm_plot, c("canvasXpress", "htmlwidget"))
 
+    norm_plot <- plotNorm(t_obj1$counts, plotType = "ggplot", plotCategory = "density",
+                          normalize = "upperquartile")
+    expect_s3_class(norm_plot, c("gg", "ggplot"))
+
     norm_plot <- plotNorm(t_obj1$counts,  plotCategory = "density", normalize = "none")
     expect_s3_class(norm_plot, c("canvasXpress", "htmlwidget"))
+
+    norm_plot <- plotNorm(t_obj1$counts, plotType = "ggplot", plotCategory = "density",
+                          normalize = "none")
+    expect_s3_class(norm_plot, c("gg", "ggplot"))
 
     ######### testing assert statements ####################
     expect_error(plotNorm(NULL),
