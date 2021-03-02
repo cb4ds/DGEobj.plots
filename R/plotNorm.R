@@ -42,13 +42,13 @@ plotNorm <- function(DGEdata,
     plotCategory <- tolower(plotCategory)
     normalize    <- tolower(normalize)
 
-    assertthat::assert_that(any(c("matrix", "DGEobj") %in% class(DGEdata)),
+    assert_that(any(c("matrix", "DGEobj") %in% class(DGEdata)),
                             msg = "DGEdata must be of either class 'matrix' or 'DGEobj'.")
-    assertthat::assert_that(plotType %in% c("canvasxpress", "ggplot"),
+    assert_that(plotType %in% c("canvasxpress", "ggplot"),
                             msg = "plotType must be either canvasXpress or ggplot.")
-    assertthat::assert_that(plotCategory %in% c("box", "density"),
+    assert_that(plotCategory %in% c("box", "density"),
                             msg = "plotCategory must be one of 'box' or 'density'.")
-    assertthat::assert_that(normalize %in% c("tmm", "rle", "upperquartile", "none"),
+    assert_that(normalize %in% c("tmm", "rle", "upperquartile", "none"),
                             msg = "normalize must be one of 'TMM', 'RLE', 'upperquartile', or 'none'.")
 
     if ("matrix" %in% class(DGEdata)) {
