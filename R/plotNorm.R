@@ -51,9 +51,11 @@ plotNorm <- function(DGEdata,
     assertthat::assert_that(normalize %in% c("tmm", "rle", "upperquartile", "none"),
                             msg = "normalize must be one of 'TMM', 'RLE', 'upperquartile', or 'none'.")
 
-    counts <- ifelse("matrix" %in% class(DGEdata),
-                      DGEdata,
-                      DGEobj::getItem(DGEdata, "counts"))
+    if ("matrix" %in% class(DGEdata)) {
+        counts <- DGEdata
+    } else {
+        counts <- DGEobj::getItem(DGEdata, "counts")
+    }
 
     tall <- build_normalized_data(counts) %>%
         bind_rows(build_normalized_data(counts, toupper(normalize)))
@@ -83,7 +85,7 @@ build_cx_density_plot <- function(data, title) {
     cx.data <- plot.data %>%
         select(!c(GeneID, Normalization))
     var.annot <- plot.data %>%
-        select(c("GeneID", "Normalization"))
+        select(c(GeneID, Normalization))
 
     xlab <- "Log2CPM"
     ylab <- "density"
