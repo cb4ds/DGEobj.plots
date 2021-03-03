@@ -83,7 +83,7 @@ plotPvalHist <- function(P.Val,
     samples_name <- colnames(P.Val)
 
     # Set up Tall format
-    browser()
+
     P.Val$GeneID = rownames(P.Val)
     P.Val <-  stats::reshape(data          = P.Val,
                              idvar         = "GeneID",
