@@ -75,7 +75,8 @@ test_that("plotDispersion.R: plotDispersion()", {
                                 designMatrix  = designMatrix,
                                 symbolSize    = 10,
                                 symbolShape   = "triangle",
-                                symbolcolor   = red)
+                                symbolColor   = "red",
+                                symbolTransparency = 0.2)
     expect_s3_class(plot_disp, c("canvasXpress", "htmlwidget"))
 
     plot_disp <- plotDispersion(DGEdata       = t_obj1$counts,
@@ -84,7 +85,8 @@ test_that("plotDispersion.R: plotDispersion()", {
                                 plotCategory  = "BCV",
                                 symbolSize    = 3,
                                 symbolShape   = "square",
-                                symbolColour  = "red" )
+                                symbolColor  = "red",
+                                symbolTransparency = 0.2)
     expect_s3_class(plot_disp, c("gg", "ggplot"))
 
     #Testing lineFit parameters
@@ -129,37 +131,50 @@ test_that("plotDispersion.R: plotDispersion()", {
     expect_warning(plotDispersion(DGEdata      = dgelist,
                                   designMatrix = designMatrix,
                                   symbolSize   = "a"),
-                   regexp = "symbolSize must be a singular numeric value. Assigning a default value of 3.")
+                   regexp = "symbolSize must be a singular numeric value. Assigning a default value of 6.")
     expect_warning(plotDispersion(DGEdata      = dgelist,
                                   designMatrix = designMatrix,
                                   symbolSize   = c(1,2)),
-                   regexp = "symbolSize must be a singular numeric value. Assigning a default value of 3.")
+                   regexp = "symbolSize must be a singular numeric value. Assigning a default value of 6.")
     expect_warning(plotDispersion(DGEdata      = dgelist,
                                   designMatrix = designMatrix,
                                   symbolShape  = 1),
-                   regexp = "symbolShape must be a singular value of class 'character'. Assigning default value = 'circle'")
+                   regexp = "symbolShape must be a singular value of class 'character'. Assigning default value = 'circle'.")
     expect_warning(plotDispersion(DGEdata      = dgelist,
                                   designMatrix = designMatrix,
                                   symbolShape  = c(1,2)),
-                   regexp = "symbolShape must be a singular value of class 'character'. Assigning default value = 'circle'")
+                   regexp = "symbolShape must be a singular value of class 'character'. Assigning default value = 'circle'.")
     expect_warning(plotDispersion(DGEdata      = dgelist,
                                   designMatrix = designMatrix,
                                   symbolColor  = c(1,2)),
-                   regexp = "symbolColor must be a singular value of class character and must specify the name of the color or the rgb value. Assigning default value 'deepblue'")
+                   regexp = "symbolColor must be a singular value of class character and must specify the name of the color or the rgb value. Assigning default value 'deepblue'.")
     expect_warning(plotDispersion(DGEdata      = dgelist,
                                   designMatrix = designMatrix,
                                   symbolColor  = 1),
-                   regexp = "symbolColor must be a singular value of class character and must specify the name of the color or the rgb value. Assigning default value 'deepblue'")
+                   regexp = "symbolColor must be a singular value of class character and must specify the name of the color or the rgb value. Assigning default value 'deepblue'.")
+    expect_warning(plotDispersion(DGEdata      = dgelist,
+                                  designMatrix = designMatrix,
+                                  symbolTransparency  = 1.2),
+                   regexp = "symbolTransparency must be a singular numeric value and must be between 0 and 1. Assigning default value 0.5.")
+    expect_warning(plotDispersion(DGEdata      = dgelist,
+                                  designMatrix = designMatrix,
+                                  symbolTransparency  = c(1,2)),
+                   regexp = "symbolTransparency must be a singular numeric value and must be between 0 and 1. Assigning default value 0.5.")
     expect_warning(plotDispersion(DGEdata      = dgelist,
                                   designMatrix = designMatrix,
                                   symbolShape  = c(1,2),
                                   plotType     = "ggplot"),
-                   regexp = "symbolShape must be a singular numeric value between 0 and 25 or must be of class 'character'. Refer help section for the list of shapes supported. Assigning default value 'circle'.")
+                   regexp = "symbolShape must be a numeric value between 0 and 25 or must be of class 'character'. Refer help section for the list of shapes supported. Assigning default value 'circle'.")
+    expect_warning(plotDispersion(DGEdata      = dgelist,
+                                  designMatrix = designMatrix,
+                                  plotType     = "ggplot",
+                                  symbolTransparency  = 1.2),
+                   regexp = "symbolTransparency must be a numeric value and must be between 0 and 1. Assigning default value 0.5.")
     expect_warning(plotDispersion(DGEdata      = dgelist,
                                   designMatrix = designMatrix,
                                   symbolSize   = 'a',
                                   plotType     = "ggplot"),
-                   regex = "symbolSize must be of class numeric. Assigning a default value of 3.")
+                   regex = "symbolSize must be of class numeric. Assigning a default value of 6.")
     expect_warning(plotDispersion(DGEdata      = dgelist,
                                   designMatrix = designMatrix,
                                   symbolColor  = 1,
@@ -174,7 +189,7 @@ test_that("plotDispersion.R: plotDispersion()", {
                                   designMatrix = designMatrix,
                                   lineFit      = "loess",
                                   linefitColor = 4),
-                   regexp = "linefitColor must be a singular value of class 'character' and must specify the name of the color or the rgb value. Assigning default value 'red'")
+                   regexp = "linefitColor must be a singular value of class 'character' and must specify the name of the color or the rgb value. Assigning default value 'red'.")
     expect_warning(plotDispersion(DGEdata      = dgelist,
                                   designMatrix = designMatrix,
                                   lineFit      = "loess",
