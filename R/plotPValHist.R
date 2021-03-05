@@ -11,7 +11,7 @@
 #' @param transparency Set the transparency. (default = 0.6)
 #' @param color Fill & Outline color for the histogram (default = "dodgerblue3")
 #'
-#' @return A ggplot2 object if facet = TRUE or a list of plots if facet = FALSE. (default = TRUE)
+#' @return A canvasXpress or a ggplot2 object if facet = TRUE or a list of plots if facet = FALSE. (default = TRUE)
 #'
 #' @examples
 #' \dontrun{
