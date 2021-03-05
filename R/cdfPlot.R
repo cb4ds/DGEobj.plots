@@ -56,7 +56,9 @@
 #' @param referenceLine Color for an horizontal line drawn at the p-threshold
 #'   (Default = NULL; NULL disables, set to desired color to enable)
 #' @param refLineThickness Set thickness of the reference line (Default = 1)
-#' @param legendPosition (Default = "se")
+#' @param legendPosition (Default = "right") One of top, bottom, right, left, ne,
+#'   se, nw, sw. The first four place it outside the figure. The last four place
+#'   it inside the figure.
 #' @param baseFontSize The smallest size font in the figure in points. (Default
 #'   = 12)
 #' @param viewportX (Default = 0.15)
@@ -97,7 +99,7 @@ cdfPlot <- function(contrastDF,
                     alpha = 1,
                     referenceLine = NULL,
                     refLineThickness = 1,
-                    legendPosition = "se",
+                    legendPosition = "right",
                     baseFontSize = 12,
                     viewportX = 0.15,
                     viewportY = 0.93,
