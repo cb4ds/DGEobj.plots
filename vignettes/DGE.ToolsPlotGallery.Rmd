@@ -1,83 +1,186 @@
 ---
-title: "DGE.Tools Data Exploration Plotting Tools"
-author: "John Thompson"
-date: "13Feb2019"
-header-includes:
-- \usepackage{fancyhdr}
-- \usepackage{graphicx}
-- \pagestyle{fancy}
-- \fancyhead[LE,RO]{}
-- \fancyfoot[CO,CE]{\textit{BMS Confidential}}
-- \fancyfoot[LE,RO]{\thepage} 
+title: "DGEobj.plots: DGE Data QC and Exploration Plotting Tools"
+author: "John R. Thompson (jrt@thompsonclan.org)"
+date: "`r Sys.Date()`"
 output:
-  html_document:
-    toc: true
-    toc_depth: 4
-    number_sections: true
-    fig_width: 6
-    fig_height: 4
-fontsize: 10pt
+  rmarkdown::html_vignette:   
+    fig_caption: yes
+    number_sections: yes
+    toc: yes
+    toc_depth: 5
 vignette: >
-  %\VignetteIndexEntry{DGEtools Plot Gallery}
+  %\VignetteIndexEntry{DGEobj.plots: DGE Data QC and Exploration Plotting Tools}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
- 
-\newpage 
 
-# DGE.Tools2: Plotting tools 
 
-`DGE.Tools2` includes an assortment of standard data exploration plotting tools. The intention here is to make common plot types dead easy to produce and provide a consistent look and feel.  Generally, optional argument allow you to tweak the plots and since the plots are based on `ggplot`, you can further customize the resulting `ggplot` objects.  
+```{r setup}
+rm(list = ls()) #Clear the workspace
+invisible(gc()) #garbage collection to masimize available memory
+startTime = Sys.time()
 
-The Plotting functions are:  
+setwd(paste0(here::here(), "/vignettes"))
+library(tidyverse)
+library(magrittr)
+library(DGEobj)
+library(DGEobj.utils)
+library(DGEobj.plots)
+# library(JRTutil)
 
+outputPath <- "./output"
+
+# Build a DGEobj from GEO
+if (file.exists(file.path(outputPath, "WorkflowDgeObj.RDS"))){
+  dgeObj <- readRDS(file.path(outputPath, "WorkflowDgeObj.RDS"))
+} else {
+  source("BuildExampleWorkflowDgeobj.R")
+}
+
+```
+
+# DGEobj.plots: DGE Data QC and Exploration Plotting Tools 
+
+`DGEobj.plots` includes an assortment of standard data exploration plotting
+tools. The intention here is to make common plot types very easy to produce and
+provide a consistent look and feel.  Generally, optional argument allow you to
+tweak the plots and since the plots are based on `ggplot`, you can further
+customize the resulting `ggplot` objects.  
+
+The Plotting functions are:   
+
+# QC plots   
+
+* `plotDispersion`: Plot dispersion or BCV vs log intensity (type of QC plot)   
+* `plotNorm`: Plot density or boxplots before/after normalization  
+* `QCplots`: Plot selected alignment QC metrics  
+* `plotPvalHist`: faceted P-value histogram  
+
+# Data Exploration Plots  
+
+* `summarizeSigCounts`: Produce a table of significant genes counts for each
+contrast  
 * `profilePlot`:  LogInt vs. LogRatio (aka MA plot)   
 * `volcanoPlot`:  LogRatio vs. NegLogP    
 * `cdfPlot`:  Rank(pvalue) vs. NegLogP   
 * `comparePlot`: Compare LogRatios for two contrasts    
 * `obsPlot2`: Gene intensity boxplots (faceted)    
 * `logRatioPlot`: Plot logRatios +/- 95% confidence intervals    
-* `checkSex`: Plot X and Y chromosome genes to infer sex   
-* `plotDispersion`: Plot dispersion or BCV vs log intensity (type of QC plot)   
-* `plotNorm`: Plot density or boxplots before/after normalization  
-* `QCplots`: Plot selected alignment QC metrics
-* `plotPvalHist`: faceted P-value histogram    
 * `ggplotMDS`: Multidimensional Scaling (like PCA but uses a intensity-based distance metric)    
 * `MDS_var_explained`: Plot the % variance explained by each MDS component   
 
-Most of the plots are generated with `ggplot`, thus, the user can take a returned `ggplot` object and further modify it to their heart's content.  
+Most of the plots are generated with `ggplot`, thus, the user can take a returned `ggplot` object and further modify it as desired.  
 
-**Code Block:** Load some test data (IPF Fibroblast data).
+# QC Plots  
 
-```
-rm(list = ls()) #Clear the workspace
-invisible(gc()) #garbage collection to masimize available memory
-startTime = Sys.time()
+## Dispersion Plot (plotDispersion function)
 
-setwd("~/R/lib/pkgsrc/DGE.Tools2/vignettes")
-library(tidyverse)
-library(magrittr)
-library(DGEobj)
-library(DGE.Tools2)
-# library(JRTutil)
+Dispersion is a measure of variance that is plotted against intensity as a QC plot that illustrates heteroscedasticity.
 
-outputPath <- "./output"
+```{r dispersionPlot}
+# Note a DGEobj can have multiple design matrices or DGELists;  in this case
+# only one of each is present
+designMatrix <- getType(dgeObj, "designMatrix")[[1]]
+dgelist <- getType(dgeObj, "DGEList")[[1]]
+# Dispersion plot
+plotDispersion(dgelist, designMatrix, lineFit = "loess", plotType = "dispersion")
+ggsave(file.path(outputPath, "dispersionPlot.png"))
 
-#get a dataset to work with from Stash
-dgeObj <- getRDSobjFromStash("UCSD_Lung_Fibroblasts_P-20171107-0002_8Feb2018.RDS")
-
-#apply a low intensity filter
-dgeObj <- lowIntFilter(dgeObj, zfpkmThreshold = -3, countThreshold = 10)
-
+# BCV (biological coefficient of variation) plot
+plotDispersion(dgelist, designMatrix, lineFit = "loess", plotType = "BCV")
+ggsave(file.path(outputPath, "BCV_Plot.png"))
 ```
 
-\newpage
 
-# Table of Differential Gene Counts from Contrasts   
 
-**Code Block:** Signature Table
+## Plot Normalization (plotNorm function)
+
+This function plots distributions before and after normalization as a two panel faceted plot.  It uses `edgeR::calcNormFactors()` and thus supports any normalization accepted by `calcNormFactors()`.  
+
+Input can be a DGEobj or a raw counts matrix.  Output can be a box plot or density distribution.  
+
+```{r plotNorm}
+#boxplot
+plotNorm(dgeObj, plotType = "box", normalize = "tmm")
+ggsave(file.path(outputPath, "boxNorm.png"))
+
+#density plot
+plotNorm(dgeObj, plotType = "density", normalize = "tmm")
+ggsave(file.path(outputPath, "densityNorm.png"))
+```
+
+
+
+## Alignment QCplots (Function QCplots)
+
+This function is intended to work on Omicsoft-style alignment QC data.  QC parameters are named in the first column and subsequent columns hold data for each sample.
+
+Since Omicsoft alignment QC includes hundreds of metrics, you typically want to limit the plots to a subset of the available metrics.
 
 ```
+# Get some data from an Omicsoft project in S3
+s3mount <- "Y:" #where you have mounted the S3 bucket "bmsrd-ngs-arrayserver"
+s3path <- "/OmicsoftHome/output/P-20171107-0002/UCSD_Lung_Fibroblasts_P-20171107-0002_8Feb2018/ExportedViewsAndTables"
+qcfilename <- "RNA-Seq.QCMetrics.Table.txt" #standard name for QC file in Omicosoft projects
+
+
+qcdat <- readr::read_delim(file.path(s3mount, s3path, qcfilename), delim = "\t")
+# Shorten the column names
+colnames(qcdat) <- str_replace(colnames(qcdat), "_UCSD_Lung_Fibroblasts_P-20171107-0002_8Feb2018", "")
+
+# qcdat <- qcdat[complete.cases(qcdat),]
+
+# Pick some Omicsoft Metrics from column 1 of the data frame
+someFavMetrics <- c("Alignment_MappedRate", "Source_rRNA", "Profile_ExonRate",
+                    "Profile_InterGene_FPK")
+
+MyQCplots <- QCplots(qcdat, metricNames = someFavMetrics) # all defaults
+# plots <- QCplots(qcdat, metricNames=someFavMetrics, plotType="bar", xAngle=90)
+# Draw the first plot
+printAndSave(MyQCplots[[1]], file.path(outputPath, "QCplot.png"))
+
+```
+
+You need to download a QC data file from the S3 bucket bms-ngs-arrayserver or,
+preferably, you can read data directly from S3 using software to mount an S3
+bucket to a local location.
+
+To map an S3 bucket to local storage:  
+For Mac: see [s3fs](https://github.com/s3fs-fuse/s3fs-fuse)    
+For PC: see [Cloudberry Drive](https://www.cloudberrylab.com/drive.aspx)   
+
+
+
+## P-value Histogram: Evaluate Quality of Fit
+
+**Code Block:** P-value Histogram Facet Plot Example
+
+```{r pvalHist}
+
+topTableList <- getType(dgeObj, "topTable")
+
+# Get all the p-value columns from the contrasts 
+MyPval <- extractCol(topTableList, "P.Value")
+
+plotPvalHist(MyPval)
+ggsave(file.path(outputPath, "pvalHist.png"))
+
+```
+
+See `?plotPvalHist` for optional arguments.
+
+
+
+# Data Exploration Plots  
+
+## Table of Differential Gene Counts from Contrasts 
+
+The summarizeSigCounts function provides a summary of the number of genes
+statistically differential among a set of contrasts.  The input for
+summarizeSigCounts is a list of topTable dataframes.  
+
+
+```{r summarizSigCounts}
 # Grab a topTable dataframe
 myContastList <- getType(dgeObj, "topTable")
 
@@ -91,126 +194,126 @@ knitr::kable(df)
 
 ```
 
-Arguments to `summarizeSigCounts()` allow you to specify which fields to include and define the thresholds for significance.  see `?summarizeSigcounts`.
+Arguments to `summarizeSigCounts()` allow you to specify which topTable columns to include and define the thresholds for significance.  
+
+See `?summarizeSigcounts` for other arguments.  
 
 
-\newpage
-
-# Profile Plot (aka MA plot): LogInt vs. LogRatio plots
+## Profile Plot: LogIntensity vs. LogRatio plots
 
 Function `profilePlot()` uses defaults appropriate for topTable/topTreat dataframes.
 
-The `printAndSave()` function sends the plot to the console with a 12pt base font (suitable for `knitr`/pdf output) and saves an image file with a 24pt base font which is more suitable for PPT use.  The file extension determines the image file type (allowed values include: .pdf, .png, .jpg, .tiff, .svg, bmp).
 
-**Code Block:** Profile Plot Example 
-
-```
+```{r profilePlot}
 # Grab a topTable dataframe
-myTopTable <- dgeObj$TGFb25_vs_Veh
+myTopTable <- dgeObj$Sora_vs_BDL
 
 # Draw the plot
-MyProfilePlot <- profilePlot(myTopTable, 
-                             title = "TGFbeta Signature",
-                             legendPosition = "ne")
-printAndSave(MyProfilePlot, file.path(outputPath, "ProfilePlot.PNG"))
+profilePlot(myTopTable, 
+            title = "EXT1024 Treatment",
+            legendPosition = "ne")
+ggsave(file.path(outputPath, "ProfilePlot.PNG"))
 ```
 
 See `?profilePlot` for options to modify various attributes (color, shape, transparency, reference lines, etc).  
 
-\newpage
 
-# Volcano Plot: LogRatio vs. Negative Log P-value
+
+## Volcano Plot: LogRatio vs. Negative Log P-value
 
 Function `volcanoPlot()` uses defaults appropriate for topTable dataframes.
 
 **Code Block:** Volcano Plot Example
 
-```
+```{r volcanoPlot}
 # Grab a topTable dataframe
-myTopTable <- dgeObj$TGFb25_vs_Veh
+myTopTable <- dgeObj$Sora_vs_BDL
 
 # Draw the plot
-MyVolcanoPlot <- volcanoPlot(myTopTable)
-printAndSave(MyVolcanoPlot, file.path(outputPath, "VolcanoPlot.PNG"))
+volcanoPlot(myTopTable)
+ggsave(file.path(outputPath, "VolcanoPlot.PNG"))
 
 ```
 
 See `?volcanoPlot` for options to modify various attributes (color, shape, transparency, reference lines, etc).
 
-\newpage
 
-# CDF Plot: Evaluate model performance
+
+## CDF Plot: Evaluate model performance
 
 Plot the p-value Rank vs. the actual p-values.  A straight diagonal line indicate no differential genes (null hypothesis satisfied), while differential genes appear as a break above the line at low p-values.
 
 The main plot shows p-values <= 0.1 (user settable).  An inset plot shows the full range of p-values and a blue box indicates the region shown in the main plot. Genes with p < 0.01 (user settable) are shown in red.
 
-**Code Block:** CDF Plot Example
 
-```
+```{r cdfPlot}
 # Grab a topTable dataframe
-myTopTable <- dgeObj$TGFb25_vs_Veh
+myTopTable <- dgeObj$Sora_vs_BDL
 
 # Draw the plot
-MyCDFPlot <- cdfPlot(myTopTable, plotFile = file.path(outputPath, "MyCdfPlot.PNG"))
+cdfPlot(myTopTable)
+ggsave(file.path(outputPath, "cdfPlot.PNG"))
 
 ```
 
-Note: `printAndSave()` doesn't work with `cdfPlot()` because a `cdfPlot()` generates two plots. Therefore, `cdfPlot()` has an argument to enable saving the plot to an image file.
+
 
 See `?cdfPlot` options to modify various attributes (color, shape, transparency, reference lines, etc).
 
-\newpage
 
-# Compare Plot: compare two signature
+
+## Compare Plot: compare two signature
 
 Plot the LogRatios of two contrasts, highlight common genes and genes unique to either contrast.
 
 The input for this plot requires pulling the log ratio and p-value columns from two topTable dataframes together.  
 
-**Code Block:** Compare Plot Example
 
-```
+```{r comparePlot}
 # Get two topTreat dataframes
-tt1 <- dgeObj$TGFb25_vs_Veh
-tt2 <- dgeObj$TGFb10_vs_Veh
+tt1 <- dgeObj$Sora_vs_BDL
+tt2 <- dgeObj$Nint_vs_BDL
 
 # Combine the LogRatios and p-values into a dataframe
-compareData <- data.frame(cbind(TGFb25 = tt1$logFC,
-                                Stable.Vs.Norm = tt2$logFC,
+compareData <- data.frame(cbind(Sora = tt1$logFC,
+                                Nint = tt2$logFC,
                                 xp = tt1$P.Value,
                                 yp = tt2$P.Value) )
 
-MyComparePlot = comparePlot(compareData, 
-                            title = "Compare/Contrast Rapid and Stable",
-                            legendPosition = "se")
-printAndSave(MyComparePlot, file.path(outputPath, "ComparePlot.PNG"))
+comparePlot(compareData, 
+            title = "Compare Two Compounts",
+            legendPosition = "right")
+ggsave(file.path(outputPath, "ComparePlot.PNG"))
 ```
 
 See `?comparePlot` options to modify various attributes (color, shape, transparency, reference lines, etc). 
 
-\newpage
 
-# Observation Plot: Intensity boxplots by gene
 
-This is a gene of interest plot, intended to plot a reasonable small number of genes, with a separate plot for each gene and a box for each treatment group.  It takes a tidy data frame as input and the `tidyIntensity()` function is supplied to simplify creation of the input file.
+## Observation Plot: Intensity boxplots by gene
 
-The plot is faceted by default.  Setting `facet = FALSE` produces individual plots for each gene that are returned as a list of plots.
+This is a gene of interest plot, intended to plot a reasonably small number of
+genes, with a separate plot for each gene and a box for each treatment group.
+It takes a tidy data frame as input and the `tidyIntensity()` function is
+supplied to simplify creation of the input file.  
+
+The plot is faceted by default.  Setting `facet = FALSE` produces individual
+plots for each gene that are returned as a list of plots.  
 
 **Code Block:** Observation Plot Example
 
-```
+```{r obsPlot}
 # Get log2cpm data
 log2cpm <- convertCounts(dgeObj$counts, unit = "cpm", log = TRUE, normalize = "tmm")
 # Filter for a smallish set of genes
-idx <- stringr::str_detect(dgeObj$geneData$GeneName, "^PPAR")
+idx <- stringr::str_detect(dgeObj$geneData$rgd_symbol, "^Ppar")
 log2cpm <- log2cpm[idx,]
 # Swap gene symbols for Ensemble IDs
-rownames(log2cpm) <- dgeObj[idx,]$geneData$GeneName
+rownames(log2cpm) <- dgeObj[idx,]$geneData$rgd_symbol
 
 # Put in tidy format
 tidyInt <- tidyIntensity(log2cpm,
-                         rowidColname = "GeneID",
+                         rowIDcolname = "GeneID",
                          keyColname = "Sample",
                          valueColname = "Log2CPM",
                          group = dgeObj$design$ReplicateGroup)
@@ -241,179 +344,77 @@ myplots <- obsPlot2(tidyInt,
                     pointJitter = 0.1,
                     facet = FALSE)
 # Plot the first one
-printAndSave(myplots[[1]], file.path(outputPath, "obsPlot1.png"))
+myplots[[1]]
 ```
 
 See `?obsPlot2` options to modify various attributes (color, shape, transparency, reference lines, etc).
 
-\newpage
 
-# logRatioPlot
 
-Plotting logRatio data with 95% confidence limits is generally preferable to plotting intensity data with the Observation Plot.  This is because the ratio data is post-modeling and thus reflects adjustments for any "nuisance" factors included in the modeling (e.g. batch effect, demographic or sex effects).
+## logRatioPlot
 
-```
+Plotting logRatio data with 95% confidence limits is generally preferable to
+plotting intensity data with the Observation Plot.  This is because the ratio
+data is post-modeling and thus reflects adjustments for any "nuisance" factors
+included in the modeling (e.g. batch effect, demographic or sex effects).  
+
+```{r logRatioPlot}
 # Put contrasts in tidy format keeping logFC, and confidence limits data
 tidyDat <- tidyContrasts(dgeObj, rownameColumn = "EnsgID", includeColumns = c("logFC", "CI.R", "CI.L"))
 
 # Add gene symbols from geneData
 ens2genesym <- dgeObj$geneData %>%
   rownames_to_column(var = "EnsgID") %>%
-  select(EnsgID, GeneSymbol = GeneName)
+  select(EnsgID, GeneSymbol = "rgd_symbol")
 tidyDat <-  left_join(tidyDat, ens2genesym) 
 
 # Filter for a small set of genes of interest
-idx <- stringr::str_detect(tidyDat$GeneSymbol, "^PPAR")
+idx <- stringr::str_detect(tidyDat$GeneSymbol, "^Ppar")
 tidyDat <- tidyDat[idx,]  
 
 # Simple barplot
-myLogRatioPlot <- logRatioPlot(tidyDat,
+logRatioPlot(tidyDat,
                                facetColname = "GeneSymbol",
                                xColname = "Contrast", 
-                               title = "LogRatio Plots: PPAR genes",
+                               title = "LogRatio Plots: Ppar genes",
                                facetCol = 2,
                                barWidth = 0.6
 )
 
-printAndSave(myLogRatioPlot, file.path(outputPath, "logRatioPlot.png"))
+ggsave(file.path(outputPath, "logRatioPlot.png"))
 ```
 
 The companion function, `tidyContrasts()`, aids in reformatting topTable contrast data for use with function `logRatioPlot()`.
 `tidyContrasts()` will accept a DGEobj as input and will find all topTable data in the DGEobj.  `tidyContrasts()` will also work with a list of topTable dataframes which provides flexibility to mix and match topTable data from multiple projects for plotting.
 
-See `?logratio` options to modify various attributes (color, shape, transparency, reference lines, etc).
-
-\newpage
-
-# checkSex Plot
-
-The `checkSex()` function uses expression intensity data from the X and Y chromosomes to infer sex.  When compared to actual sex annotation, this can help to identify sample labeling problems and swaps.  
-
-The XIST gene us used as an X-linked reporter gene that is well expressed in most tissues.  Since most Y-linked genes are expressed predominantly in testes, we scan for and use the highest expressed Y-linked gene for the analysis.
-
-You can provide the name of the annotated sex column in the design table and it will be used to color code the points.
-
-```
-sexPlot <- checkSex(dgeObj, species = "human", sexCol = "Sex")
-printAndSave(sexPlot, file.path(outputPath, "sexPlot.png"))
-```
-
-Note in this example each subject was tested twice.  There are two points from the same individual that are annotated male and plot as a female and vice versa.  Also, there are two points from one individual that plot in a position indicative of an XXY genotype.
-
-\newpage
-
-# Dispersion Plot (plotDispersion function)
-
-Dispersion is a measure of variance that is plotted against intensity as a QC plot that illustrates heteroscedasticity.
-
-```
-# Note a DGEobj can have multiple design matrices or DGELists;  in this case
-# only one of each is present
-designMatrix <- getType(dgeObj, "designMatrix")[[1]]
-dgelist <- getType(dgeObj, "DGEList")[[1]]
-# Dispersion plot
-dispersionPlot <- plotDispersion(dgelist, designMatrix, lineFit = "loess", plotType = "dispersion")
-printAndSave(dispersionPlot, file.path(outputPath, "dispersionPlot.png"))
-
-# BCV (biological coefficient of variation) plot
-BCV_Plot <- plotDispersion(dgelist, designMatrix, lineFit = "loess", plotType = "BCV")
-printAndSave(BCV_Plot, file.path(outputPath, "BCV_Plot.png"))
-```
-
-\newpage
-
-# Plot Normalization (plotNorm function)
-
-This function plots distributions before and after normalization as a two panel faceted plot.  It uses `edgeR::calcNormFactors()` and thus supports any normalization accepted by `calcNormFactors()`.  
-
-Input can be a DGEobj or a raw counts matrix.  Output can be a box plot or density distribution.  
-
-```
-boxNorm <- plotNorm(dgeObj, plotType = "box", normalize = "tmm")
-printAndSave(boxNorm, file.path(outputPath, "boxNorm.png"))
-
-densityNorm <- plotNorm(dgeObj, plotType = "density", normalize = "tmm")
-printAndSave(densityNorm, file.path(outputPath, "densityNorm.png"))
-```
+See `?logRatioPlot` options to modify various attributes (color, shape, transparency, reference lines, etc).
 
 
-\newpage
-# Alignment QCplots (Function QCplots)
-
-This function is intended to work on Omicsoft-style alignment QC data.  QC parameters are named in the first column and subsequent columns hold data for each sample.
-
-Since Omicsoft alignment QC includes hundreds of metrics, you typically want to limit the plots to a subset of the available metrics.
-
-```
-# Get some data from an Omicsoft project in S3
-s3mount <- "Y:" #where you have mounted the S3 bucket "bmsrd-ngs-arrayserver"
-s3path <- "/OmicsoftHome/output/P-20171107-0002/UCSD_Lung_Fibroblasts_P-20171107-0002_8Feb2018/ExportedViewsAndTables"
-qcfilename <- "RNA-Seq.QCMetrics.Table.txt" #standard name for QC file in Omicosoft projects
 
 
-qcdat <- readr::read_delim(file.path(s3mount, s3path, qcfilename), delim = "\t")
-# Shorten the column names
-colnames(qcdat) <- str_replace(colnames(qcdat), "_UCSD_Lung_Fibroblasts_P-20171107-0002_8Feb2018", "")
 
-# qcdat <- qcdat[complete.cases(qcdat),]
+## Multidimentional Scaling  
 
-# Pick some Omicsoft Metrics from column 1 of the data frame
-someFavMetrics <- c("Alignment_MappedRate", "Source_rRNA", "Profile_ExonRate",
-                    "Profile_InterGene_FPK")
+Multidimensional scaling as implemented by `limma::plotMDS()` is PCA-like but
+uses a distance metric instead of a correlation metric.  As such, when you plot
+`log2cpm` values, the axes represent `log2cpm` units and you can interpret the
+distance between points accordingly.  
 
-MyQCplots <- QCplots(qcdat, metricNames = someFavMetrics) # all defaults
-# plots <- QCplots(qcdat, metricNames=someFavMetrics, plotType="bar", xAngle=90)
-# Draw the first plot
-printAndSave(MyQCplots[[1]], file.path(outputPath, "QCplot.png"))
-```
-
-You need to download a QC data file from the S3 bucket bms-ngs-arrayserver or,
-preferably, you can read data directly from S3 using software to mount an S3
-bucket to a local location.
-
-To map an S3 bucket to local storage:  
-For Mac: see [s3fs](https://github.com/s3fs-fuse/s3fs-fuse)    
-For PC: see [Cloudberry Drive](https://www.cloudberrylab.com/drive.aspx)   
-
-\newpage
-
-# P-value Histogram: Evaluate Quality of Fit
-
-**Code Block:** P-value Histogram Facet Plot Example
-
-```
-topTableList <- getType(dgeObj, "topTable")
-
-# Get all the p-value columns from the contrasts 
-MyPval <- extractCol(topTableList, "P.Value")
-
-pvalPlot <- plotPvalHist(MyPval)
-printAndSave(pvalPlot, file.path(outputPath, "pvalHist.png"))
-```
-
-See `?plotPvalHist` for optional arguments.
-
-\newpage
-
-# ggplotMDS
-
-Multidimensional scaling as implemented by `limma::plotMDS()` is PCA-like but uses a distance metric instead
-of a correlation metric.  As such, when you plot `log2cpm` values, the axes represent `log2cpm` units and you can interpret the distance between points accordingly.  
+### MDS Plot  
 
 `ggplotMDS()` is a ggplot wrapper around `limma::plotMDS()`.
 
-```
+```{r MDS}
 dgeList <- getItem(dgeObj, "DGEList")
 result <- ggplotMDS(dgeList, 
-                    colorBy = dgeObj$design$Treatment, 
+                    colorBy = dgeObj$design$ReplicateGroup, 
                     shapeBy = dgeObj$design$DiseaseStatus, 
                     labels = NULL)
-printAndSave(result[[1]], file.path(outputPath, "MDSplot.png"))
+ggsave(file.path(outputPath, "MDSplot.png"))
 ```
 
-\newpage
 
-# MDS_var_explained
+### MDS Variance Explained Plots
 
 Takes the MDS object from the `ggplotMDS()` result list (item 2) and returns a list with: 
 
@@ -421,14 +422,50 @@ Takes the MDS object from the `ggplotMDS()` result list (item 2) and returns a l
 * a cumulative plot of the variance explained  
 * the underlying data table   
 
-```
+```{r MDS_varExplained}
 MDSvarResult <- MDS_var_explained(result[["mdsobj"]])
-
-printAndSave(MDSvarResult$varexp, file.path(outputPath, "varExplained.png"))
-printAndSave(MDSvarResult$cumvar, file.path(outputPath, "cumVarExplained.png"))           
+print(MDSvarResult$varexp)
+print(MDSvarResult$cumvar)
+ggsave(file.path(outputPath, "varExplained.png"), MDSvarResult$varexp)
+ggsave(file.path(outputPath, "cumVarExplained.png"), MDSvarResult$cumvar)           
 ```
 
-\newpage
+
+##  Run a Power Analysis  (Move to DGEobj.plots)
+
+Interpretation of DGE data is improved by an understanding of the proportion of
+true positives detected as well as the degree of false postives expected.
+Traditional power analysis is unbiased with regard to intensity.  However,
+experience has shown that a 2X change in a high intensity gene is more reliable
+that a 2X change in a gene near the detection limit.  The rnapower function from
+the rnapower package takes the intensity level into consideration in estimating
+power in RNA-Seq data.  runPower is a wrapper function that produces several
+ggplot representations of the results.
+
+The depth argument in this process refers to raw counts and the default levels
+of 10, 100, 1000 correspond roughly to detection limit, middle low expression
+and median expression levels.  You'll see that estimated power increases with
+increasing intensity level.
+
+```{r runPower, eval=TRUE, echo=TRUE, warning=FALSE, message=FALSE, fig.height=6, fig.width=7}
+
+counts <- getItem(dgeObj, "counts")
+designMatrix <- getItem(dgeObj, "ReplicateGroupDesign")
+
+pwr <- runPower(counts, designMatrix)
+# result is a list of objects depending on the return argument
+# Default objects returned:
+#    PowerData: the dataframe generated
+#    ROC:  ggplot ROC curve
+#    NvP:  plots emphasizing the relationship of N to power
+print(pwr$ROC)
+ggsave(filename=file.path(outputPath, "power_ROC.PNG"), plot=pwr$ROC)
+print(pwr$NvP)
+ggsave(filename=file.path(outputPath, "power_NvP.PNG"), plot=pwr$Nvp)
+
+
+```
+
 
 # Session Info
 
