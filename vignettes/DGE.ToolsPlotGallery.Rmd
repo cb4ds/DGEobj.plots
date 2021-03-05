@@ -39,6 +39,7 @@ if (file.exists(file.path(outputPath, "WorkflowDgeObj.RDS"))){
 
 ```
 
+
 # DGEobj.plots: DGE Data QC and Exploration Plotting Tools 
 
 `DGEobj.plots` includes an assortment of standard data exploration plotting
