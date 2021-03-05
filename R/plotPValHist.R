@@ -5,14 +5,13 @@
 #' but should be useful for any dataframe of numeric columns.
 #'
 #' @param P.Val A matrix or dataframe of numeric data; col = samples
-#' @param plotType Plot type must be canvasXpress or ggplot (Default to canvasXpress).
-#' @param facet Set to FALSE to print individual plots instead of a faceted plot. (Default = TRUE)
-#' @param binWidth Range is always 0-1 for p-values. (Default = 0.02)
-#' @param alpha Set the transparency. (Default = 0.6)
-#' @param color Color for the histogram outline. (Default = "dodgerblue3")
-#' @param fill Fill color for the histogram. (Default = "dodgerblue3")
+#' @param plotType Plot type must be canvasXpress or ggplot (default = canvasXpress).
+#' @param facet Set to FALSE to print individual plots instead of a faceted plot. (default = TRUE)
+#' @param binWidth Range is always 0-1 for p-values. (default = 0.02)
+#' @param transparency Set the transparency. (default = 0.6)
+#' @param color Fill & Outline color for the histogram (default = "dodgerblue3")
 #'
-#' @return A ggplot2 object if facet = TRUE or a list of plots if facet = FALSE. (Default = TRUE)
+#' @return A ggplot2 object if facet = TRUE or a list of plots if facet = FALSE. (default = TRUE)
 #'
 #' @examples
 #' \dontrun{
@@ -31,17 +30,18 @@
 #' @export
 plotPvalHist <- function(P.Val,
                          plotType = "canvasXpress",
-                         facet = TRUE,
-                         binWidth = 0.02,
-                         alpha = 0.6,
-                         color = "dodgerblue3",
-                         fill = "dodgerblue3") {
+                         facet          = TRUE,
+                         binWidth       = 0.02,
+                         transparency   = 0.6,
+                         color    = "dodgerblue3") {
+
+    plotType = tolower(plotType)
 
     assertthat::assert_that(!missing(P.Val),
-                            class(P.Val)[[1]] == "matrix" | class(P.Val)[[1]] == "data.frame",
+                            class(P.Val)[[1]] %in% c("matrix","data.frame"),
                             msg = "P.Val must be specified and must be of class matrix or dataframe.")
 
-    assertthat::assert_that(plotType %in% c("canvasXpress", "ggplot"),
+    assertthat::assert_that(plotType %in% c("canvasxpress", "ggplot"),
                             msg = "Plot type must be either canvasXpress or ggplot.")
 
     if (!assertthat::see_if(is.character(color),
@@ -50,27 +50,23 @@ plotPvalHist <- function(P.Val,
         color <- "dodgerblue3"
     }
 
-    if (!assertthat::see_if(is.character(fill))) {
-        warning("fill must be a singular value of class character and must specify the name of the color or the rgb value. Assigning default value 'dodgerblue3'.")
-        fill <- "dodgerblue3"
-    }
-
     if (!assertthat::see_if(is.logical(facet),
                             length(facet) == 1)) {
-        warning("facet must be a singular logical value. Assigning default value TRUE")
+        warning("facet must be a singular logical value. Assigning default value TRUE.")
         facet <- TRUE
     }
 
     if (!assertthat::see_if(is.numeric(binWidth),
                             length(binWidth) == 1,
                             binWidth > 0 & binWidth <= 1)) {
-        warning("binWidth must be a singular numeric value between 0 & 1. Assigning default value 0.02")
+        warning("binWidth must be a singular numeric value between 0 & 1. Assigning default value 0.02.")
         binWidth <- 0.02
     }
 
-    if (!assertthat::see_if(is.numeric(alpha),
-                            alpha > 0 & alpha <= 1)) {
-        warning("symbolAlpha must be a singular numeric value and must be between 0 and 1. Assigning default value 0.3.")
+    if (!assertthat::see_if(is.numeric(transparency),
+                            length(transparency) == 1,
+                            transparency > 0 & transparency <= 1)) {
+        warning("Transparency must be a singular numeric value and must be between 0 and 1. Assigning default value 0.6.")
         alpha <- 0.3
     }
 
@@ -79,57 +75,68 @@ plotPvalHist <- function(P.Val,
             as.data.frame
     }
 
-    samples_num <- ncol(P.Val)
-    samples_name <- colnames(P.Val)
+    samples_num  <- ncol(P.Val)
+    sample_names <- colnames(P.Val)
 
     # Set up Tall format
 
     P.Val$GeneID = rownames(P.Val)
     P.Val <-  stats::reshape(data          = P.Val,
                              idvar         = "GeneID",
-                             varying       = samples_name,
+                             varying       = sample_names,
                              v.names       = "pval",
                              direction     = "long",
                              timevar       = "levels",
-                             times         = samples_name,
-                             new.row.names = sequence(prod(length(samples_name), nrow(P.Val))))
+                             times         = sample_names,
+                             new.row.names = sequence(prod(length(sample_names), nrow(P.Val))))
 
     title <- "P-value Histograms"
     plotlist <- list()
-    if (plotType == "canvasXpress") {
+    if (plotType == "canvasxpress") {
+        events <- JS("{'mousemove' : function(o, e, t) {
+                      if (o != null && o != false) {
+                          count = o.y.data[0][0];
+                          bin = o.y.data[0][1];
+                          t.showInfoSpan(e, '<b>Count</b>: ' +
+                          count + '<br/><b>Bin</b>: '+bin);
+                       }; }}")
+
         if (facet) {
-            cx.data <- subset(P.Val, select = pval)
+            cx.data   <- subset(P.Val, select = pval)
             var.annot <- subset(P.Val, select = -c(pval))
-            plotlist <- canvasXpress::canvasXpress(data                    = cx.data,
-                                                   varAnnot                = var.annot,
-                                                   histogramData           = TRUE,
-                                                   graphType               = "Scatter2D",
-                                                   colors                  = fill,
-                                                   title                   = title,
-                                                   xAxisTitle              = "P-value",
-                                                   yAxisTitle              = "Count",
-                                                   hideHistogram           = FALSE,
-                                                   showHistogramDensity    = FALSE,
-                                                   showLegend              = FALSE,
-                                                   segregateVariablesBy    = list("levels"))
+            plotlist  <- canvasXpress::canvasXpress(data                = cx.data,
+                                                   varAnnot             = var.annot,
+                                                   histogramData        = TRUE,
+                                                   graphType            = "Scatter2D",
+                                                   colors               = color,
+                                                   transparency         = transparency,
+                                                   title                = title,
+                                                   xAxisTitle           = "P-value",
+                                                   yAxisTitle           = "Count",
+                                                   hideHistogram        = FALSE,
+                                                   showHistogramDensity = FALSE,
+                                                   showLegend           = FALSE,
+                                                   segregateVariablesBy = list("levels"),
+                                                   events               = events)
         } else {
             for (i in 1:samples_num) {
-                s <- samples_name[i]
-                pval_subset <- dplyr::filter(P.Val, grepl(s, levels))
+                sample <- sample_names[i]
+                pval_subset <- dplyr::filter(P.Val, grepl(sample, levels))
                 cx.data <- subset(pval_subset, select = pval)
                 var.annot <- subset(pval_subset, select = -c(pval))
-                hist_pval <- canvasXpress::canvasXpress(data                    = cx.data,
-                                                        varAnnot                = var.annot,
-                                                        histogramData           = TRUE,
-                                                        graphType               = "Scatter2D",
-                                                        colors                  = color,
-                                                        title                   = paste(title, "\n", s),
-                                                        xAxisTitle              = "P-value",
-                                                        yAxisTitle              = "Count",
-                                                        hideHistogram           = FALSE,
-                                                        showHistogramDensity    = FALSE,
-                                                        showLegend              = FALSE)
-
+                hist_pval <- canvasXpress::canvasXpress(data                 = cx.data,
+                                                        varAnnot             = var.annot,
+                                                        histogramData        = TRUE,
+                                                        graphType            = "Scatter2D",
+                                                        colors               = color,
+                                                        transparency         = transparency,
+                                                        title                = paste(title, "\n", sample),
+                                                        xAxisTitle           = "P-value",
+                                                        yAxisTitle           = "Count",
+                                                        hideHistogram        = FALSE,
+                                                        showHistogramDensity = FALSE,
+                                                        showLegend           = FALSE,
+                                                        events               = events)
                 plotlist[[i]] = hist_pval
             }
         }
@@ -139,9 +146,9 @@ plotPvalHist <- function(P.Val,
             numrow <- (samples_num / numcol) %>% ceiling
 
             plotlist <- ggplot2::ggplot(data = P.Val, aes(x = pval)) +
-                ggplot2::geom_histogram(alpha = alpha,
-                                        fill = fill,
-                                        color = color,
+                ggplot2::geom_histogram(alpha    = transparency,
+                                        fill     = color,
+                                        color    = color,
                                         binwidth = binWidth) +
                 ggplot2::xlab("P-value") +
                 ggplot2::ylab("Count") +
@@ -150,17 +157,17 @@ plotPvalHist <- function(P.Val,
                 ggplot2::facet_wrap(~levels, nrow = numrow, scales = "free")
         } else {
             for (i in 1:samples_num) {
-                s <- samples_name[i]
-                pval_subset <- dplyr::filter(P.Val, grepl(s, levels))
+                sample <- sample_names[i]
+                pval_subset <- dplyr::filter(P.Val, grepl(sample, levels))
 
                 hist_pval <- ggplot2::ggplot(data = pval_subset, aes(x = pval)) +
-                    ggplot2::geom_histogram(alpha = alpha,
-                                            fill = fill,
+                    ggplot2::geom_histogram(alpha = transparency,
+                                            fill = color,
                                             color = color,
                                             binwidth = binWidth) +
                     ggplot2::xlab("P-value") +
                     ggplot2::ylab("Count") +
-                    ggplot2::ggtitle(paste(title, "\n", s))
+                    ggplot2::ggtitle(paste(title, "\n", sample))
 
                 plotlist[[i]] = hist_pval
             }
