@@ -83,6 +83,8 @@ ggplotMDS <- function(DGEdata,
                       colors,
                       dim.plot = c(1, 2)) {
 
+    plotType = tolower(plotType)
+
     # Default labels to colnames of DGEdata
     addLabels <- TRUE
     if (missing(labels)) {
@@ -102,12 +104,13 @@ ggplotMDS <- function(DGEdata,
 
     assertthat::assert_that(class(DGEdata) %in% c("DGEobj", "DGEList", "matrix"),
                             msg = "DGEdata must be of class 'DGEList', 'DGEobj', or 'matrix'.")
-    assertthat::assert_that(plotType %in% c("canvasXpress", "ggplot"),
+    assertthat::assert_that(plotType %in% c("canvasxpress", "ggplot"),
                             msg = "Plot type must be either canvasXpress or ggplot.")
 
     if ("DGEobj" %in% class(DGEdata)) {
         DGEdata <- DGEobj::getItem(DGEdata, "DGEList")
     }
+
 
     assertthat::assert_that(!missing(colorBy),
                             length(colorBy) == ncol(DGEdata),
@@ -122,26 +125,27 @@ ggplotMDS <- function(DGEdata,
     }
 
     # ColorBlind palette:
-    # http://www.ucl.ac.uk/~zctpep9/Archived%20webpages/Cookbook%20for%20R%20%C2%BB%20Colors%20(ggplot2).htm
+    # http://www.cookbook-r.com/Graphs/Colors_(ggplot2)/#a-colorblind-friendly-palette
     cbbPalette <- c("#56B4E9", "#009E73", "#0072B2", "#D55E00", "#CC79A7", "#E69F00",  "#F0E442", "#000000")
     if (missing(colors)) {
         colors <- cbbPalette
     }
 
-    if (missing(labels)) {
-        labels <- colnames(DGEdata)
-    }
     if (missing(title)) {
         title <- "MDS Plot"
     }
-
-    mds <- limma::plotMDS(DGEdata,
+    browser()
+    mds.data <- limma::plotMDS(DGEdata,
                           top = top,
                           dim.plot = dim.plot,
-                          ndim = max(dim.plot),
                           plot = FALSE)
 
     # Pull the plotting data together
+    plot.data <- data.frame(x = mds.data$x, y = mds.data$y, ColorCode = colorBy)
+    if (addLabels == TRUE) {
+        plot.data$Labels = labels
+    }
+
     if (addLabels == TRUE) {
         xydat <- data.frame(x = mds$x, y = mds$y, ColorCode = colorBy, Labels = labels)
     } else {
@@ -185,13 +189,12 @@ ggplotMDS <- function(DGEdata,
         shapeCol <- FALSE
         sizeCol  <- FALSE
 
-        if (byShape == TRUE & bySize == FALSE) {
+        if (byShape == TRUE) {
             shapeCol <- "Shape"
-        } else if (byShape == FALSE & bySize == TRUE) {
-            sizeCol <- "Size"
-        } else if (byShape == TRUE & bySize == TRUE) {
-            shapeCol <- "Shape"
-            sizeCol  <- "Size"
+        }
+
+        if (bySize == TRUE) {
+            sizeCol = "Size"
         }
 
         reflineColor <- paste(c("rgba(", paste(c(paste(col2rgb(reflineColor, alpha = FALSE), collapse = ","), 0.5), collapse = ","), ")"), collapse = "")
