@@ -28,12 +28,12 @@
 #' @examples
 #' \dontrun{
 #'    # canvasxpress plot
-#'    myCxplot <- plotDispersion(myDGElist)
-#'    myCxplot <- plotDispersion(myDGEobj)
+#'    myCxplot <- plotDispersion(myDGElist, designMatrix )
+#'    myCxplot <- plotDispersion(myDGEobj, designMatrix)
 #'
 #'    # ggplot
-#'    myGgplot <- plotDispersion(myDGElist, plotType = "ggplot")
-#'    myGgplot <- plotDispersion(myDGEobj, plotType = "ggplot")
+#'    myGgplot <- plotDispersion(myDGElist, designMatrix, plotType = "ggplot")
+#'    myGgplot <- plotDispersion(myDGEobj, designMatrix, plotType = "ggplot")
 #' }
 #'
 #' @importFrom assertthat assert_that see_if
@@ -56,7 +56,7 @@ plotDispersion <- function(DGEdata,
 
     plotType = tolower(plotType)
     plotCategory = tolower(plotCategory)
-    if (!is.null(lineFit)){
+    if (!is.null(lineFit)) {
         lineFit <- tolower(lineFit)
     }
 
