@@ -92,8 +92,8 @@ plotDispersion <- function(DGEdata,
 
         if (!assertthat::see_if(is.character(symbolColor),
                                 length(symbolColor) == 1)) {
-            warning("symbolColor must be a singular value of class character and must specify the name of the color or the rgb value. Assigning default value 'deepblue'.")
-            symbolColor <- "deepblue"
+            warning("symbolColor must be a singular value of class character and must specify the name of the color or the rgb value. Assigning default value 'darkblue'.")
+            symbolColor <- "darkblue"
         }
 
         if (!assertthat::see_if(is.character(symbolShape),
@@ -131,8 +131,8 @@ plotDispersion <- function(DGEdata,
         }
 
         if (!assertthat::see_if(is.character(symbolColor))) {
-            warning("symbolColor must be of class character and must specify the name of the color or the rgb value. Assigning default value 'deepblue'.")
-            symbolColor <- "deepblue"
+            warning("symbolColor must be of class character and must specify the name of the color or the rgb value. Assigning default value 'darkblue'.")
+            symbolColor <- "darkblue"
         }
 
         if (!assertthat::see_if(is.numeric(symbolTransparency),
