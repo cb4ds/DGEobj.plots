@@ -67,7 +67,7 @@ plotPvalHist <- function(P.Val,
                             length(transparency) == 1,
                             transparency > 0 & transparency <= 1)) {
         warning("Transparency must be a singular numeric value and must be between 0 and 1. Assigning default value 0.6.")
-        alpha <- 0.3
+        transparency <- 0.3
     }
 
     if (is.matrix(P.Val)) {
