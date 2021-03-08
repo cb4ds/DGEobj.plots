@@ -308,13 +308,15 @@ printAndSave(BCV_Plot, file.path(outputPath, "BCV_Plot.png"))
 
 This function plots distributions before and after normalization as a two panel faceted plot.  It uses `edgeR::calcNormFactors()` and thus supports any normalization accepted by `calcNormFactors()`.  
 
-Input can be a DGEobj or a raw counts matrix.  Output can be a box plot or density distribution.  
+Input can be a DGEobj or a raw counts matrix.  Output can be a canvasXpress or ggplot object that is either a box plot or density distribution. 
+
+Default plot type is a canvasXpress and default plot category is box plot.
 
 ```
-boxNorm <- plotNorm(dgeObj, plotType = "box", normalize = "tmm")
+boxNorm <- plotNorm(dgeObj, plotCategory = "box", normalize = "tmm")
 printAndSave(boxNorm, file.path(outputPath, "boxNorm.png"))
 
-densityNorm <- plotNorm(dgeObj, plotType = "density", normalize = "tmm")
+densityNorm <- plotNorm(dgeObj, plotCategory = "density", normalize = "tmm")
 printAndSave(densityNorm, file.path(outputPath, "densityNorm.png"))
 ```
 
