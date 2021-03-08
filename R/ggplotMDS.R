@@ -85,36 +85,15 @@ ggplotMDS <- function(DGEdata,
 
     plotType = tolower(plotType)
 
-    # Default labels to colnames of DGEdata
-    addLabels <- TRUE
-    if (missing(labels)) {
-        labels <- colnames(DGEdata)
-        # Get labels from ReplicateGroup if present
-        if ("DGEobj" %in% class(DGEdata)) {
-            design <- DGEobj::getItem(DGEdata, "design")
-            if (exists("design")) {
-                if (with(design, exists("ReplicateGroup"))) {
-                    labels <- design$ReplicateGroup
-                }
-            }
-        }
-    } else if (is.null(labels)) {
-        addLabels <- FALSE
-    }
-
     assertthat::assert_that(class(DGEdata) %in% c("DGEobj", "DGEList", "matrix"),
                             msg = "DGEdata must be of class 'DGEList', 'DGEobj', or 'matrix'.")
     assertthat::assert_that(plotType %in% c("canvasxpress", "ggplot"),
                             msg = "Plot type must be either canvasXpress or ggplot.")
 
-    if ("DGEobj" %in% class(DGEdata)) {
-        DGEdata <- DGEobj::getItem(DGEdata, "DGEList")
-    }
-
-
     assertthat::assert_that(!missing(colorBy),
                             length(colorBy) == ncol(DGEdata),
                             msg = "colorBy must be specified and should be the length of the number of columns in DGEdata.")
+
     if (!missing(shapeBy)) {
         assertthat::assert_that(length(shapeBy) == ncol(DGEdata),
                                 msg = "shapeBy should be the length of the number of columns in DGEdata.")
@@ -122,6 +101,53 @@ ggplotMDS <- function(DGEdata,
     if (!missing(sizeBy)) {
         assertthat::assert_that(length(sizeBy) == ncol(DGEdata),
                                 msg = "sizeBy should be the length of the number of columns in DGEdata.")
+    }
+    browser()
+    # Validate labels
+    addLabels <- TRUE
+    if (is.null(labels)) {
+        addLabels <- FALSE
+    }
+
+    if (!length(labels) == ncol(DGEdata)) {
+        warning("Number of labels does not match the number of columns in DGEdata. Assigning default values")
+    }
+
+    if (addLabels) {
+        if (missing(labels) | (!length(labels) == ncol(DGEdata))) {
+
+            labels <- colnames(DGEdata)
+            # Get labels from ReplicateGroup if present
+            if ("DGEobj" %in% class(DGEdata)) {
+                design <- DGEobj::getItem(DGEdata, "design")
+                if (exists("design")) {
+                    if (with(design, exists("ReplicateGroup"))) {
+                        labels <- design$ReplicateGroup
+                    }
+                }
+            }
+        }
+    }
+
+    if (plotType == "canvasXpress") {
+
+        cx_valid_shapes <- get_valid_symbolShapes_cxplot()
+        if (!missing(shapes)) {
+            invalid_shapes <- shapes[!shapes %in% cx_valid_shapes]
+            if (length(invalid_shapes) > 0) {
+                shapes <- shapes[shapes %in% cx_valid_shapes]
+                warning(paste("Removing invalid shapes: ",invalid_shapes))
+                if (length(shapes) == 0) {
+                    shapes <- cx_valid_shapes
+                }
+            }
+        } else {
+            shapes <- cx_valid_shapes
+        }
+    }
+
+    if (plotType == "ggplot") {
+
     }
 
     # ColorBlind palette:
@@ -134,52 +160,41 @@ ggplotMDS <- function(DGEdata,
     if (missing(title)) {
         title <- "MDS Plot"
     }
-    browser()
+
+    if ("DGEobj" %in% class(DGEdata)) {
+        DGEdata <- DGEobj::getItem(DGEdata, "DGEList")
+    }
+
     mds.data <- limma::plotMDS(DGEdata,
                           top = top,
                           dim.plot = dim.plot,
                           plot = FALSE)
 
     # Pull the plotting data together
-    plot.data <- data.frame(x = mds.data$x, y = mds.data$y, ColorCode = colorBy)
-    if (addLabels == TRUE) {
-        plot.data$Labels = labels
-    }
+    plot_data <- data.frame(x = mds.data$x, y = mds.data$y, ColorCode = colorBy)
 
-    if (addLabels == TRUE) {
-        xydat <- data.frame(x = mds$x, y = mds$y, ColorCode = colorBy, Labels = labels)
-    } else {
-        xydat <- data.frame(x = mds$x, y = mds$y, ColorCode = colorBy)
+    if (addLabels) {
+        plot_data$Labels <- labels
     }
 
     byShape <- FALSE
     bySize  <- FALSE
-
     if (!missing(shapeBy)) {
-        xydat$Shape <- shapeBy
+        plot_data$Shape <- shapeBy
         byShape <- TRUE
     }
     if (!missing(sizeBy)) {
-        xydat$Size <- sizeBy
+        plot_data$Size <- sizeBy
         bySize <- TRUE
     }
 
-    xylab <- list(paste(mds$axislabel, mds$dim.plot[[1]], sep = " "),
-                  paste(mds$axislabel, mds$dim.plot[[2]], sep = " "))
-    alabel <- paste("top ", mds$top, " genes : gene.selection = ",
-                    mds$gene.selection, sep = "")
+    xylab <- list(paste(mds.data$axislabel, mds.data$dim.plot[[1]], sep = " "),
+                  paste(mds.data$axislabel, mds.data$dim.plot[[2]], sep = " "))
+    citation <- paste("top ", mds.data$top, " genes : gene.selection = ",
+                    mds.data$gene.selection, sep = "")
+
     # PlotType
     if (plotType == "canvasXpress") {
-        cxShapes <- c("sphere", "square", "triangle", "star", "rhombus", "octagon", "oval", "plus", "minus", "pacman", "pacman2", "mdavid", "rect2", "pentagon", "rect3", "arc", "rectangle", "image")
-
-        if (!missing(shapes)) {
-            if (is.numeric(shapes)) {
-                warning("Canvasxpress plot only accepts character array of shapes e.g c('sphere','square'). Using default shapes.")
-                shapes <- cxShapes
-            }
-        } else {
-            shapes <- cxShapes
-        }
 
         colors <- unlist(lapply(colors, function(col){
             paste(c("rgba(", paste(c(paste(col2rgb(col, alpha = FALSE), collapse = ","), 0.5), collapse = ","), ")"), collapse = "")
@@ -241,7 +256,7 @@ ggplotMDS <- function(DGEdata,
                                               title                   = title,
                                               xAxisTitle              = xylab[[1]],
                                               yAxisTitle              = xylab[[2]],
-                                              citation                = alabel,
+                                              citation                = citation,
                                               citationScaleFontFactor = 0.8,
                                               events                  = events)
 
@@ -298,7 +313,7 @@ ggplotMDS <- function(DGEdata,
         # Put the annotation 10% from xmin
         xpos <- xrange[1] + ((xrange[2] - xrange[1]) * 0.1 )
         mdsplot <- mdsplot + annotate("text", x = xpos, y = yrange[1],
-                                      label = alabel, hjust = 0,
+                                      label = citation, hjust = 0,
                                       size = rel(2.5), color = "grey30")
 
         if (!missing(hlineIntercept)) {

@@ -185,3 +185,18 @@ getCxPlotDecorations <- function(decorations, color, width, x, y) {
     decorations <- list(line = append(decorations$line, list(line)))
     return(decorations)
 }
+
+is_valid_symbolShapes_cxplot <- function(shape) {
+    valid_shapes <- c("sphere", "square", "triangle", "star", "rhombus", "octagon", "oval",
+                      "plus", "minus", "pacman", "pacman2", "mdavid", "rect2", "pentagon",
+                      "rect3", "arc", "rectangle", "image")
+    is_valid_shape <- ifelse(shape %in% valid_shapes, TRUE, FALSE)
+    return(is_valid_shape)
+}
+
+get_valid_symbolShapes_cxplot <- function() {
+    valid_shapes <- c("sphere", "square", "triangle", "star", "rhombus", "octagon", "oval",
+                      "plus", "minus", "pacman", "pacman2", "mdavid", "rect2", "pentagon",
+                      "rect3", "arc", "rectangle", "image")
+    return(valid_shapes)
+}
