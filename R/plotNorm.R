@@ -57,8 +57,12 @@ plotNorm <- function(DGEdata,
         counts <- getItem(DGEdata, "counts")
     }
 
-    tall <- build_normalized_data(counts) %>%
-        bind_rows(build_normalized_data(counts, toupper(normalize)))
+    tall <- build_normalized_data(counts)
+    if (normalize != "none") {
+        tall <- tall %>%
+            bind_rows(build_normalized_data(counts, toupper(normalize)))
+    }
+
 
     title <- str_c("Log2CPM before/after", normalize, "normalization", sep = " ")
 
