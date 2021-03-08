@@ -290,16 +290,38 @@ Dispersion is a measure of variance that is plotted against intensity as a QC pl
 
 ```
 # Note a DGEobj can have multiple design matrices or DGELists;  in this case
-# only one of each is present
+# only one of each is present. Plot can be created using either canvasXpress or ggplot library. 
 designMatrix <- getType(dgeObj, "designMatrix")[[1]]
 dgelist <- getType(dgeObj, "DGEList")[[1]]
 # Dispersion plot
-dispersionPlot <- plotDispersion(dgelist, designMatrix, lineFit = "loess", plotType = "dispersion")
-printAndSave(dispersionPlot, file.path(outputPath, "dispersionPlot.png"))
+dispersionPlot_cx <- plotDispersion(dgelist, 
+                                    designMatrix,     
+                                    lineFit = "loess", 
+                                    plotCategory = "dispersion", 
+                                    plotType = "canvasXpress")
+printAndSave(dispersionPlot, file.path(outputPath, "dispersionPlot_cx.png"))
+
+dispersionPlot_ggplot <- plotDispersion(dgelist, 
+                                        designMatrix, 
+                                        lineFit = "loess", 
+                                        plotCategory = "dispersion", 
+                                        plotType = "ggplot")
+printAndSave(dispersionPlot, file.path(outputPath, "dispersionPlot_ggplot.png"))
 
 # BCV (biological coefficient of variation) plot
-BCV_Plot <- plotDispersion(dgelist, designMatrix, lineFit = "loess", plotType = "BCV")
-printAndSave(BCV_Plot, file.path(outputPath, "BCV_Plot.png"))
+BCV_Plot_cx <- plotDispersion(dgelist, 
+                              designMatrix, 
+                              lineFit = "loess", 
+                              plotCategory = "BCV", 
+                              plotType = "canvasXpress")
+printAndSave(BCV_Plot, file.path(outputPath, "BCV_Plot_cx.png"))
+
+BCV_Plot_ggplot <- plotDispersion(dgelist, 
+                                  designMatrix, 
+                                  lineFit = "loess", 
+                                  plotCategory = "BCV", 
+                                  plotType = "ggplot")
+printAndSave(BCV_Plot, file.path(outputPath, "BCV_Plot_ggplot.png"))
 ```
 
 \newpage
