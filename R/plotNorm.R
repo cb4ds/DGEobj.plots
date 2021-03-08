@@ -29,7 +29,6 @@
 #' @importFrom assertthat assert_that
 #' @importFrom canvasXpress canvasXpress
 #' @importFrom htmlwidgets JS
-#' @importFrom tibble rownames_to_column
 #' @importFrom tidyr gather spread
 #' @importFrom dplyr mutate bind_rows select
 #'
@@ -199,7 +198,7 @@ build_gg_box_plot <- function(data, title) {
 build_normalized_data <- function(counts, normalize = "none") {
     DGEobj.utils::convertCounts(counts, unit = "cpm", log = TRUE, normalize = normalize) %>%
         as.data.frame() %>%
-        rownames_to_column(var = "GeneID") %>%
+        mutate(GeneID = rownames(.)) %>%
         gather(key = "SampleID", val = "Log2CPM", -GeneID) %>%
         mutate(Normalization = normalize)
 }
