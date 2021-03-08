@@ -130,8 +130,8 @@ build_cx_box_plot <- function(data, title) {
         select(c(GeneID, Normalization))
     rownames(smp.data) <- colnames(cx.data)
 
-    xlab     <- "Log2CPM"
-    ylab     <- "SampleID"
+    xlab      <- "Log2CPM"
+    smp_title <- "SampleID"
 
     events <- JS(
         "{'mousemove' : function(o, e, t) {
@@ -161,7 +161,7 @@ build_cx_box_plot <- function(data, title) {
         title                   = title,
         showLegend              = FALSE,
         xAxisTitle              = xlab,
-        yAxisTitle              = ylab,
+        smpTitle                = smp_title,
         segregateSamplesBy      = list("Normalization"),
         groupingFactors         = list("Normalization"),
         graphOrientation        = "vertical",
