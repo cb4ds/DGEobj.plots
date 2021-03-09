@@ -197,10 +197,11 @@ build_gg_box_plot <- function(data, title) {
               legend.position = "none")
 }
 
-build_normalized_data <- function(counts, normalize = "none") {
+build_normalized_data <- function(counts, normalize = "None") {
     DGEobj.utils::convertCounts(counts, unit = "cpm", log = TRUE, normalize = normalize) %>%
         as.data.frame() %>%
         mutate(GeneID = rownames(.)) %>%
         gather(key = "SampleID", val = "Log2CPM", -GeneID) %>%
         mutate(Normalization = normalize)
 }
+
