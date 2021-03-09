@@ -102,34 +102,36 @@ ggplotMDS <- function(DGEdata,
         assertthat::assert_that(length(sizeBy) == ncol(DGEdata),
                                 msg = "sizeBy should be the length of the number of columns in DGEdata.")
     }
-    browser()
+
     # Validate labels
     addLabels <- TRUE
-    if (is.null(labels)) {
-        addLabels <- FALSE
+    addDefaultLabel <- FALSE
+
+    if (!missing(labels)) {
+        if (is.null(labels)) {
+            addLabels <- FALSE
+        } else if (!length(labels) == ncol(DGEdata)) {
+            warning("Number of labels does not match the number of columns in DGEdata. Assigning default values")
+            addDefaultLabel <- TRUE
+        }
+    } else {
+        addDefaultLabel <- TRUE
     }
 
-    if (!length(labels) == ncol(DGEdata)) {
-        warning("Number of labels does not match the number of columns in DGEdata. Assigning default values")
-    }
-
-    if (addLabels) {
-        if (missing(labels) | (!length(labels) == ncol(DGEdata))) {
-
-            labels <- colnames(DGEdata)
-            # Get labels from ReplicateGroup if present
-            if ("DGEobj" %in% class(DGEdata)) {
-                design <- DGEobj::getItem(DGEdata, "design")
-                if (exists("design")) {
-                    if (with(design, exists("ReplicateGroup"))) {
-                        labels <- design$ReplicateGroup
-                    }
+    if (addLabels & addDefaultLabel) {
+        labels <- colnames(DGEdata)
+        # Get labels from ReplicateGroup if present
+        if ("DGEobj" %in% class(DGEdata)) {
+            design <- DGEobj::getItem(DGEdata, "design")
+            if (exists("design")) {
+                if (with(design, exists("ReplicateGroup"))) {
+                    labels <- design$ReplicateGroup
                 }
             }
         }
     }
 
-    if (plotType == "canvasXpress") {
+    if (plotType == "canvasxpress") {
 
         cx_valid_shapes <- get_valid_symbolShapes_cxplot()
         if (!missing(shapes)) {
@@ -194,8 +196,8 @@ ggplotMDS <- function(DGEdata,
                     mds.data$gene.selection, sep = "")
 
     # PlotType
-    if (plotType == "canvasXpress") {
-
+    if (plotType == "canvasxpress") {
+        browser()
         colors <- unlist(lapply(colors, function(col){
             paste(c("rgba(", paste(c(paste(col2rgb(col, alpha = FALSE), collapse = ","), 0.5), collapse = ","), ")"), collapse = "")
             }))
@@ -212,11 +214,11 @@ ggplotMDS <- function(DGEdata,
             sizeCol = "Size"
         }
 
-        reflineColor <- paste(c("rgba(", paste(c(paste(col2rgb(reflineColor, alpha = FALSE), collapse = ","), 0.5), collapse = ","), ")"), collapse = "")
+        reflineColor <- paste(c("rgba(", paste(c(paste(col2rgb(reflineColor, alpha = FALSE), collapse = ","), 1.0), collapse = ","), ")"), collapse = "")
         decorations  <- list()
         if (!missing(hlineIntercept)) {
             decorations <- list(
-                line = list(list(color = reflineColor,
+                line = list(list(color = "reflineColor",
                                  width = reflineSize,
                                  y     = hlineIntercept)))
         }
@@ -229,8 +231,8 @@ ggplotMDS <- function(DGEdata,
                                         x     = vlineIntercept))))
         }
 
-        cx.data  <- subset(xydat, select = c(x, y))
-        var.data <- subset(xydat, select = -c(x, y), drop = FALSE)
+        cx.data  <- subset(plot_data, select = c(x, y))
+        var.data <- subset(plot_data, select = -c(x, y), drop = FALSE)
         events <- htmlwidgets::JS("{ 'mousemove' : function(o, e, t) {
                                                 if (o != null && o != false) {
                                                     if (o.objectType == null && o.z.Labels != null) {
@@ -268,17 +270,17 @@ ggplotMDS <- function(DGEdata,
         }
 
         if (byShape == FALSE & bySize == FALSE) {
-            mdsplot <- ggplot(xydat, aes(x = x, y = y, color = ColorCode)) +
+            mdsplot <- ggplot(plot_data, aes(x = x, y = y, color = ColorCode)) +
                 geom_point(shape = symShape, size = symSize, alpha = alpha)
         } else if (byShape == TRUE & bySize == FALSE) {
-            mdsplot <- ggplot(xydat, aes(x = x, y = y, color = ColorCode, shape = Shape)) +
+            mdsplot <- ggplot(plot_data, aes(x = x, y = y, color = ColorCode, shape = Shape)) +
                 geom_point(size = symSize, alpha = alpha) +
                 scale_shape_manual(values = shapes)
         } else if (byShape == FALSE & bySize == TRUE) {
-            mdsplot <- ggplot(xydat, aes(x = x, y = y, color = ColorCode, size = Size)) +
+            mdsplot <- ggplot(plot_data, aes(x = x, y = y, color = ColorCode, size = Size)) +
                 geom_point(shape = symShape, alpha = alpha)
         } else if (byShape == TRUE & bySize == TRUE) {
-            mdsplot <- ggplot(xydat, aes(x = x, y = y, color = ColorCode, shape = Shape, size = Size)) +
+            mdsplot <- ggplot(plot_data, aes(x = x, y = y, color = ColorCode, shape = Shape, size = Size)) +
                 geom_point(alpha = alpha) +
                 scale_shape_manual(values = shapes)
         }
@@ -328,7 +330,7 @@ ggplotMDS <- function(DGEdata,
         }
     }
 
-    return(list(plot = mdsplot, mdsobj = mds))
+    return(list(plot = mdsplot, mdsobj = mds.data))
 }
 
 
