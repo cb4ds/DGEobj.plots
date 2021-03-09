@@ -70,11 +70,11 @@ ggplotMDS <- function(DGEdata,
                       sizeBy,
                       top = Inf,
                       labels,
-                      labelSize,
+                      labelSize = 3,
                       title,
                       hlineIntercept,
                       vlineIntercept,
-                      reflineColor = "darkgoldenrod1",
+                      reflineColor = "red",
                       reflineSize = 0.5,
                       symShape = 16,
                       symSize = 5,
@@ -102,6 +102,17 @@ ggplotMDS <- function(DGEdata,
         assertthat::assert_that(length(sizeBy) == ncol(DGEdata),
                                 msg = "sizeBy should be the length of the number of columns in DGEdata.")
     }
+
+    #add validation for top,labelSize, reflineColor, reflineSize, symShape, symsize, alpha, colors
+     if (!assertthat::see_if(is.numeric(top) | tolower(top) == "inf",length(top) == 1)) {
+         warning("top should be a numeric value or Inf. Assigning default value 'Inf'")
+         top <- "Inf"
+     }
+
+
+
+
+
 
     # Validate labels
     addLabels <- TRUE
@@ -146,9 +157,46 @@ ggplotMDS <- function(DGEdata,
         } else {
             shapes <- cx_valid_shapes
         }
+
+        if (!missing(hlineIntercept) && !(is.numeric(hlineIntercept) && length(hlineIntercept) == 1)) {
+            warning("hlineIntercept must be a singular numeric value. Removing hlineIntercept")
+            hlineIntercept <- NULL
+        }
+
+        if (!missing(vlineIntercept) && !(is.numeric(vlineIntercept) && length(vlineIntercept) == 1)) {
+            warning("vlineIntercept must be a singular numeric value. Removing vlineIntercept")
+            vlineIntercept <- NULL
+        }
+
+        if (!missing(hlineIntercept) | !missing(vlineIntercept)) {
+            if (!is.null(hlineIntercept) | !is.null(vlineIntercept)) {
+                if (!assertthat::see_if(is.character(reflineColor), length(reflineColor) == 1)) {
+                    warning("reflineColor must be a singular value of class character and must specify the name of the color or the rgb value. Assigning default value 'red'.")
+                    reflineColor <- "red"
+                }
+            }
+        }
     }
 
     if (plotType == "ggplot") {
+
+        if (!missing(labels)) {
+            if (!assertthat::see_if(is.numeric(labelSize), length(labelSize) == 1, labelSize > 0)) {
+                warning("labelSize should be singular numeric value and greater than zero. Assigning default value")
+            }
+        }
+
+        if (!missing(hlineIntercept) && !is.numeric(hlineIntercept)) {
+            warning("hlineIntercept must be numeric. Removing hlineIntercept")
+            hlineIntercept <- NULL
+        }
+
+        if (!missing(vlineIntercept) && !is.numeric(vlineIntercept)) {
+            warning("vlineIntercept must be numeric. Removing vlineIntercept")
+            hlineIntercept <- NULL
+        }
+
+
 
     }
 
@@ -199,7 +247,7 @@ ggplotMDS <- function(DGEdata,
     if (plotType == "canvasxpress") {
         browser()
         colors <- unlist(lapply(colors, function(col){
-            paste(c("rgba(", paste(c(paste(col2rgb(col, alpha = FALSE), collapse = ","), 0.5), collapse = ","), ")"), collapse = "")
+            rgbaConversion(col)
             }))
 
         colorCol <- "ColorCode"
@@ -214,11 +262,11 @@ ggplotMDS <- function(DGEdata,
             sizeCol = "Size"
         }
 
-        reflineColor <- paste(c("rgba(", paste(c(paste(col2rgb(reflineColor, alpha = FALSE), collapse = ","), 1.0), collapse = ","), ")"), collapse = "")
+        reflineColor <- rgbaConversion(reflineColor)
         decorations  <- list()
         if (!missing(hlineIntercept)) {
             decorations <- list(
-                line = list(list(color = "reflineColor",
+                line = list(list(color = reflineColor,
                                  width = reflineSize,
                                  y     = hlineIntercept)))
         }
@@ -236,8 +284,8 @@ ggplotMDS <- function(DGEdata,
         events <- htmlwidgets::JS("{ 'mousemove' : function(o, e, t) {
                                                 if (o != null && o != false) {
                                                     if (o.objectType == null && o.z.Labels != null) {
-                                                        t.showInfoSpan(e, '<b>' + o.y.vars + '</b> <br/>' +
-                                                        '<b>' + 'Label' + ': ' + o.z.Labels[0] + '</b> <br/>' +
+                                                        t.showInfoSpan(e, '<b>' +  o.z.Labels[0] + '</b> <br/>' +
+                                                        '<b>' + 'SampleID' + ': ' + o.y.vars+ '</b> <br/>' +
                                                         '<b>' + o.y.smps[0]  + '</b>' + ': ' + o.y.data[0][0] + '<br/>' +
                                                         '<b>' + o.y.smps[1]  + '</b>' + ': ' + o.y.data[0][1]);
                                                     } else {
