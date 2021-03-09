@@ -57,13 +57,15 @@ plotNorm <- function(DGEdata,
     }
 
     tall <- build_normalized_data(counts)
+
     if (normalize != "none") {
         tall <- tall %>%
             bind_rows(build_normalized_data(counts, toupper(normalize)))
     }
 
 
-    title <- str_c("Log2CPM before/after", normalize, "normalization", sep = " ")
+    title <- ifelse(normalize == "none", "Log2CPM Without Normalization",
+                    str_c("Log2CPM before/after", normalize, "normalization", sep = " "))
 
     resultPlot <- NULL
     if (plotType == "canvasxpress") {
