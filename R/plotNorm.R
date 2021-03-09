@@ -19,8 +19,8 @@
 #'
 #' @examples
 #' \dontrun{
-#'    myNormPlotBox <- plotNorm(myDGEobj, plotCategory = "box")
-#'    myNormPlotDensity <- plotNorm(counts, plotCategory = "density")
+#'    myNormPlotBox <- plotNorm(myDGEobj, plotType = "canvasXpress", plotCategory = "box")
+#'    myNormPlotDensity <- plotNorm(counts, plotType = "ggplot", plotCategory = "density")
 #' }
 #'
 #' @import magrittr ggplot2
