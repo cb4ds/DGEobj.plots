@@ -290,38 +290,16 @@ Dispersion is a measure of variance that is plotted against intensity as a QC pl
 
 ```
 # Note a DGEobj can have multiple design matrices or DGELists;  in this case
-# only one of each is present. Plot can be created using either canvasXpress or ggplot library. 
+# only one of each is present
 designMatrix <- getType(dgeObj, "designMatrix")[[1]]
 dgelist <- getType(dgeObj, "DGEList")[[1]]
 # Dispersion plot
-dispersionPlot_cx <- plotDispersion(dgelist, 
-                                    designMatrix,     
-                                    lineFit = "loess", 
-                                    plotCategory = "dispersion", 
-                                    plotType = "canvasXpress")
-printAndSave(dispersionPlot, file.path(outputPath, "dispersionPlot_cx.png"))
-
-dispersionPlot_ggplot <- plotDispersion(dgelist, 
-                                        designMatrix, 
-                                        lineFit = "loess", 
-                                        plotCategory = "dispersion", 
-                                        plotType = "ggplot")
-printAndSave(dispersionPlot, file.path(outputPath, "dispersionPlot_ggplot.png"))
+dispersionPlot <- plotDispersion(dgelist, designMatrix, lineFit = "loess", plotType = "dispersion")
+printAndSave(dispersionPlot, file.path(outputPath, "dispersionPlot.png"))
 
 # BCV (biological coefficient of variation) plot
-BCV_Plot_cx <- plotDispersion(dgelist, 
-                              designMatrix, 
-                              lineFit = "loess", 
-                              plotCategory = "BCV", 
-                              plotType = "canvasXpress")
-printAndSave(BCV_Plot, file.path(outputPath, "BCV_Plot_cx.png"))
-
-BCV_Plot_ggplot <- plotDispersion(dgelist, 
-                                  designMatrix, 
-                                  lineFit = "loess", 
-                                  plotCategory = "BCV", 
-                                  plotType = "ggplot")
-printAndSave(BCV_Plot, file.path(outputPath, "BCV_Plot_ggplot.png"))
+BCV_Plot <- plotDispersion(dgelist, designMatrix, lineFit = "loess", plotType = "BCV")
+printAndSave(BCV_Plot, file.path(outputPath, "BCV_Plot.png"))
 ```
 
 \newpage
@@ -330,15 +308,13 @@ printAndSave(BCV_Plot, file.path(outputPath, "BCV_Plot_ggplot.png"))
 
 This function plots distributions before and after normalization as a two panel faceted plot.  It uses `edgeR::calcNormFactors()` and thus supports any normalization accepted by `calcNormFactors()`.  
 
-Input can be a DGEobj or a raw counts matrix.  Output can be a canvasXpress or ggplot object that is either a box plot or density distribution. 
-
-Default plot type is a canvasXpress and default plot category is box plot.
+Input can be a DGEobj or a raw counts matrix.  Output can be a box plot or density distribution.  
 
 ```
-boxNorm <- plotNorm(dgeObj, plotType = "canvasXpress", plotCategory = "box", normalize = "tmm")
+boxNorm <- plotNorm(dgeObj, plotType = "box", normalize = "tmm")
 printAndSave(boxNorm, file.path(outputPath, "boxNorm.png"))
 
-densityNorm <- plotNorm(dgeObj, plotType = "ggplot", plotCategory = "density", normalize = "tmm")
+densityNorm <- plotNorm(dgeObj, plotType = "density", normalize = "tmm")
 printAndSave(densityNorm, file.path(outputPath, "densityNorm.png"))
 ```
 
