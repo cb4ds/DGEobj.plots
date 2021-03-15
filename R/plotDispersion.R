@@ -11,7 +11,7 @@
 #' @param plotCategory One of "dispersion" or "BCV" (default = "dispersion")
 #' @param symbolSize (default = 6)
 #' @param symbolShape Any supported shape for the points (default = "circle")
-#' @seealso \url{http://www.cookbook-r.com/Graphs/Shapes_and_line_types/}
+#' \url{http://www.cookbook-r.com/Graphs/Shapes_and_line_types/}
 #' @param symbolColor Fill color (default = "darkblue")
 #' @param symbolTransparency Transparency for the points. Value ranges from 0 to 1. Smaller
 #'   indicate more transparency (default = 0.5)
@@ -20,7 +20,7 @@
 #' one of glm, lm, loess, gam if plotType is canvasXpress. Loess is recommended.
 #'   recommended.
 #' @param lineType Any supported style for the fitLine  (default = solid).
-#' @seealso \url{http://www.cookbook-r.com/Graphs/Shapes_and_line_types/}
+#'  \url{http://www.cookbook-r.com/Graphs/Shapes_and_line_types/}
 #' @param ... Extra parameters to pass to edgeR::estimateDisp
 #'
 #' @return canvasxpress or ggplot object based on plotType selection
@@ -39,6 +39,7 @@
 #' @importFrom assertthat assert_that see_if
 #' @importFrom edgeR calcNormFactors estimateDisp DGEList
 #' @importFrom canvasXpress canvasXpress
+#'
 #'
 #' @export
 plotDispersion <- function(DGEdata,
