@@ -1,9 +1,8 @@
 #' Create QC metric plots
 #'
-#' Takes a dataframe with metric names in the first column and
-#' samples in the second through nth column.  Each row is a different QC metric.
+#' Takes a dataframe with row and colnames,  Samples in rows and metrics in columns.     Each col is a different QC metric.
 #' Returns a list of QC plots as defined by other arguments.  If only one metric is plotted,
-#' a ggplot object is returned. By default, horizontal reference lines are drawn
+#' a ggplot object is returned. By default, reference lines are drawn
 #' at the median and +/- n SDs based on the hlineSD argument. These are
 #' statistical reference points, NOT pass/fail limits.
 #'
@@ -17,7 +16,7 @@
 #'   data.frame (columns 2-n). The plot order is based on an alphabetical sort
 #'   of the original column names so might be different from the order in the
 #'   supplied data.frame.
-#' @param plotType One of "bar", "point", "pointline".  For a different
+#' @param plotType One of "bar", "point", "pointline", "histogram".  For a different
 #'   plot type for each metric, pass a list of plotTypes with length equal to
 #'   length(metricNames). (Default = "bar")
 #' @param barColor Color for the bar outline (Default = "dodgerblue4")
@@ -42,10 +41,10 @@
 #' @param histAlpha Transparency of the histogram (Default = 1)
 #' @param xAngle Angle to set the sample labels on the X axis (Default = 90;
 #'   Range = 0 - 90)
-#' @param baseTextSize Default = 14
+#' @param baseTextSize Default = 10
 #' @param hlineSD Draw two reference lines 1) at the median value 2) the number of
-#'   SDs defined by the value of hlineSD. (Default = 3; 0 to disable the reference lines.)
-#' @param winsorize This implements a robust method to calculate standard
+#'   SDs defined by the value of hlineSD. (Default = 2; 0 to disable the reference lines.)
+#' @param useWinsorize This implements a robust method to calculate standard
 #'   deviations.  It is used to calculate the standard deviation for the
 #'   placement of horizontal reference lines (hlineSD argument).  The adaptive
 #'   winsorization used here only trims extreme values when normality is
@@ -96,9 +95,9 @@ QCplots <- function(qcdata,
                     histSize = 1,
                     histAlpha = 1,
                     xAngle = 90,
-                    baseTextSize = 14,
-                    hlineSD = 3,
-                    winsorize = TRUE) {
+                    baseTextSize = 10,
+                    hlineSD = 2,
+                    useWinsorize = TRUE) {
 
     assertthat::assert_that("data.frame" %in% class(qcdata),
                             msg = "qcdata must be of class 'data.frame'.")
@@ -107,20 +106,22 @@ QCplots <- function(qcdata,
     assertthat::assert_that(xAngle >= 0  && xAngle <= 90,
                             msg = "xAngle must be greater than or equal to 0 but also less than or equal to 90.")
 
+    # Omicsoft used dots to signify NA. We'll assume R users will cleanup their
+    # own data (i.e. use na.strings='.' with read.table)
     # Replace "." in column 2-n with NA and convert columns 2-n to numeric
-    dotIdx <- qcdata == "."
-    if (sum(dotIdx, na.rm = TRUE) > 0) {
-        qcdata[dotIdx] <- NA
-        for (columnName in colnames(qcdata)[2:ncol(qcdata)])
-            qcdata[columnName] <- as.numeric(qcdata[[columnName]])
-    }
+    # dotIdx <- qcdata == "."
+    # if (sum(dotIdx, na.rm = TRUE) > 0) {
+    #     qcdata[dotIdx] <- NA
+    #     for (columnName in colnames(qcdata)[2:ncol(qcdata)])
+    #         qcdata[columnName] <- as.numeric(qcdata[[columnName]])
+    # }
 
-    # Convert first col to rownames and transpose
-    rownames(qcdata) <- qcdata[[1]]
-    qcdata <- qcdata %>%
-        t() %>%
-        as.data.frame()
-    qcdata <- data.frame("Sample" = row.names(qcdata), qcdata, row.names = NULL)
+    # # Convert first col to rownames and transpose
+    # rownames(qcdata) <- qcdata[[1]]
+    # qcdata <- qcdata %>%
+    #     t() %>%
+    #     as.data.frame()
+    # qcdata <- data.frame("Sample" = row.names(qcdata), qcdata, row.names = NULL)
 
     assertthat::assert_that(all(metricNames %in% colnames(qcdata)),
                             msg = "All of the specified metricNames must be included in the colnames of qcdata.")
@@ -129,6 +130,9 @@ QCplots <- function(qcdata,
     if (length(plotType) == 1) {
         plotType <- rep(plotType, length(metricNames))
     }
+
+    #create a sampe number column for X labels
+    qcdata["Sample"] <- seq(1, nrow(qcdata))
 
     plots <- list()
 
@@ -148,7 +152,7 @@ QCplots <- function(qcdata,
         plot_type <- plotType[idx]
 
         # Calculate mean and sd for hline yintercepts
-        if (winsorize == TRUE) {
+        if (useWinsorize == TRUE) {
             thisMetric <- winsorize(qcdata[,metric], na.rm = TRUE)
         } else {
             thisMetric <- qcdata[, metric, drop = TRUE]
@@ -157,9 +161,9 @@ QCplots <- function(qcdata,
         metricMean   <- mean(thisMetric, na.rm = TRUE)
         metricSD     <- sd(thisMetric, na.rm = TRUE)
 
-        if (!tolower(plot_type) == "histogram") {
+        #if (!tolower(plot_type) == "histogram") {
             p <- ggplot(qcdata, aes_string(x = "Sample", y = metric, group = 1))
-        }
+        #}
 
         p <- switch(tolower(plot_type),
                     bar = {p + geom_bar(stat = "identity", color = barColor, fill = barFill, alpha = barAlpha, width = barWidth)},
@@ -200,7 +204,7 @@ QCplots <- function(qcdata,
             vjust = 0.5
         }
         p <- p +
-            ggtitle(metric) +
+            # ggtitle(metric) +
             theme_gray(baseTextSize) +
             theme(axis.text.x = element_text(angle = xAngle, hjust = hjust, vjust = vjust))
 

@@ -18,15 +18,19 @@ vignette: >
 ```{r setup}
 rm(list = ls()) #Clear the workspace
 invisible(gc()) #garbage collection to masimize available memory
-startTime = Sys.time()
 
 setwd(paste0(here::here(), "/vignettes"))
 library(tidyverse)
 library(magrittr)
+library(cowplot)
 library(DGEobj)
 library(DGEobj.utils)
 library(DGEobj.plots)
-# library(JRTutil)
+library(conflicted)
+conflict_prefer("select",    "dplyr",   quiet = TRUE)
+conflict_prefer("filter",    "dplyr",   quiet = TRUE)
+conflict_prefer("left_join", "dplyr",   quiet = TRUE)
+conflict_prefer("rename",    "dplyr",   quiet = TRUE)
 
 outputPath <- "./output"
 
@@ -70,13 +74,15 @@ contrast
 * `ggplotMDS`: Multidimensional Scaling (like PCA but uses a intensity-based distance metric)    
 * `MDS_var_explained`: Plot the % variance explained by each MDS component   
 
-Most of the plots are generated with `ggplot`, thus, the user can take a returned `ggplot` object and further modify it as desired.  
+Most of the plots are generated with `ggplot`, thus, the user can take a
+returned `ggplot` object and further modify it as desired.  
 
 # QC Plots  
 
-## Dispersion Plot (plotDispersion function)
+## Dispersion Plot (plotDispersion function)  
 
-Dispersion is a measure of variance that is plotted against intensity as a QC plot that illustrates heteroscedasticity.
+Dispersion is a measure of variance that is plotted against intensity as a QC
+plot that illustrates heteroscedasticity.  
 
 ```{r dispersionPlot}
 # Note a DGEobj can have multiple design matrices or DGELists;  in this case
@@ -94,7 +100,7 @@ ggsave(file.path(outputPath, "BCV_Plot.png"))
 
 
 
-## Plot Normalization (plotNorm function)
+## Plot Normalization (plotNorm function)  
 
 This function plots distributions before and after normalization as a two panel faceted plot.  It uses `edgeR::calcNormFactors()` and thus supports any normalization accepted by `calcNormFactors()`.  
 
@@ -112,49 +118,39 @@ ggsave(file.path(outputPath, "densityNorm.png"))
 
 
 
-## Alignment QCplots (Function QCplots)
+## Alignment QCplots (Function QCplots)  
 
-This function is intended to work on Omicsoft-style alignment QC data.  QC parameters are named in the first column and subsequent columns hold data for each sample.
+The alignment QC item type ("alignQC") is a colData data type. Rownames of a
+colData type match the colnames of the DGEobj.  For the alignment QC
+data, the colnames are the names of the various measurements.  
 
-Since Omicsoft alignment QC includes hundreds of metrics, you typically want to limit the plots to a subset of the available metrics.
+```{r AlignmentQC}
 
-```
-# Get some data from an Omicsoft project in S3
-s3mount <- "Y:" #where you have mounted the S3 bucket "bmsrd-ngs-arrayserver"
-s3path <- "/OmicsoftHome/output/P-20171107-0002/UCSD_Lung_Fibroblasts_P-20171107-0002_8Feb2018/ExportedViewsAndTables"
-qcfilename <- "RNA-Seq.QCMetrics.Table.txt" #standard name for QC file in Omicosoft projects
-
-
-qcdat <- readr::read_delim(file.path(s3mount, s3path, qcfilename), delim = "\t")
-# Shorten the column names
-colnames(qcdat) <- str_replace(colnames(qcdat), "_UCSD_Lung_Fibroblasts_P-20171107-0002_8Feb2018", "")
-
-# qcdat <- qcdat[complete.cases(qcdat),]
-
-# Pick some Omicsoft Metrics from column 1 of the data frame
-someFavMetrics <- c("Alignment_MappedRate", "Source_rRNA", "Profile_ExonRate",
+# Pick some Metrics from colnames(dgeObj$AlignmentQC)
+someFavMetrics <- c("Alignment_MappedRate", "Strand_Read1SenseRate", "Profile_ExonRate",
                     "Profile_InterGene_FPK")
 
-MyQCplots <- QCplots(qcdat, metricNames = someFavMetrics) # all defaults
-# plots <- QCplots(qcdat, metricNames=someFavMetrics, plotType="bar", xAngle=90)
-# Draw the first plot
-printAndSave(MyQCplots[[1]], file.path(outputPath, "QCplot.png"))
+MyQCplots <- QCplots(dgeObj$AlignmentQC, 
+                     metricNames = someFavMetrics,
+                     plotType = "bar") 
+
+# Draw the plots in a grid
+cowplot::plot_grid(plotlist = MyQCplots)
+
 
 ```
 
-You need to download a QC data file from the S3 bucket bms-ngs-arrayserver or,
-preferably, you can read data directly from S3 using software to mount an S3
-bucket to a local location.
 
-To map an S3 bucket to local storage:  
-For Mac: see [s3fs](https://github.com/s3fs-fuse/s3fs-fuse)    
-For PC: see [Cloudberry Drive](https://www.cloudberrylab.com/drive.aspx)   
+## P-value Histogram: Evaluate Quality of Fit  
 
+The distribution of pvalues can help evaluate the performance of a model.  A
+well-behaved dataset with no signifcant results yields a flat distribution from
+0 to 1.0.  Significant results appear as a low pvalue peak.  Peak in other
+positions of an unusual slope can indicate problems with the statistical model
+that should be further explored.  
 
-
-## P-value Histogram: Evaluate Quality of Fit
-
-**Code Block:** P-value Histogram Facet Plot Example
+In the example below, the pvalue histogram is plotted for each contrast in the
+DGEobj.  
 
 ```{r pvalHist}
 
@@ -171,10 +167,9 @@ ggsave(file.path(outputPath, "pvalHist.png"))
 See `?plotPvalHist` for optional arguments.
 
 
-
 # Data Exploration Plots  
 
-## Table of Differential Gene Counts from Contrasts 
+## Table of Differential Gene Counts from Contrasts  
 
 The summarizeSigCounts function provides a summary of the number of genes
 statistically differential among a set of contrasts.  The input for
@@ -195,14 +190,16 @@ knitr::kable(df)
 
 ```
 
-Arguments to `summarizeSigCounts()` allow you to specify which topTable columns to include and define the thresholds for significance.  
+Arguments to `summarizeSigCounts()` allow you to specify which topTable columns
+to include and define the thresholds for significance.  
 
 See `?summarizeSigcounts` for other arguments.  
 
 
-## Profile Plot: LogIntensity vs. LogRatio plots
+## Profile Plot: LogIntensity vs. LogRatio plots  
 
-Function `profilePlot()` uses defaults appropriate for topTable/topTreat dataframes.
+Function `profilePlot()` uses defaults appropriate for topTable/topTreat
+dataframes.  
 
 
 ```{r profilePlot}
@@ -216,15 +213,15 @@ profilePlot(myTopTable,
 ggsave(file.path(outputPath, "ProfilePlot.PNG"))
 ```
 
-See `?profilePlot` for options to modify various attributes (color, shape, transparency, reference lines, etc).  
+See `?profilePlot` for options to modify various attributes (color, shape,
+transparency, reference lines, etc).  
 
 
 
-## Volcano Plot: LogRatio vs. Negative Log P-value
+## Volcano Plot: LogRatio vs. Negative Log P-value  
 
-Function `volcanoPlot()` uses defaults appropriate for topTable dataframes.
+Function `volcanoPlot()` uses defaults appropriate for topTable dataframes.  
 
-**Code Block:** Volcano Plot Example
 
 ```{r volcanoPlot}
 # Grab a topTable dataframe
@@ -236,15 +233,20 @@ ggsave(file.path(outputPath, "VolcanoPlot.PNG"))
 
 ```
 
-See `?volcanoPlot` for options to modify various attributes (color, shape, transparency, reference lines, etc).
+See `?volcanoPlot` for options to modify various attributes (color, shape,
+transparency, reference lines, etc).  
 
 
 
-## CDF Plot: Evaluate model performance
+## CDF Plot: Evaluate model performance  
 
-Plot the p-value Rank vs. the actual p-values.  A straight diagonal line indicate no differential genes (null hypothesis satisfied), while differential genes appear as a break above the line at low p-values.
+Plot the p-value Rank vs. the actual p-values.  A straight diagonal line
+indicate no differential genes (null hypothesis satisfied), while differential
+genes appear as a break above the line at low p-values.  
 
-The main plot shows p-values <= 0.1 (user settable).  An inset plot shows the full range of p-values and a blue box indicates the region shown in the main plot. Genes with p < 0.01 (user settable) are shown in red.
+The main plot shows p-values <= 0.1 (user settable).  An inset plot shows the
+full range of p-values and a blue box indicates the region shown in the main
+plot. Genes with p < 0.01 (user settable) are shown in red.  
 
 
 ```{r cdfPlot}
@@ -259,15 +261,18 @@ ggsave(file.path(outputPath, "cdfPlot.PNG"))
 
 
 
-See `?cdfPlot` options to modify various attributes (color, shape, transparency, reference lines, etc).
+See `?cdfPlot` options to modify various attributes (color, shape, transparency,
+reference lines, etc).  
 
 
 
-## Compare Plot: compare two signature
+## Compare Plot: compare two signature  
 
-Plot the LogRatios of two contrasts, highlight common genes and genes unique to either contrast.
+Plot the LogRatios of two contrasts, highlight common genes and genes unique to
+either contrast.  
 
-The input for this plot requires pulling the log ratio and p-value columns from two topTable dataframes together.  
+The input for this plot requires pulling the log ratio and p-value columns from
+two topTable dataframes together.  
 
 
 ```{r comparePlot}
@@ -287,11 +292,12 @@ comparePlot(compareData,
 ggsave(file.path(outputPath, "ComparePlot.PNG"))
 ```
 
-See `?comparePlot` options to modify various attributes (color, shape, transparency, reference lines, etc). 
+See `?comparePlot` options to modify various attributes (color, shape,
+transparency, reference lines, etc).  
 
 
 
-## Observation Plot: Intensity boxplots by gene
+## Observation Plot: Intensity boxplots by gene  
 
 This is a gene of interest plot, intended to plot a reasonably small number of
 genes, with a separate plot for each gene and a box for each treatment group.
@@ -301,7 +307,6 @@ supplied to simplify creation of the input file.
 The plot is faceted by default.  Setting `facet = FALSE` produces individual
 plots for each gene that are returned as a list of plots.  
 
-**Code Block:** Observation Plot Example
 
 ```{r obsPlot}
 # Get log2cpm data
@@ -348,16 +353,17 @@ myplots <- obsPlot2(tidyInt,
 myplots[[1]]
 ```
 
-See `?obsPlot2` options to modify various attributes (color, shape, transparency, reference lines, etc).
+See `?obsPlot2` options to modify various attributes (color, shape,
+transparency, reference lines, etc).  
 
 
 
-## logRatioPlot
+## logRatioPlot  
 
 Plotting logRatio data with 95% confidence limits is generally preferable to
 plotting intensity data with the Observation Plot.  This is because the ratio
 data is post-modeling and thus reflects adjustments for any "nuisance" factors
-included in the modeling (e.g. batch effect, demographic or sex effects).  
+included in the modeling (e.g. batch effect, demographic or sex effects).   
 
 ```{r logRatioPlot}
 # Put contrasts in tidy format keeping logFC, and confidence limits data
@@ -385,13 +391,15 @@ logRatioPlot(tidyDat,
 ggsave(file.path(outputPath, "logRatioPlot.png"))
 ```
 
-The companion function, `tidyContrasts()`, aids in reformatting topTable contrast data for use with function `logRatioPlot()`.
-`tidyContrasts()` will accept a DGEobj as input and will find all topTable data in the DGEobj.  `tidyContrasts()` will also work with a list of topTable dataframes which provides flexibility to mix and match topTable data from multiple projects for plotting.
+The companion function, `tidyContrasts()`, aids in reformatting topTable
+contrast data for use with function `logRatioPlot()`. `tidyContrasts()` will
+accept a DGEobj as input and will find all topTable data in the DGEobj.
+`tidyContrasts()` will also work with a list of topTable dataframes which
+provides flexibility to mix and match topTable data from multiple projects for
+plotting.  
 
-See `?logRatioPlot` options to modify various attributes (color, shape, transparency, reference lines, etc).
-
-
-
+See `?logRatioPlot` options to modify various attributes (color, shape,
+transparency, reference lines, etc).  
 
 
 ## Multidimentional Scaling  
@@ -403,7 +411,7 @@ distance between points accordingly.
 
 ### MDS Plot  
 
-`ggplotMDS()` is a ggplot wrapper around `limma::plotMDS()`.
+`ggplotMDS()` is a ggplot wrapper around `limma::plotMDS()`.  
 
 ```{r MDS}
 dgeList <- getItem(dgeObj, "DGEList")
@@ -415,9 +423,10 @@ ggsave(file.path(outputPath, "MDSplot.png"))
 ```
 
 
-### MDS Variance Explained Plots
+### MDS Variance Explained Plots  
 
-Takes the MDS object from the `ggplotMDS()` result list (item 2) and returns a list with: 
+Takes the MDS object from the `ggplotMDS()` result list (item 2) and returns a
+list with:  
 
 * a plot of the amount of variance explained by each component  
 * a cumulative plot of the variance explained  
@@ -432,7 +441,7 @@ ggsave(file.path(outputPath, "cumVarExplained.png"), MDSvarResult$cumvar)
 ```
 
 
-##  Run a Power Analysis  (Move to DGEobj.plots)
+##  Run a Power Analysis  
 
 Interpretation of DGE data is improved by an understanding of the proportion of
 true positives detected as well as the degree of false postives expected.
@@ -441,12 +450,12 @@ experience has shown that a 2X change in a high intensity gene is more reliable
 that a 2X change in a gene near the detection limit.  The rnapower function from
 the rnapower package takes the intensity level into consideration in estimating
 power in RNA-Seq data.  runPower is a wrapper function that produces several
-ggplot representations of the results.
+ggplot representations of the results.  
 
 The depth argument in this process refers to raw counts and the default levels
 of 10, 100, 1000 correspond roughly to detection limit, middle low expression
 and median expression levels.  You'll see that estimated power increases with
-increasing intensity level.
+increasing intensity level.  
 
 ```{r runPower, eval=TRUE, echo=TRUE, warning=FALSE, message=FALSE, fig.height=6, fig.width=7}
 
@@ -468,12 +477,3 @@ ggsave(filename=file.path(outputPath, "power_NvP.PNG"), plot=pwr$Nvp)
 ```
 
 
-# Session Info
-
-***Time required to process this report:*** *` format(Sys.time() - startTime)`* 
-
-**R Session Info**
-
-```
-sessionInfo()
-```

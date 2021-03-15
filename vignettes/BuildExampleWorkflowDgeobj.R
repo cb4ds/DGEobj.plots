@@ -14,6 +14,10 @@ library(glue)
 library(biomaRt)
 library(knitr)
 library(conflicted)
+conflict_prefer("select",    "dplyr",   quiet = TRUE)
+conflict_prefer("filter",    "dplyr",   quiet = TRUE)
+conflict_prefer("left_join", "dplyr",   quiet = TRUE)
+conflict_prefer("rename",    "dplyr",   quiet = TRUE)
 
 # This determines the path to the git root.
 setwd (here::here())
@@ -31,17 +35,26 @@ if (!file.exists(outputPath)) dir.create(outputPath, recursive=TRUE)
 getLocation <- "ftp://ftp.ncbi.nlm.nih.gov/geo/series/GSE120nnn/GSE120804/suppl"
 countsFile <- "GSE120804_counts.txt.gz"
 designFile <- "GSE120804_geo_sample_annotation_edit.csv.gz"
+qcFile <- "GSE120804_qc_metrics.txt.gz"
 counts_url <- glue("{getLocation}/{countsFile}")
 design_url <- glue("{getLocation}/{designFile}")
+qcURL <- glue("{getLocation}/{qcFile}")
 
 temp <- tempfile()
-if (download.file(counts_url, destfile = temp, mode = 'wb') > 0) print ("Counts Download Failed")
+if (download.file(counts_url, destfile = temp, mode = 'wb') > 0) stop ("Counts Download Failed")
 counts <- read.delim(temp, stringsAsFactors = FALSE, row.names = 1)
 unlink(temp)
 
 temp <- tempfile()
-if (download.file(design_url, destfile = temp, mode = 'wb')) print("Design Download Failed")
+if (download.file(design_url, destfile = temp, mode = 'wb')) stop("Design Download Failed")
 design <- read.csv(temp, stringsAsFactors = FALSE)
+unlink(temp)
+
+temp <- tempfile()
+if (download.file(glue("{getLocation}/{qcFile}"), destfile = temp, mode = 'wb')) {
+    stop("Alignment QC File Download Failed")
+}
+alignmentQC <- read.delim(temp, stringsAsFactors = FALSE)
 unlink(temp)
 
 ### cleanUpDesignTable
@@ -97,7 +110,7 @@ transcript.data %<>%
     arrange(desc(transcript_length)) %>%
     distinct(ensembl_gene_id, .keep_all = T)
 #Add an transcript_length column to gene.data
-gene.data <- left_join(gene.data, select(transcript.data, ensembl_gene_id,
+gene.data <- left_join(gene.data, dplyr::select(transcript.data, ensembl_gene_id,
                                          ExonLength = transcript_length)) %>%
     tibble::column_to_rownames(var = "ensembl_gene_id")
 # enforce same order as counts
@@ -112,6 +125,21 @@ dgeObj <- DGEobj::initDGEobj(primaryAssayData = counts,
                              level = "gene",
                              customAttr = list(Genome    = "Rat.B6.0",
                                                GeneModel = "Ensembl.R89"))
+### add alignment QC data
+alignmentQC %<>%
+    column_to_rownames(var="Metric") %>%
+    t() %>%
+    as.data.frame()
+
+# make the colnames R compliant
+colnames(alignmentQC) <- make.names(colnames(alignmentQC))
+
+dgeObj <- addItem(dgeObj,
+                  item = alignmentQC,
+                  itemName = "AlignmentQC",
+                  itemType = "alignQC",
+                  parent = "",
+                  funArgs = "")
 
 ### annotateFromTextFile
 
@@ -194,3 +222,4 @@ dgeObj <- runContrasts(dgeObj,
                        IHW = TRUE)
 
 saveRDS (dgeObj, file.path(outputPath, "WorkflowDgeObj.RDS"))
+
