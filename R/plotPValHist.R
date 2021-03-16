@@ -104,7 +104,7 @@ plotPvalHist <- function(P.Val,
         if (facet) {
             cx.data   <- subset(P.Val, select = pval)
             var.annot <- subset(P.Val, select = -c(pval))
-            plotlist  <- canvasXpress::canvasXpress(data                = cx.data,
+            plotlist  <- canvasXpress::canvasXpress(data                 = cx.data,
                                                     varAnnot             = var.annot,
                                                     histogramData        = TRUE,
                                                     histogramBinWidth    = binWidth,
@@ -120,8 +120,8 @@ plotPvalHist <- function(P.Val,
                                                     segregateVariablesBy = list("levels"),
                                                     events               = events)
         } else {
-            for (i in 1:samples_num) {
-                sample <- sample_names[i]
+            #for (i in 1:samples_num) {
+            plotlist <- lapply(sample_names, function(sample) {
                 pval_subset <- dplyr::filter(P.Val, grepl(sample, levels))
                 cx.data <- subset(pval_subset, select = pval)
                 var.annot <- subset(pval_subset, select = -c(pval))
@@ -139,8 +139,8 @@ plotPvalHist <- function(P.Val,
                                                         showHistogramDensity = FALSE,
                                                         showLegend           = FALSE,
                                                         events               = events)
-                plotlist[[i]] = hist_pval
-            }
+                hist_pval
+            })
         }
     } else {
         if (facet) {

@@ -9,28 +9,25 @@ plotPvalHist(
   plotType = "canvasXpress",
   facet = TRUE,
   binWidth = 0.02,
-  alpha = 0.6,
-  color = "dodgerblue3",
-  fill = "dodgerblue3"
+  transparency = 0.6,
+  color = "dodgerblue3"
 )
 }
 \arguments{
 \item{P.Val}{A matrix or dataframe of numeric data; col = samples}
 
-\item{plotType}{Plot type must be canvasXpress or ggplot (Default to canvasXpress).}
+\item{plotType}{Plot type must be canvasXpress or ggplot (default = canvasXpress).}
 
-\item{facet}{Set to FALSE to print individual plots instead of a faceted plot. (Default = TRUE)}
+\item{facet}{Set to FALSE to print individual plots instead of a faceted plot. (default = TRUE)}
 
-\item{binWidth}{Range is always 0-1 for p-values. (Default = 0.02)}
+\item{binWidth}{Range is always 0-1 for p-values. (default = 0.02)}
 
-\item{alpha}{Set the transparency. (Default = 0.6)}
+\item{transparency}{Set the transparency. (default = 0.6)}
 
-\item{color}{Color for the histogram outline. (Default = "dodgerblue3")}
-
-\item{fill}{Fill color for the histogram. (Default = "dodgerblue3")}
+\item{color}{Fill & Outline color for the histogram (default = "dodgerblue3")}
 }
 \value{
-A ggplot2 object if facet = TRUE or a list of plots if facet = FALSE. (Default = TRUE)
+A canvasXpress or a ggplot2 object if facet = TRUE or a list of plots if facet = FALSE. (default = TRUE)
 }
 \description{
 Generate a facet plot (or optionally individual plots) from a dataframe of
