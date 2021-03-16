@@ -4,33 +4,41 @@
 \alias{plotNorm}
 \title{Plot log2CPM before and after normalization}
 \usage{
-plotNorm(DGEdata, plotType = "box", normalize = "tmm")
+plotNorm(
+  DGEdata,
+  plotType = "canvasXpress",
+  plotCategory = "box",
+  normalize = "tmm"
+)
 }
 \arguments{
 \item{DGEdata}{A DGEobj or counts matrix.}
 
-\item{plotType}{One of "box" or "density." (Default = "box")}
+\item{plotType}{Plot type must be canvasXpress or ggplot (Default to canvasXpress).}
+
+\item{plotCategory}{One of "box" or "density." (Default = "box")}
 
 \item{normalize}{Default = "TMM" and invokes TMM normalization. Other allowed
 values are: "RLE", "upperquartile", or "none". Invokes edgeR::calcNormFactors for
 normalization.}
 }
 \value{
-A faceted ggplot plot showing before/after log2CPM normalization.
+A faceted canvasXpress/ggplot plot showing before/after log2CPM normalization.
 }
 \description{
-Takes a DGEobj containing counts or a counts matrix as input. Returns a ggplot object containing
-a faceted plot of log2CPM before and after normalization. Either a box plot or density plot
-type can be chosen.
+Takes a DGEobj containing counts or a counts matrix as input. Returns a canvasXpress or ggplot
+object containing a faceted plot of log2CPM before and after normalization.
 }
 \details{
+Either a box plot or density plot category can be chosen.
+
 Normalization is performed by edgeR::calcNormFactors. Note TMM is specifically tailored to count-based
 data.  Thus this function is only appropriate for count-based data.
 }
 \examples{
 \dontrun{
-   myNormPlotBox <- plotNorm(myDGEobj, plotType = "box")
-   myNormPlotDensity <- plotNorm(counts, plotType = "density")
+   myNormPlotBox <- plotNorm(myDGEobj, plotType = "canvasXpress", plotCategory = "box")
+   myNormPlotDensity <- plotNorm(counts, plotType = "ggplot", plotCategory = "density")
 }
 
 }
