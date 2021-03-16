@@ -26,6 +26,7 @@
 #' @import magrittr ggplot2
 #' @importFrom stringr str_c
 #' @importFrom DGEobj getItem
+#' @importFrom DGEobj.utils convertCounts
 #' @importFrom assertthat assert_that
 #' @importFrom canvasXpress canvasXpress
 #' @importFrom htmlwidgets JS
@@ -41,19 +42,19 @@ plotNorm <- function(DGEdata,
     plotCategory <- tolower(plotCategory)
     normalize    <- tolower(normalize)
 
-    assert_that(any(c("matrix", "DGEobj") %in% class(DGEdata)),
+    assertthat::assert_that(any(c("matrix", "DGEobj") %in% class(DGEdata)),
                             msg = "DGEdata must be of either class 'matrix' or 'DGEobj'.")
-    assert_that(plotType %in% c("canvasxpress", "ggplot"),
+    assertthat::assert_that(plotType %in% c("canvasxpress", "ggplot"),
                             msg = "plotType must be either canvasXpress or ggplot.")
-    assert_that(plotCategory %in% c("box", "density"),
+    assertthat::assert_that(plotCategory %in% c("box", "density"),
                             msg = "plotCategory must be one of 'box' or 'density'.")
-    assert_that(normalize %in% c("tmm", "rle", "upperquartile", "none"),
+    assertthat::assert_that(normalize %in% c("tmm", "rle", "upperquartile", "none"),
                             msg = "normalize must be one of 'TMM', 'RLE', 'upperquartile', or 'none'.")
 
     if ("matrix" %in% class(DGEdata)) {
         counts <- DGEdata
     } else {
-        counts <- getItem(DGEdata, "counts")
+        counts <- DGEobj::getItem(DGEdata, "counts")
     }
 
     tall <- build_normalized_data(counts)
@@ -65,7 +66,7 @@ plotNorm <- function(DGEdata,
 
 
     title <- ifelse(normalize == "none", "Log2CPM Without Normalization",
-                    str_c("Log2CPM before/after", normalize, "normalization", sep = " "))
+                    stringr::str_c("Log2CPM before/after", normalize, "normalization", sep = " "))
 
     resultPlot <- NULL
     if (plotType == "canvasxpress") {
@@ -86,7 +87,7 @@ plotNorm <- function(DGEdata,
 
 build_cx_density_plot <- function(data, title) {
     plot.data <- data %>%
-        spread(SampleID, Log2CPM)
+        tidyr::spread(SampleID, Log2CPM)
     cx.data <- plot.data %>%
         select(!c(GeneID, Normalization))
     var.annot <- plot.data %>%
@@ -94,7 +95,7 @@ build_cx_density_plot <- function(data, title) {
 
     xlab <- "Log2CPM"
     ylab <- "density"
-    events <- JS(
+    events <- htmlwidgets::JS(
         "{'mousemove' : function(o, e, t) {
                             if (o != null && o != false) {
                                 if (o.objectType == 'Density' &&
@@ -108,7 +109,7 @@ build_cx_density_plot <- function(data, title) {
                             };
                         }}")
 
-    canvasXpress(
+    canvasXpress::canvasXpress(
         data                    = cx.data,
         varAnnot                = var.annot,
         histogramData           = TRUE,
@@ -126,7 +127,7 @@ build_cx_density_plot <- function(data, title) {
 
 build_cx_box_plot <- function(data, title) {
     plot.data <- data %>%
-        spread(SampleID, Log2CPM)
+        tidyr::spread(SampleID, Log2CPM)
     cx.data <- plot.data %>%
         select(!c(GeneID, Normalization)) %>%
         t() %>%
@@ -138,7 +139,7 @@ build_cx_box_plot <- function(data, title) {
     xlab      <- "Log2CPM"
     smp_title <- "SampleID"
 
-    events <- JS(
+    events <- htmlwidgets::JS(
         "{'mousemove' : function(o, e, t) {
                             if (o != null && o != false &&
                                 o.w != null && o.w.vars != null) {
@@ -159,7 +160,7 @@ build_cx_box_plot <- function(data, title) {
                             };
                         }}")
 
-    canvasXpress(
+    canvasXpress::canvasXpress(
         data                    = cx.data,
         smpAnnot                = smp.data,
         graphType               = "Boxplot",
@@ -200,8 +201,8 @@ build_gg_box_plot <- function(data, title) {
 build_normalized_data <- function(counts, normalize = "None") {
     DGEobj.utils::convertCounts(counts, unit = "cpm", log = TRUE, normalize = normalize) %>%
         as.data.frame() %>%
-        mutate(GeneID = rownames(.)) %>%
-        gather(key = "SampleID", val = "Log2CPM", -GeneID) %>%
-        mutate(Normalization = normalize)
+        dplyr::mutate(GeneID = rownames(.)) %>%
+        tidyr::gather(key = "SampleID", val = "Log2CPM", -GeneID) %>%
+        dplyr::mutate(Normalization = normalize)
 }
 
