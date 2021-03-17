@@ -12,15 +12,15 @@ ggplotMDS(
   sizeBy,
   top = Inf,
   labels,
-  labelSize,
+  labelSize = 3,
   title,
   hlineIntercept,
   vlineIntercept,
-  reflineColor = "darkgoldenrod1",
+  reflineColor = "red",
   reflineSize = 0.5,
-  symShape = 16,
+  symShape = "circle",
   symSize = 5,
-  alpha = 0.7,
+  transparency = 0.7,
   shapes,
   colors,
   dim.plot = c(1, 2)
@@ -63,13 +63,13 @@ text labels.}
 \item{symSize}{Set the default size of the symbols if not mapped to a column
 (Default = 5)}
 
-\item{alpha}{Set transparency (Default = 0.7)}
-
 \item{shapes}{A vector of shapes to override the default 8 shapes used in shapeBy (optional)}
 
 \item{colors}{A color pallet to substitute for the default 8 color pallet used by colorBy (optional)}
 
 \item{dim.plot}{Define which dimension to plot (Default = c(1,2))}
+
+\item{alpha}{Set transparency (Default = 0.7)}
 }
 \value{
 A list with two elements, the ggplot object and the MDS object returned

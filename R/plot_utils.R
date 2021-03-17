@@ -187,9 +187,7 @@ getCxPlotDecorations <- function(decorations, color, width, x, y) {
 }
 
 is_valid_symbolShapes_cxplot <- function(shape) {
-    valid_shapes <- c("sphere", "square", "triangle", "star", "rhombus", "octagon", "oval",
-                      "plus", "minus", "pacman", "pacman2", "mdavid", "rect2", "pentagon",
-                      "rect3", "arc", "rectangle", "image")
+    valid_shapes <- get_valid_symbolShapes_cxplot()
     is_valid_shape <- ifelse(shape %in% valid_shapes, TRUE, FALSE)
     return(is_valid_shape)
 }
@@ -199,4 +197,30 @@ get_valid_symbolShapes_cxplot <- function() {
                       "plus", "minus", "pacman", "pacman2", "mdavid", "rect2", "pentagon",
                       "rect3", "arc", "rectangle", "image")
     return(valid_shapes)
+}
+
+get_valid_symbolShapes_ggplot <- function() {
+    shape_names <- c(
+        "circle", paste("circle", c("open", "filled", "cross", "plus", "small")), "bullet",
+        "square", paste("square", c("open", "filled", "cross", "plus", "triangle")),
+        "diamond", paste("diamond", c("open", "filled", "plus")),
+        "triangle", paste("triangle", c("open", "filled", "square")),
+        paste("triangle down", c("open", "filled")),
+        "plus", "cross", "asterisk"
+    )
+    shapes <- data.frame(
+        shape_names = shape_names,
+        x = c(1:7, 1:6, 1:3, 5, 1:3, 6, 2:3, 1:3),
+        y = -rep(1:6, c(7, 6, 4, 4, 2, 3))
+    )
+    return(shapes)
+}
+
+is_valid_symbolShapes_ggplot <- function(shape) {
+    valid_shapes <- get_valid_symbolShapes_ggplot()
+    is_valid_shape <- ifelse(shape %in% valid_shapes, TRUE, FALSE)
+    if (!is_valid_shape & (is_valid_shape %in% c(1:25))) {
+        is_valid_shape <- TRUE
+    }
+    return(is_valid_shape)
 }
