@@ -79,16 +79,8 @@ plotPvalHist <- function(P.Val,
     sample_names <- colnames(P.Val)
 
     # Set up Tall format
-
     P.Val$GeneID = rownames(P.Val)
-    P.Val <-  stats::reshape(data          = P.Val,
-                             idvar         = "GeneID",
-                             varying       = sample_names,
-                             v.names       = "pval",
-                             direction     = "long",
-                             timevar       = "levels",
-                             times         = sample_names,
-                             new.row.names = sequence(prod(length(sample_names), nrow(P.Val))))
+    P.Val <- P.Val %>% tidyr::gather(key = "levels", value = "pval", -GeneID)
 
     title <- "P-value Histograms"
     plotlist <- list()
