@@ -1,41 +1,54 @@
 #' Plot log2CPM before and after normalization
 #'
-#' Takes a DGEobj containing counts or a counts matrix as input. Returns a ggplot object containing
-#' a faceted plot of log2CPM before and after normalization. Either a box plot or density plot
-#' type can be chosen.
+#' Takes a DGEobj containing counts or a counts matrix as input. Returns a canvasXpress or ggplot
+#' object containing a faceted plot of log2CPM before and after normalization.
+#'
+#' Either a box plot or density plot category can be chosen.
 #'
 #' Normalization is performed by edgeR::calcNormFactors. Note TMM is specifically tailored to count-based
 #' data.  Thus this function is only appropriate for count-based data.
 #'
 #' @param DGEdata  A DGEobj or counts matrix.
-#' @param plotType  One of "box" or "density." (Default = "box")
+#' @param plotType Plot type must be canvasXpress or ggplot (Default to canvasXpress).
+#' @param plotCategory  One of "box" or "density." (Default = "box")
 #' @param normalize Default = "TMM" and invokes TMM normalization. Other allowed
 #'   values are: "RLE", "upperquartile", or "none". Invokes edgeR::calcNormFactors for
 #'   normalization.
 #'
-#' @return A faceted ggplot plot showing before/after log2CPM normalization.
+#' @return A faceted canvasXpress/ggplot plot showing before/after log2CPM normalization.
 #'
 #' @examples
 #' \dontrun{
-#'    myNormPlotBox <- plotNorm(myDGEobj, plotType = "box")
-#'    myNormPlotDensity <- plotNorm(counts, plotType = "density")
+#'    myNormPlotBox <- plotNorm(myDGEobj, plotType = "canvasXpress", plotCategory = "box")
+#'    myNormPlotDensity <- plotNorm(counts, plotType = "ggplot", plotCategory = "density")
 #' }
 #'
 #' @import magrittr ggplot2
 #' @importFrom stringr str_c
 #' @importFrom DGEobj getItem
+#' @importFrom DGEobj.utils convertCounts
 #' @importFrom assertthat assert_that
+#' @importFrom canvasXpress canvasXpress
+#' @importFrom htmlwidgets JS
+#' @importFrom tidyr gather spread
+#' @importFrom dplyr mutate bind_rows select
 #'
 #' @export
 plotNorm <- function(DGEdata,
-                     plotType = "box",
+                     plotType = "canvasXpress",
+                     plotCategory = "box",
                      normalize = "tmm") {
+    plotType     <- tolower(plotType)
+    plotCategory <- tolower(plotCategory)
+    normalize    <- tolower(normalize)
 
     assertthat::assert_that(any(c("matrix", "DGEobj") %in% class(DGEdata)),
                             msg = "DGEdata must be of either class 'matrix' or 'DGEobj'.")
-    assertthat::assert_that(tolower(plotType) %in% c("box", "density"),
-                            msg = "plotType must be one of 'box' or 'density'.")
-    assertthat::assert_that(tolower(normalize) %in% c("tmm", "rle", "upperquartile", "none"),
+    assertthat::assert_that(plotType %in% c("canvasxpress", "ggplot"),
+                            msg = "plotType must be either canvasXpress or ggplot.")
+    assertthat::assert_that(plotCategory %in% c("box", "density"),
+                            msg = "plotCategory must be one of 'box' or 'density'.")
+    assertthat::assert_that(normalize %in% c("tmm", "rle", "upperquartile", "none"),
                             msg = "normalize must be one of 'TMM', 'RLE', 'upperquartile', or 'none'.")
 
     if ("matrix" %in% class(DGEdata)) {
@@ -44,57 +57,152 @@ plotNorm <- function(DGEdata,
         counts <- DGEobj::getItem(DGEdata, "counts")
     }
 
-    log2cpm <- DGEobj.utils::convertCounts(counts, unit = "cpm", log = TRUE, normalize = "none") %>%
-        as.data.frame
-    log2CPM_tmm <- DGEobj.utils::convertCounts(counts, unit = "cpm", log = TRUE, normalize = normalize) %>%
-        as.data.frame
+    tall <- build_normalized_data(counts)
 
-    log2cpm_colnames <- colnames(log2cpm)
-    tall <- data.frame("GeneID" = row.names(log2cpm), log2cpm, row.names = NULL)
-
-    tall <-  stats::reshape(data          = tall,
-                            idvar         = "GeneID",
-                            varying       = log2cpm_colnames,
-                            v.names       = "Log2CPM",
-                            direction     = "long",
-                            timevar       = "SampleID",
-                            times         = log2cpm_colnames,
-                            new.row.names = sequence(prod(length(log2cpm_colnames), nrow(tall))))
-    tall$Normalization = "none"
-
-    log2cpm_tmm_colnames <- colnames(log2CPM_tmm)
-    tall_tmm <- data.frame("GeneID" = row.names(log2CPM_tmm), log2CPM_tmm, row.names = NULL)
-    tall_tmm <-  stats::reshape(data          = tall_tmm,
-                                idvar         = "GeneID",
-                                varying       = log2cpm_tmm_colnames,
-                                v.names       = "Log2CPM",
-                                direction     = "long",
-                                timevar       = "SampleID",
-                                times         = log2cpm_tmm_colnames,
-                                new.row.names = sequence(prod(length(log2cpm_tmm_colnames), nrow(tall_tmm))))
-    tall_tmm$Normalization = toupper(normalize)
-
-    tall <- tall %>%
-        rbind(tall_tmm)
-
-    if (tolower(plotType) == "density") {
-        resultPlot <- ggplot(tall, aes(x = Log2CPM, color = SampleID)) +
-            geom_density() +
-            facet_grid(~Normalization) +
-            ggtitle(stringr::str_c("Log2CPM before/after", normalize, "normalization", sep = " "))  +
-            theme_gray() +
-            theme(legend.position = "none")
+    if (normalize != "none") {
+        tall <- tall %>%
+            bind_rows(build_normalized_data(counts, toupper(normalize)))
     }
 
-    if (tolower(plotType == "box")) {
-        resultPlot <- ggplot(tall, aes(x = SampleID, y = Log2CPM, color = SampleID)) +
-            geom_boxplot(alpha = 0.5) +
-            facet_grid(~Normalization) +
-            ggtitle(stringr::str_c("Log2CPM before/after", normalize, "normalization", sep = " "))  +
-            theme_gray() +
-            theme(axis.text.x = element_blank(),
-                  legend.position = "none")
-    }
 
-    return(resultPlot)
+    title <- ifelse(normalize == "none", "Log2CPM Without Normalization",
+                    stringr::str_c("Log2CPM before/after", normalize, "normalization", sep = " "))
+
+    resultPlot <- NULL
+    if (plotType == "canvasxpress") {
+        if (plotCategory == "box") {
+            resultPlot <- build_cx_box_plot(tall, title)
+        } else {
+            resultPlot <- build_cx_density_plot(tall, title)
+        }
+    } else {
+        if (plotCategory == "density") {
+            resultPlot <- build_gg_density_plot(tall, title)
+        } else {
+            resultPlot <- build_gg_box_plot(tall, title)
+        }
+    }
+    resultPlot
 }
+
+build_cx_density_plot <- function(data, title) {
+    plot.data <- data %>%
+        tidyr::spread(SampleID, Log2CPM)
+    cx.data <- plot.data %>%
+        select(!c(GeneID, Normalization))
+    var.annot <- plot.data %>%
+        select(c(GeneID, Normalization))
+
+    xlab <- "Log2CPM"
+    ylab <- "density"
+    events <- htmlwidgets::JS(
+        "{'mousemove' : function(o, e, t) {
+                            if (o != null && o != false) {
+                                if (o.objectType == 'Density' &&
+                                    o.display != null &&
+                                    o.display.indexOf('-') > -1) {
+                                    sampleID = o.display.split('-')[2];
+                                    t.showInfoSpan(e, '<b>Sample ID</b>: ' + sampleID);
+                                } else {
+                                    t.showInfoSpan(e, o.display);
+                                };
+                            };
+                        }}")
+
+    canvasXpress::canvasXpress(
+        data                    = cx.data,
+        varAnnot                = var.annot,
+        histogramData           = TRUE,
+        graphType               = "Scatter2D",
+        xAxisTitle              = xlab,
+        yAxisTitle              = ylab,
+        hideHistogram           = TRUE,
+        showHistogramDensity    = TRUE,
+        segregateVariablesBy    = list("Normalization"),
+        title                   = title,
+        showLegend              = FALSE,
+        events                  = events
+    )
+}
+
+build_cx_box_plot <- function(data, title) {
+    plot.data <- data %>%
+        tidyr::spread(SampleID, Log2CPM)
+    cx.data <- plot.data %>%
+        select(!c(GeneID, Normalization)) %>%
+        t() %>%
+        as.data.frame()
+    smp.data <- plot.data %>%
+        select(c(GeneID, Normalization))
+    rownames(smp.data) <- colnames(cx.data)
+
+    xlab      <- "Log2CPM"
+    smp_title <- "SampleID"
+
+    events <- htmlwidgets::JS(
+        "{'mousemove' : function(o, e, t) {
+                            if (o != null && o != false &&
+                                o.w != null && o.w.vars != null) {
+                                function round(num, decimals) {
+                                     tens = Math.pow(10, decimals);
+                                     return Math.round((num + Number.EPSILON) * tens)/tens;
+                                }
+                                t.showInfoSpan(e, '<h3>' + o.w.vars[0] + '<h3>' +
+                                                  '<b>1st IQR</b>: ' + round(o.w.iqr1[0], 2) + '<br>' +
+                                                  '<b>1st Qtl</b>: ' + round(o.w.qtl1[0], 2) + '<br>' +
+                                                  '<b>Median</b>: ' +  round(o.w.median[0], 2)+ '<br>'+
+                                                  '<b>3rd IQR</b>: ' + round(o.w.iqr3[0], 2) + '<br>' +
+                                                  '<b>3rd Qtl</b>: ' + round(o.w.qtl3[0], 2) + '<br>' +
+                                                  '<b>Outliers</b>: ' + o.w.out[0].length + '<br>' +
+                                                  '<b>N-Data</b>: ' + o.w.n[0] + '<br>');
+                            } else {
+                                t.showInfoSpan(e, o.display);
+                            };
+                        }}")
+
+    canvasXpress::canvasXpress(
+        data                    = cx.data,
+        smpAnnot                = smp.data,
+        graphType               = "Boxplot",
+        title                   = title,
+        showLegend              = FALSE,
+        xAxisTitle              = xlab,
+        smpTitle                = smp_title,
+        segregateSamplesBy      = list("Normalization"),
+        groupingFactors         = list("Normalization"),
+        graphOrientation        = "vertical",
+        boxplotOutliersRatio    = "2",
+        events                  = events
+    )
+}
+
+
+build_gg_density_plot <- function(data, title) {
+    data %>%
+        ggplot(aes(x = Log2CPM, color = SampleID)) +
+        geom_density() +
+        facet_grid(~Normalization) +
+        ggtitle(title)  +
+        theme_gray() +
+        theme(legend.position = "none")
+}
+
+build_gg_box_plot <- function(data, title) {
+    data %>%
+        ggplot(aes(x = SampleID, y = Log2CPM, color = SampleID)) +
+        geom_boxplot(alpha = 0.5) +
+        facet_grid( ~ Normalization) +
+        ggtitle(title)  +
+        theme_gray() +
+        theme(axis.text.x = element_blank(),
+              legend.position = "none")
+}
+
+build_normalized_data <- function(counts, normalize = "None") {
+    DGEobj.utils::convertCounts(counts, unit = "cpm", log = TRUE, normalize = normalize) %>%
+        as.data.frame() %>%
+        dplyr::mutate(GeneID = rownames(.)) %>%
+        tidyr::gather(key = "SampleID", val = "Log2CPM", -GeneID) %>%
+        dplyr::mutate(Normalization = normalize)
+}
+
