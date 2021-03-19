@@ -24,7 +24,7 @@
 #' }
 #'
 #' @import ggplot2
-#' @importFrom dplyr filter
+#' @importFrom dplyr filter select
 #' @importFrom canvasXpress canvasXpress
 #'
 #' @export
@@ -94,8 +94,8 @@ plotPvalHist <- function(P.Val,
                        }; }}")
 
         if (facet) {
-            cx.data   <- subset(P.Val, select = pval)
-            var.annot <- subset(P.Val, select = -c(pval))
+            cx.data <- P.Val %>% dplyr::select(pval)
+            var.annot <- P.Val %>% dplyr::select(-pval)
             plotlist  <- canvasXpress::canvasXpress(data                 = cx.data,
                                                     varAnnot             = var.annot,
                                                     histogramData        = TRUE,
@@ -115,8 +115,8 @@ plotPvalHist <- function(P.Val,
             #for (i in 1:samples_num) {
             plotlist <- lapply(sample_names, function(sample) {
                 pval_subset <- dplyr::filter(P.Val, grepl(sample, levels))
-                cx.data <- subset(pval_subset, select = pval)
-                var.annot <- subset(pval_subset, select = -c(pval))
+                cx.data <- pval_subset %>% dplyr::select(pval)
+                var.annot <- pval_subset %>% dplyr::select(-pval)
                 hist_pval <- canvasXpress::canvasXpress(data                 = cx.data,
                                                         varAnnot             = var.annot,
                                                         histogramData        = TRUE,
