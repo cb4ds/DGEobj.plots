@@ -37,7 +37,7 @@
 #' @param symShape Set the default shape of the symbols if not mapped to a column (Default = 19, solid circle)
 #' @param symSize Set the default size of the symbols if not mapped to a column
 #'   (Default = 5)
-#' @param alpha Set transparency (Default = 0.7)
+#' @param transparency Set transparency (Default = 0.7)
 #' @param shapes A vector of shapes to override the default 8 shapes used in shapeBy (optional)
 #' @param colors A color pallet to substitute for the default 8 color pallet used by colorBy (optional)
 #' @param dim.plot Define which dimension to plot (Default = c(1,2))
@@ -82,7 +82,7 @@ ggplotMDS <- function(DGEdata,
                       shapes,
                       colors,
                       dim.plot = c(1, 2)) {
-    browser()
+
     plotType = tolower(plotType)
 
     assertthat::assert_that(class(DGEdata) %in% c("DGEobj", "DGEList", "matrix"),
@@ -103,9 +103,9 @@ ggplotMDS <- function(DGEdata,
                                 msg = "sizeBy should be the length of the number of columns in DGEdata.")
     }
 
-    if (!assertthat::see_if(is.numeric(top) | tolower(top) == "inf",length(top) == 1)) {
-        warning("top should be a numeric value or Inf. Assigning default value 'Inf'")
-        top <- "Inf"
+    if (!assertthat::see_if(length(top) == 1, is.numeric(top) | top == Inf)) {
+        warning("top should be a numeric value or Inf. Assigning default value 'Inf'.")
+        top <- Inf
     }
 
     if (!assertthat::see_if(is.numeric(transparency),
@@ -120,6 +120,7 @@ ggplotMDS <- function(DGEdata,
 
 
 
+
     # Validate labels
     addLabels <- TRUE
     addDefaultLabel <- FALSE
@@ -128,7 +129,7 @@ ggplotMDS <- function(DGEdata,
         if (is.null(labels)) {
             addLabels <- FALSE
         } else if (!length(labels) == ncol(DGEdata)) {
-            warning("Number of labels does not match the number of columns in DGEdata. Assigning default values")
+            warning("Number of labels does not match the number of columns in DGEdata. Assigning default values.")
             addDefaultLabel <- TRUE
         }
     } else {
@@ -164,27 +165,44 @@ ggplotMDS <- function(DGEdata,
             shapes <- cx_valid_shapes
         }
 
-        if (!missing(hlineIntercept) && !(is.numeric(hlineIntercept) && length(hlineIntercept) == 1)) {
-            warning("hlineIntercept must be a singular numeric value. Removing hlineIntercept")
-            hlineIntercept <- NULL
+        if (!missing(hlineIntercept)) {
+            if (!assertthat::see_if(!is.null(hlineIntercept), is.numeric(hlineIntercept), length(hlineIntercept) == 1 )) {
+                warning("hlineIntercept must be a singular numeric value. Removing hlineIntercept.")
+                hlineIntercept <- NULL
+            }
         }
 
-        if (!missing(vlineIntercept) && !(is.numeric(vlineIntercept) && length(vlineIntercept) == 1)) {
-            warning("vlineIntercept must be a singular numeric value. Removing vlineIntercept")
-            vlineIntercept <- NULL
+        if (!missing(vlineIntercept)) {
+            if (!assertthat::see_if(!is.null(vlineIntercept), is.numeric(vlineIntercept), length(vlineIntercept) == 1 )) {
+                warning("vlineIntercept must be a singular numeric value. Removing vlineIntercept.")
+                vlineIntercept <- NULL
+            }
         }
 
-        if (!missing(hlineIntercept) | !missing(vlineIntercept)) {
-            if (!is.null(hlineIntercept) | !is.null(vlineIntercept)) {
-                if (!assertthat::see_if(!is.null(reflineColor), is.character(reflineColor), length(reflineColor) == 1)) {
-                    warning("reflineColor must be a singular value of class character and must specify the name of the color or the rgb value. Assigning default value 'red'.")
-                    reflineColor <- "red"
-                }
+        intercept_flag <- FALSE
 
-                if (!assertthat::see_if(!is.null(reflineSize), is.numeric(reflineSize), length(reflineSize) == 1)) {
-                    warning("reflineSize must be a singular numeric value. Assigning default value '0.5'")
-                    reflineSize <- 0.5
-                }
+        if (!missing(hlineIntercept)) {
+            if (!is.null(hlineIntercept)) {
+                intercept_flag <- TRUE
+            }
+        }
+
+        if (!missing(hlineIntercept)) {
+            if (!is.null(hlineIntercept)) {
+                intercept_flag <- TRUE
+            }
+        }
+
+        if (intercept_flag) {
+            browser()
+            if (!assertthat::see_if(!is.null(reflineColor), is.character(reflineColor), length(reflineColor) == 1)) {
+                warning("reflineColor must be a singular value of class character and must specify the name of the color or the rgb value. Assigning default value 'red'.")
+                reflineColor <- "red"
+            }
+
+            if (!assertthat::see_if(!is.null(reflineSize), is.numeric(reflineSize), length(reflineSize) == 1, reflineSize > 0)) {
+                warning("reflineSize must be a singular numeric value greater than 0. Assigning default value '0.5'.")
+                reflineSize <- 0.5
             }
         }
     }
@@ -193,34 +211,56 @@ ggplotMDS <- function(DGEdata,
 
         if (!missing(labels)) {
             if (!assertthat::see_if(is.numeric(labelSize), length(labelSize) == 1, labelSize > 0)) {
-                warning("labelSize should be singular numeric value and greater than zero. Assigning default value")
+                warning("labelSize should be singular numeric value and greater than zero. Assigning default value 3.")
                 labelSize <- 3
             }
         }
 
-        if (!missing(hlineIntercept) && !is.numeric(hlineIntercept)) {
-            warning("hlineIntercept must be numeric. Removing hlineIntercept")
-            hlineIntercept <- NULL
+        if (!missing(hlineIntercept)) {
+            if (!is.null(hlineIntercept) & !is.numeric(hlineIntercept)) {
+                warning("hlineIntercept must be numeric. Removing hlineIntercept.")
+                hlineIntercept <- NULL
+            }
         }
 
-        if (!missing(vlineIntercept) && !is.numeric(vlineIntercept)) {
-            warning("vlineIntercept must be numeric. Removing vlineIntercept")
-            hlineIntercept <- NULL
+        if (!missing(vlineIntercept)) {
+            if (!is.null(vlineIntercept) & !is.numeric(vlineIntercept)) {
+                warning("vlineIntercept must be numeric. Removing vlineIntercept.")
+                vlineIntercept <- NULL
+            }
         }
 
-        if (!missing(hlineIntercept) | !missing(vlineIntercept)) {
-            if (!is.null(hlineIntercept) | !is.null(vlineIntercept)) {
+        intercept_flag <- FALSE
+
+        if (!missing(hlineIntercept)) {
+            if (!is.null(hlineIntercept)) {
+                intercept_flag <- TRUE
+            }
+        }
+
+        if (!missing(hlineIntercept)) {
+            if (!is.null(hlineIntercept)) {
+                intercept_flag <- TRUE
+            }
+        }
+
+        if (intercept_flag) {
+            if (!missing(reflineColor)) {
                 if (!assertthat::see_if(!is.null(reflineColor), is.character(reflineColor))) {
                     warning("reflineColor must be a of class character and must specify the name of the color or the rgb value. Assigning default value 'red'.")
                     reflineColor <- "red"
                 }
+            }
 
-                if (!assertthat::see_if(!is.null(reflineSize), is.numeric(reflineSize))) {
-                    warning("reflineSize must be a numeric value. Assigning default value '0.5'")
+            if (!missing(reflineSize)) {
+                if (!assertthat::see_if(!is.null(reflineSize), is.numeric(reflineSize), all(reflineSize > 0))) {
+                    warning("reflineSize must be a numeric value greater than 0. Assigning default value '0.5'.")
                     reflineSize <- 0.5
                 }
             }
         }
+
+
 
 
         #add valid shapes
@@ -281,7 +321,7 @@ ggplotMDS <- function(DGEdata,
         byShape <- TRUE
     } else {
         if (plotType == "ggplot" & !missing(symShape) & !assertthat::see_if(!is.null(symShape), length(symShape) == 1, is_valid_symbolShapes_ggplot(symShape))) {
-            warning("symShape must be a singular value of class 'character'. Assigning default value 'circle'.")
+            warning("symShape must be a singular value of class 'character' or numeric value. Refer help documentation for valid values. Assigning default value 'circle'.")
             symShape <- "circle"
         } else if (plotType == "canvasxpress" & !missing(symShape) & !assertthat::see_if(length(symShape) == 1, is_valid_symbolShapes_cxplot(symShape))) {
             warning("symShape must be a singular value of class 'character'. Assigning default value 'circle'.")
@@ -305,7 +345,6 @@ ggplotMDS <- function(DGEdata,
 
     # PlotType
     if (plotType == "canvasxpress") {
-        browser()
         colors <- unlist(lapply(colors, function(col){
             rgbaConversion(col)
             }))
@@ -379,17 +418,17 @@ ggplotMDS <- function(DGEdata,
 
         if (byShape == FALSE & bySize == FALSE) {
             mdsplot <- ggplot(plot_data, aes(x = x, y = y, color = ColorCode)) +
-                geom_point(shape = symShape, size = symSize, alpha = alpha)
+                geom_point(shape = symShape, size = symSize, alpha = transparency)
         } else if (byShape == TRUE & bySize == FALSE) {
             mdsplot <- ggplot(plot_data, aes(x = x, y = y, color = ColorCode, shape = Shape)) +
-                geom_point(size = symSize, alpha = alpha) +
+                geom_point(size = symSize, alpha = transparency) +
                 scale_shape_manual(values = shapes)
         } else if (byShape == FALSE & bySize == TRUE) {
             mdsplot <- ggplot(plot_data, aes(x = x, y = y, color = ColorCode, size = Size)) +
-                geom_point(shape = symShape, alpha = alpha)
+                geom_point(shape = symShape, alpha = transparency)
         } else if (byShape == TRUE & bySize == TRUE) {
             mdsplot <- ggplot(plot_data, aes(x = x, y = y, color = ColorCode, shape = Shape, size = Size)) +
-                geom_point(alpha = alpha) +
+                geom_point(alpha = transparency) +
                 scale_shape_manual(values = shapes)
         }
 
@@ -418,7 +457,6 @@ ggplotMDS <- function(DGEdata,
             ggtitle(title)
 
         # Place an annotation on the bottom left of the plot
-        browser()
         xrange <- xrange(mdsplot)
         yrange <- yrange(mdsplot)
         # Put the annotation 10% from xmin
