@@ -1,7 +1,7 @@
 Package: DGEobj.plots
 Type:    Package
 Title:   Differential Gene Expression (DGE) Analysis Plots
-Version: 1.0.0.9000
+Version: 1.0.0.9002
 Description: 
     Provides a function toolkit to facilitate reproducible RNA-Seq DGE
     analysis by standardizing several types of common plots. The DGE Plotting tools

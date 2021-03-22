@@ -1,0 +1,672 @@
+---
+title: "DGEobj.plots: DGE Data QC and Exploration Plotting Tools"
+author: "John R. Thompson (jrt@thompsonclan.org)"
+date: "`r Sys.Date()`"
+output:
+  rmarkdown::html_vignette:   
+    fig_caption: yes
+    number_sections: yes
+    toc: yes
+    toc_depth: 5
+vignette: >
+  %\VignetteIndexEntry{DGEobj.plots: DGE Data QC and Exploration Plotting Tools}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r global_options, include = FALSE}
+knitr::opts_chunk$set(echo    = TRUE, 
+                      include = TRUE, 
+                      warning = FALSE, 
+                      message = FALSE, 
+                      eval    = FALSE)
+
+suppressPackageStartupMessages({
+    library(cowplot)
+    library(biomaRt)
+    library(dplyr)
+    library(glue)
+    library(DGEobj)
+    library(DGEobj.utils)
+    library(DGEobj.plots)
+    library(stringr)
+    library(knitr)
+    library(conflicted)
+})
+
+conflict_prefer("select",    "dplyr",   quiet = TRUE)
+conflict_prefer("left_join", "dplyr",   quiet = TRUE)
+```
+
+
+# Introduction
+
+`DGEobj.plots` includes an assortment of standard data exploration plotting tools. The intention here is to make common plot types very easy to produce and provide a consistent look and feel.  Generally, optional arguments allow you to tweak the plots and since the plots are returned as `canvasXpress` or `ggplot` objects you can always further customize them.  
+
+This package includes the following plotting functions:   
+
+
+## QC (Quality Control) plots   
+
+* `plotDispersion`: Plot dispersion or BCV vs log intensity
+* `plotNorm`: Plot density or boxplots before/after normalization  
+* `QCplots`: Plot selected alignment QC metrics  
+* `plotPvalHist`: faceted P-value histogram  
+
+
+## Data Exploration Plots  
+
+* `summarizeSigCounts`: Produce a table of significant genes counts for each contrast  
+* `profilePlot`:  LogInt vs. LogRatio (aka MA plot)   
+* `volcanoPlot`:  LogRatio vs. NegLogP    
+* `cdfPlot`:  Rank(pvalue) vs. NegLogP   
+* `comparePlot`: Compare LogRatios for two contrasts    
+* `obsPlot2`: Gene intensity boxplots (faceted)    
+* `logRatioPlot`: Plot logRatios +/- 95% confidence intervals    
+* `ggplotMDS`: Multidimensional Scaling (like PCA but uses a intensity-based distance metric)    
+* `MDS_var_explained`: Plot the % variance explained by each MDS component   
+
+
+## Demonstration Dataset: Rat Liver Slice Compound Treatments
+
+The following dataset was selected to demonstrate building and working with the DGEobj data structure and associated plots
+
+>  Huang X, Cai H, Ammar R, Zhang Y et al. Molecular characterization of a
+>  precision-cut rat liver slice model for the evaluation of antifibrotic
+>  compounds. Am J Physiol Gastrointest Liver Physiol 2019 Jan 1;316(1):G15-G24. PMID: 30406699  
+
+Briefly, livers were removed from rats 4 weeks after bile duct ligation or sham operation. Rat liver slices were incubated in vitro with potential anti-fibrotic compounds. At the end of the incubation whole transcriptome RNA-Seq analysis was performed.
+
+Files containing counts, sample annotations, and QC data associated with this project can be downloaded from the [NCBI GEO resource](https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE120804).
+
+The GEO data includes Ensembl gene IDs. Additional gene information such as chromosome positions, type of transcript, etc., are downloaded from Ensembl using the biomaRt package.
+
+The starting point for the discussions in this vignette is a DGEobj that has been processed through a workflow.  The demonstration dataset detailed above is used to create the DGEobj R object step-by-step in sections 1-4 of the DGEobj package vignette:  [DGEobj_Overview](https://cran.r-project.org/web/packages/DGEobj/vignettes/DGEobj_Overview.html).  This vignette can be accessed from inside an R session using `vignette("DGEobj_Overview", package = "DGEobj")`.  The detailed instructions are not be repeated in this vignette, but the starting R object named "dgeObj" is created with exactly the same steps/data as detailed in sections 1-4.
+
+```{r baseDGEcreation, include = F}
+
+annotation_text <- '
+# general project metadata
+level=gene
+source=Omicsoft
+ID=BDL_Rat_LiverSlice_03Dec2017
+Title=Rat Liver Slices from Bile Duct Ligation animals
+Organism=Rat
+GeneModel=Ensembl.R89
+PlatformType=RNA-Seq
+Description=Rat livers slices from sham or BDL +/- efficacious treatments incubated in vitro
+Keywords=Liver slices; Bile Duct Ligation
+Disease=Liver Fibrosis
+Tissue=Liver
+GEO=GSE120804
+# additional technical data processing attributes
+Technology=Illumina-HiSeq
+LibraryPrep=TruSeq Stranded Total RNA
+AlignmentReference=Rat.B6.0
+ReadType=PE
+Pipeline=RNA-Seq_BMS_v2.4.pscript
+AlignmentAlgorithm=OSA
+ScriptID=RNA-Seq_BMS_v2.4.pscript
+# institutional attributes
+BusinessUnit=Discovery
+FunctionalArea=Fibrosis
+Vendor=BMS
+TBio_Owner=Ron Ammar
+TA_Owner=John Huang
+'
+
+annotationFile <- tempfile(fileext = ".txt")
+writeLines(annotation_text, con = annotationFile)
+
+# Get the raw counts, sample annotation ("design"), and QC data from GEO
+# Source: https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE120804
+getLocation <- "http://ftp.ncbi.nlm.nih.gov/geo/series/GSE120nnn/GSE120804/suppl"
+countsFile  <- "GSE120804_counts.txt.gz"
+designFile  <- "GSE120804_geo_sample_annotation_edit.csv.gz"
+qcFile      <- "GSE120804_qc_metrics.txt.gz"
+
+temp <- tempfile()
+if (download.file(glue("{getLocation}/{countsFile}"), destfile = temp, mode = 'wb') > 0) {
+    stop("Counts Download Failed")
+}
+counts <- read.delim(temp, stringsAsFactors = FALSE, row.names = 1)
+
+temp <- tempfile()
+if (download.file(glue("{getLocation}/{designFile}"), destfile = temp, mode = 'wb')) {
+    stop("Design Download Failed")
+}
+design <- read.csv(temp, stringsAsFactors = FALSE)
+
+temp <- tempfile()
+if (download.file(glue("{getLocation}/{qcFile}"), destfile = temp, mode = 'wb')) {
+    stop("Alignment QC Download Failed")
+}
+alignmentQC <- read.delim(temp, stringsAsFactors = FALSE)
+
+rownames(design) <- str_sub(design$raw.file, start = 1, end = 21)
+
+#correct the desired case/spelling of one column
+design <- design %>%
+    rename(ReplicateGroup = Replicate.group)
+
+# Create a DiseaseStatus column by parsing ReplicateGroup
+design$DiseaseStatus <- rep("Sham", nrow(design))
+idx <- str_detect(design$ReplicateGroup, "BDL")
+design$DiseaseStatus[idx] <- "BDL"
+
+# Create an animal# column.  The animal number is encoded in the sample.name column
+design$AnimalNum <- str_match(design$Sample.name, "r[0-9]{1,3}")
+
+# Now get the gene annotation from Ensembl/biomaRt
+ens.ds      <- "rnorvegicus_gene_ensembl"
+ens.mart    <- useMart(biomart = "ensembl", dataset = ens.ds)
+ens.columns <- c("ensembl_gene_id", "rgd_symbol", "chromosome_name", "start_position",
+                 "end_position", "strand", "gene_biotype", "description")
+ens.data    <- getBM(attributes = ens.columns, 
+                     values     = rownames(counts), 
+                     mart       = ens.mart, 
+                     useCache   = F) %>%
+               distinct(ensembl_gene_id, .keep_all = T)
+
+# Filter the list to the genes used in the test dataset and format gene info for GenomicRanges
+gene.data <- left_join(data.frame(ensembl_gene_id = rownames(counts), stringsAsFactors = F),
+                       ens.data,
+                       by = "ensembl_gene_id") %>%
+    rename(start = start_position, end = end_position) %>%
+    mutate(strand = case_when(strand == -1 ~ "-",
+                              strand == 1  ~ "+",
+                              TRUE         ~ "*"))
+rownames(gene.data) <- gene.data$ensembl_gene_id
+
+# Get transcript level data and keep max for each gene, or alternatively, use the cds length
+ens.ds          <- "rnorvegicus_gene_ensembl"
+ens.mart        <- useMart(biomart = "ensembl", dataset = ens.ds)
+ens.columns     <- c("ensembl_gene_id", "ensembl_transcript_id", "transcript_length")
+transcript.data <- getBM(attributes = ens.columns, 
+                         values     = rownames(counts), 
+                         mart       = ens.mart, 
+                         useCache   = F) %>%
+                   arrange(desc(transcript_length)) %>%
+                   distinct(ensembl_gene_id, .keep_all = T)
+
+#Add a transcript_length column to gene.data
+gene.data <- left_join(gene.data, 
+                       select(transcript.data, ensembl_gene_id, ExonLength = transcript_length))
+rownames(gene.data) <- gene.data$ensembl_gene_id
+gene.data$ensembl_gene_id <- NULL
+
+# enforce same order as counts
+gene.data <- gene.data[rownames(counts),]
+
+dgeObj <- DGEobj::initDGEobj(primaryAssayData  = counts,
+                             rowData = gene.data,
+                             colData = design,
+                             level = "gene",
+                             customAttr = list(Genome    = "Rat.B6.0",
+                                               GeneModel = "Ensembl.R89"))
+
+dgeObj <- annotateDGEobj(dgeObj, annotationFile)
+
+#cleanup
+rm(annotation_text, annotationFile, getLocation, countsFile, designFile, counts, design, gene.data, 
+   ens.ds, ens.mart, ens.columns, transcript.data, temp, qcFile, idx, ens.data, alignmentQC)
+```
+
+After creation of the starting DGEobj it must be processed through a DGE workflow.  The workflow demonstrated briefly below is detailed in sections 2-3 of the DGEobj.utils package vignette: [DGEobj.utils_Workflow](https://cran.r-project.org/web/packages/DGEobj.utils/vignettes/DGEobj.utils_Workflow.html).  This vignette can be accessed from inside an R session using `vignette("DGEobj.utils_Workflow", package = "DGEobj.utils")`.  The detailed instructions are not repeated in this vignette, but the summary workflow steps are included below for your reference.
+
+```{r workflowDGEcreation, include}
+# Update to factors to use formulas
+dgeObj$design$ReplicateGroup <- as.factor(dgeObj$design$ReplicateGroup)
+dgeObj$design$ReplicateGroup <- relevel(dgeObj$design$ReplicateGroup, "Sham")
+
+# Filter out low intensity genes
+dgeObj <- lowIntFilter(dgeObj,
+                       countThreshold = 10,
+                       sampleFraction = 0.5)
+
+# Focus on protein-coding genes
+idx <- dgeObj$geneData$gene_biotype == "protein_coding"
+dgeObj <- dgeObj[idx, ]
+
+# Normalize
+dgeObj <- runEdgeRNorm(dgeObj, plotFile = FALSE)
+
+# Build the Design Matrix
+formula                <- '~ 0 + ReplicateGroup'
+design                 <- getItem(dgeObj, "design")
+designMatrix           <- model.matrix(as.formula(formula), design)
+colnames(designMatrix) <- make.names(colnames(designMatrix))
+
+attr(designMatrix, "formula") <- formula
+designMatrixName <- "ReplicateGroupDesign"
+
+dgeObj <- addItem(dgeObj, 
+                  item      = designMatrix,
+                  itemName  = designMatrixName,
+                  itemType  = "designMatrix",
+                  parent    = "design",
+                  overwrite = TRUE)
+
+# Run Voom
+dgeObj <- runVoom(dgeObj, designMatrixName, mvPlot = FALSE)
+
+# Run Contrasts
+
+contrastList  <- list(BDL_vs_Sham    = "ReplicateGroupBDL - ReplicateGroupSham",
+                      EXT1024_vs_BDL = "ReplicateGroupBDL_EXT.1024  - ReplicateGroupBDL",
+                      Nint_vs_BDL    = "ReplicateGroupBDL_Nint - ReplicateGroupBDL",
+                      Sora_vs_BDL    = "ReplicateGroupBDL_Sora - ReplicateGroupBDL"
+)
+
+dgeObj <- runContrasts(dgeObj,
+                       designMatrixName = designMatrixName,
+                       contrastList     = contrastList,
+                       qValue           = TRUE,
+                       IHW              = TRUE)
+```
+
+
+<br/><br/>
+
+# QC Plots  
+
+
+## Dispersion Plot (plotDispersion)  
+
+Dispersion is a measure of variance that is plotted against intensity as a QC plot that illustrates heteroscedasticity.  
+
+```{r dispersionPlot, eval = F}
+# Note a DGEobj can have multiple design matrices or DGELists;
+# However in this case only one of each is present
+designMatrix <- getType(dgeObj, "design")[[1]]
+dgelist      <- getType(dgeObj, "DGEList")[[1]]
+
+# Dispersion plot
+plotDispersion(dgelist, 
+               designMatrix,
+               lineFit      = "loess", 
+               plotCategory = "dispersion")
+
+# BCV (biological coefficient of variation) plot
+plotDispersion(dgelist, 
+               designMatrix, 
+               lineFit      = "loess", 
+               plotCategory = "BCV")
+```
+
+
+## Plot Normalization (plotNorm)  
+
+This function plots distributions before and after normalization as a two panel faceted plot.  It uses `edgeR::calcNormFactors()` and thus supports any normalization accepted by `calcNormFactors()`.  
+
+Input can be a DGEobj or a raw counts matrix.  Output can be a box plot or density distribution.  
+
+```{r plotNorm}
+#boxplot
+plotNorm(dgeObj, plotCategory = "box", normalize = "tmm")
+
+#density plot
+plotNorm(dgeObj, plotCategory = "density", normalize = "tmm")
+```
+
+
+
+## Alignment QCplots (Function QCplots)  
+
+The alignment QC item type ("alignQC") is a colData data type. Rownames of a
+colData type match the colnames of the DGEobj.  For the alignment QC
+data, the colnames are the names of the various measurements.  
+
+```{r AlignmentQC}
+
+# Pick some Metrics from colnames(dgeObj$AlignmentQC)
+someFavMetrics <- c("Alignment_MappedRate", "Strand_Read1SenseRate", "Profile_ExonRate",
+                    "Profile_InterGene_FPK")
+
+MyQCplots <- QCplots(dgeObj$AlignmentQC, 
+                     metricNames = someFavMetrics,
+                     plotType = "bar") 
+
+# Draw the plots in a grid
+cowplot::plot_grid(plotlist = MyQCplots)
+
+
+```
+
+
+## P-value Histogram: Evaluate Quality of Fit  
+
+The distribution of pvalues can help evaluate the performance of a model.  A
+well-behaved dataset with no signifcant results yields a flat distribution from
+0 to 1.0.  Significant results appear as a low pvalue peak.  Peak in other
+positions of an unusual slope can indicate problems with the statistical model
+that should be further explored.  
+
+In the example below, the pvalue histogram is plotted for each contrast in the
+DGEobj.  
+
+```{r pvalHist}
+
+topTableList <- getType(dgeObj, "topTable")
+
+# Get all the p-value columns from the contrasts 
+MyPval <- extractCol(topTableList, "P.Value")
+
+plotPvalHist(MyPval)
+ggsave(file.path(outputPath, "pvalHist.png"))
+
+```
+
+See `?plotPvalHist` for optional arguments.
+
+
+# Data Exploration Plots  
+
+## Table of Differential Gene Counts from Contrasts  
+
+The summarizeSigCounts function provides a summary of the number of genes
+statistically differential among a set of contrasts.  The input for
+summarizeSigCounts is a list of topTable dataframes.  
+
+
+```{r summarizSigCounts}
+# Grab a topTable dataframe
+myContastList <- getType(dgeObj, "topTable")
+
+# Plot with defaults
+df <- summarizeSigCounts(myContastList)
+knitr::kable(df)
+
+# Add a fold change threshold
+df <- summarizeSigCounts(myContastList, fcThreshold = 2)
+knitr::kable(df)
+
+```
+
+Arguments to `summarizeSigCounts()` allow you to specify which topTable columns
+to include and define the thresholds for significance.  
+
+See `?summarizeSigcounts` for other arguments.  
+
+
+## Profile Plot: LogIntensity vs. LogRatio plots  
+
+Function `profilePlot()` uses defaults appropriate for topTable/topTreat
+dataframes.  
+
+
+```{r profilePlot}
+# Grab a topTable dataframe
+myTopTable <- dgeObj$Sora_vs_BDL
+
+# Draw the plot
+profilePlot(myTopTable, 
+            title = "EXT1024 Treatment",
+            legendPosition = "ne")
+ggsave(file.path(outputPath, "ProfilePlot.PNG"))
+```
+
+See `?profilePlot` for options to modify various attributes (color, shape,
+transparency, reference lines, etc).  
+
+
+
+## Volcano Plot: LogRatio vs. Negative Log P-value  
+
+Function `volcanoPlot()` uses defaults appropriate for topTable dataframes.  
+
+
+```{r volcanoPlot}
+# Grab a topTable dataframe
+myTopTable <- dgeObj$Sora_vs_BDL
+
+# Draw the plot
+volcanoPlot(myTopTable)
+ggsave(file.path(outputPath, "VolcanoPlot.PNG"))
+
+```
+
+See `?volcanoPlot` for options to modify various attributes (color, shape,
+transparency, reference lines, etc).  
+
+
+
+## CDF Plot: Evaluate model performance  
+
+Plot the p-value Rank vs. the actual p-values.  A straight diagonal line
+indicate no differential genes (null hypothesis satisfied), while differential
+genes appear as a break above the line at low p-values.  
+
+The main plot shows p-values <= 0.1 (user settable).  An inset plot shows the
+full range of p-values and a blue box indicates the region shown in the main
+plot. Genes with p < 0.01 (user settable) are shown in red.  
+
+
+```{r cdfPlot}
+# Grab a topTable dataframe
+myTopTable <- dgeObj$Sora_vs_BDL
+
+# Draw the plot
+cdfPlot(myTopTable)
+ggsave(file.path(outputPath, "cdfPlot.PNG"))
+
+```
+
+
+
+See `?cdfPlot` options to modify various attributes (color, shape, transparency,
+reference lines, etc).  
+
+
+
+## Compare Plot: compare two signature  
+
+Plot the LogRatios of two contrasts, highlight common genes and genes unique to
+either contrast.  
+
+The input for this plot requires pulling the log ratio and p-value columns from
+two topTable dataframes together.  
+
+
+```{r comparePlot}
+# Get two topTreat dataframes
+tt1 <- dgeObj$Sora_vs_BDL
+tt2 <- dgeObj$Nint_vs_BDL
+
+# Combine the LogRatios and p-values into a dataframe
+compareData <- data.frame(cbind(Sora = tt1$logFC,
+                                Nint = tt2$logFC,
+                                xp = tt1$P.Value,
+                                yp = tt2$P.Value) )
+
+comparePlot(compareData, 
+            title = "Compare Two Compounts",
+            legendPosition = "right")
+ggsave(file.path(outputPath, "ComparePlot.PNG"))
+```
+
+See `?comparePlot` options to modify various attributes (color, shape,
+transparency, reference lines, etc).  
+
+
+
+## Observation Plot: Intensity boxplots by gene  
+
+This is a gene of interest plot, intended to plot a reasonably small number of
+genes, with a separate plot for each gene and a box for each treatment group.
+It takes a tidy data frame as input and the `tidyIntensity()` function is
+supplied to simplify creation of the input file.  
+
+The plot is faceted by default.  Setting `facet = FALSE` produces individual
+plots for each gene that are returned as a list of plots.  
+
+
+```{r obsPlot}
+# Get log2cpm data
+log2cpm <- convertCounts(dgeObj$counts, unit = "cpm", log = TRUE, normalize = "tmm")
+# Filter for a smallish set of genes
+idx <- stringr::str_detect(dgeObj$geneData$rgd_symbol, "^Ppar")
+log2cpm <- log2cpm[idx,]
+# Swap gene symbols for Ensemble IDs
+rownames(log2cpm) <- dgeObj[idx,]$geneData$rgd_symbol
+
+# Put in tidy format
+tidyInt <- tidyIntensity(log2cpm,
+                         rowIDcolname = "GeneID",
+                         keyColname = "Sample",
+                         valueColname = "Log2CPM",
+                         group = dgeObj$design$ReplicateGroup)
+
+# Faceted boxplot
+obsPlot2(tidyInt, 
+         plotByCol = "GeneID",
+         groupCol = "group",
+         valueCol = "Log2CPM",
+         pointJitter = 0.1,
+         facetRow = 2)
+
+# Faceted violin plot
+obsPlot2(tidyInt, 
+         plotByCol = "GeneID",
+         violinLayer = TRUE,
+         boxLayer = FALSE,
+         groupCol = "group",
+         valueCol = "Log2CPM",
+         pointJitter = 0.1,
+         facetRow = 2)
+
+# Return a list of individual plots
+myplots <- obsPlot2(tidyInt, 
+                    plotByCol = "GeneID",
+                    groupCol = "group",
+                    valueCol = "Log2CPM",
+                    pointJitter = 0.1,
+                    facet = FALSE)
+# Plot the first one
+myplots[[1]]
+```
+
+See `?obsPlot2` options to modify various attributes (color, shape,
+transparency, reference lines, etc).  
+
+
+
+## logRatioPlot  
+
+Plotting logRatio data with 95% confidence limits is generally preferable to
+plotting intensity data with the Observation Plot.  This is because the ratio
+data is post-modeling and thus reflects adjustments for any "nuisance" factors
+included in the modeling (e.g. batch effect, demographic or sex effects).   
+
+```{r logRatioPlot}
+# Put contrasts in tidy format keeping logFC, and confidence limits data
+tidyDat <- tidyContrasts(dgeObj, rownameColumn = "EnsgID", includeColumns = c("logFC", "CI.R", "CI.L"))
+
+# Add gene symbols from geneData
+ens2genesym <- dgeObj$geneData %>%
+  rownames_to_column(var = "EnsgID") %>%
+  select(EnsgID, GeneSymbol = "rgd_symbol")
+tidyDat <-  left_join(tidyDat, ens2genesym) 
+
+# Filter for a small set of genes of interest
+idx <- stringr::str_detect(tidyDat$GeneSymbol, "^Ppar")
+tidyDat <- tidyDat[idx,]  
+
+# Simple barplot
+logRatioPlot(tidyDat,
+                               facetColname = "GeneSymbol",
+                               xColname = "Contrast", 
+                               title = "LogRatio Plots: Ppar genes",
+                               facetCol = 2,
+                               barWidth = 0.6
+)
+
+ggsave(file.path(outputPath, "logRatioPlot.png"))
+```
+
+The companion function, `tidyContrasts()`, aids in reformatting topTable
+contrast data for use with function `logRatioPlot()`. `tidyContrasts()` will
+accept a DGEobj as input and will find all topTable data in the DGEobj.
+`tidyContrasts()` will also work with a list of topTable dataframes which
+provides flexibility to mix and match topTable data from multiple projects for
+plotting.  
+
+See `?logRatioPlot` options to modify various attributes (color, shape,
+transparency, reference lines, etc).  
+
+
+## Multidimentional Scaling  
+
+Multidimensional scaling as implemented by `limma::plotMDS()` is PCA-like but
+uses a distance metric instead of a correlation metric.  As such, when you plot
+`log2cpm` values, the axes represent `log2cpm` units and you can interpret the
+distance between points accordingly.  
+
+### MDS Plot  
+
+`ggplotMDS()` is a ggplot wrapper around `limma::plotMDS()`.  
+
+```{r MDS}
+dgeList <- getItem(dgeObj, "DGEList")
+result <- ggplotMDS(dgeList, 
+                    colorBy = dgeObj$design$ReplicateGroup, 
+                    shapeBy = dgeObj$design$DiseaseStatus, 
+                    labels = NULL)
+ggsave(file.path(outputPath, "MDSplot.png"))
+```
+
+
+### MDS Variance Explained Plots  
+
+Takes the MDS object from the `ggplotMDS()` result list (item 2) and returns a
+list with:  
+
+* a plot of the amount of variance explained by each component  
+* a cumulative plot of the variance explained  
+* the underlying data table   
+
+```{r MDS_varExplained}
+MDSvarResult <- MDS_var_explained(result[["mdsobj"]])
+print(MDSvarResult$varexp)
+print(MDSvarResult$cumvar)
+ggsave(file.path(outputPath, "varExplained.png"), MDSvarResult$varexp)
+ggsave(file.path(outputPath, "cumVarExplained.png"), MDSvarResult$cumvar)           
+```
+
+
+##  Run a Power Analysis  
+
+Interpretation of DGE data is improved by an understanding of the proportion of
+true positives detected as well as the degree of false postives expected.
+Traditional power analysis is unbiased with regard to intensity.  However,
+experience has shown that a 2X change in a high intensity gene is more reliable
+that a 2X change in a gene near the detection limit.  The rnapower function from
+the rnapower package takes the intensity level into consideration in estimating
+power in RNA-Seq data.  runPower is a wrapper function that produces several
+ggplot representations of the results.  
+
+The depth argument in this process refers to raw counts and the default levels
+of 10, 100, 1000 correspond roughly to detection limit, middle low expression
+and median expression levels.  You'll see that estimated power increases with
+increasing intensity level.  
+
+```{r runPower, eval=TRUE, echo=TRUE, warning=FALSE, message=FALSE, fig.height=6, fig.width=7}
+
+counts <- getItem(dgeObj, "counts")
+designMatrix <- getItem(dgeObj, "ReplicateGroupDesign")
+
+pwr <- runPower(counts, designMatrix)
+# result is a list of objects depending on the return argument
+# Default objects returned:
+#    PowerData: the dataframe generated
+#    ROC:  ggplot ROC curve
+#    NvP:  plots emphasizing the relationship of N to power
+print(pwr$ROC)
+ggsave(filename=file.path(outputPath, "power_ROC.PNG"), plot=pwr$ROC)
+print(pwr$NvP)
+ggsave(filename=file.path(outputPath, "power_NvP.PNG"), plot=pwr$Nvp)
+
+
+```
+
+
