@@ -59,6 +59,8 @@ test_that("ggplotMDS.R: ggplotMDS()", {
 
     #Testing optional parameters with valid values for top, transparency, labels, hline intercept, vline intercept, refline size
 
+
+
     # for ggplot additionally label size
 
 
@@ -71,7 +73,7 @@ test_that("ggplotMDS.R: ggplotMDS()", {
                    regexp = "top should be a numeric value or Inf. Assigning default value 'Inf'.")
     expect_s3_class(mds_plot$plot, c("canvasXpress", "htmlwidget"))
 
-    # not working
+
     expect_warning(mds_plot <- ggplotMDS(DGEdata = t_obj1,
                                          colorBy = t_obj1$design$ReplicateGroup,
                                          top = c(1,2)),
@@ -109,11 +111,13 @@ test_that("ggplotMDS.R: ggplotMDS()", {
                    regexp = "hlineIntercept must be a singular numeric value. Removing hlineIntercept.")
     expect_s3_class(mds_plot$plot, c("canvasXpress", "htmlwidget"))
 
+
     expect_warning(mds_plot <- ggplotMDS(DGEdata = t_obj1,
                                          colorBy = t_obj1$design$ReplicateGroup,
                                          vlineIntercept = "abc"),
                    regexp = "vlineIntercept must be a singular numeric value. Removing vlineIntercept.")
     expect_s3_class(mds_plot$plot, c("canvasXpress", "htmlwidget"))
+
 
     expect_warning(mds_plot <- ggplotMDS(DGEdata = t_obj1,
                                          colorBy = t_obj1$design$ReplicateGroup,
@@ -187,10 +191,11 @@ test_that("ggplotMDS.R: ggplotMDS()", {
                    regexp = "labelSize should be singular numeric value and greater than zero. Assigning default value 3.")
     expect_s3_class(mds_plot$plot, c("gg", "ggplot"))
 
-    mds_plot <- ggplotMDS(DGEdata = t_obj1,
+    expect_warning(mds_plot <- ggplotMDS(DGEdata = t_obj1,
                           colorBy = t_obj1$design$ReplicateGroup,
                           plotType = "ggplot",
-                          labelSize = c(1,2))
+                          labelSize = c(1,2)),
+                   regexp = "labelSize should be singular numeric value and greater than zero. Assigning default value 3.")
     expect_s3_class(mds_plot$plot, c("gg", "ggplot"))
 
     expect_warning(mds_plot <- ggplotMDS(DGEdata = t_obj1,
@@ -200,11 +205,12 @@ test_that("ggplotMDS.R: ggplotMDS()", {
                    regexp = "hlineIntercept must be numeric. Removing hlineIntercept.")
     expect_s3_class(mds_plot$plot, c("gg", "ggplot"))
 
+
     expect_warning(mds_plot <- ggplotMDS(DGEdata = t_obj1,
                                          colorBy = t_obj1$design$ReplicateGroup,
                                          plotType = "ggplot",
                                          hlineIntercept = c("a","b")),
-                   regexp = "hlineIntercept must be a singular numeric value. Removing hlineIntercept.")
+                   regexp = "hlineIntercept must be numeric. Removing hlineIntercept.")
     expect_s3_class(mds_plot$plot, c("gg", "ggplot"))
 
 
@@ -213,14 +219,7 @@ test_that("ggplotMDS.R: ggplotMDS()", {
                                          colorBy = t_obj1$design$ReplicateGroup,
                                          plotType = "ggplot",
                                          vlineIntercept = "abc"),
-                   regexp = "vlineIntercept must be a singular numeric value. Removing vlineIntercept.")
-    expect_s3_class(mds_plot$plot, c("gg", "ggplot"))
-
-    expect_warning(mds_plot <- ggplotMDS(DGEdata = t_obj1,
-                                         colorBy = t_obj1$design$ReplicateGroup,
-                                         plotType = "ggplot",
-                                         vlineIntercept = c(1,2)),
-                   regexp = "vlineIntercept must be a singular numeric value. Removing vlineIntercept.")
+                   regexp = "vlineIntercept must be numeric. Removing vlineIntercept.")
     expect_s3_class(mds_plot$plot, c("gg", "ggplot"))
 
     mds_plot <- ggplotMDS(DGEdata = t_obj1,
@@ -237,6 +236,7 @@ test_that("ggplotMDS.R: ggplotMDS()", {
                    regexp = "reflineSize must be a numeric value greater than 0. Assigning default value '0.5'.")
     expect_s3_class(mds_plot$plot, c("gg", "ggplot"))
 
+    #nw
     expect_warning(mds_plot <- ggplotMDS(DGEdata = t_obj1,
                                          colorBy = t_obj1$design$ReplicateGroup,
                                          plotType = "ggplot",

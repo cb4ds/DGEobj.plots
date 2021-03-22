@@ -163,9 +163,26 @@ cxSupportedLineFit <- function(linefit) {
 }
 
 rgbaConversion <- function(color, alpha = 0.5){
-    rgbaVal <- paste(c(col2rgb(color), alpha), collapse = ",")
-    rgbaStr <- paste0("rgba(", rgbaVal, ")")
-    return(rgbaStr)
+    rgbastr <- NULL
+    if (!is.character(color)) {
+        rgbastr <- "invalid value"
+    }
+    tryCatch({
+        rgbaVal <- paste(c(col2rgb(color), alpha), collapse = ",")
+        rgbastr <- paste0("rgba(", rgbaVal, ")")
+        }, error = function(e) {
+            warning(paste("Ïnvalid color specified",color))
+        })
+    if (is.null(rgbastr)) {
+        rgbastr <- "invalid value"
+    }
+    return(rgbastr)
+}
+
+validate_colors <- function(colors) {
+    valid_colors <- lapply(colors, rgbaConversion)
+    valid_colors <- valid_colors[!valid_colors == "invalid value"]
+    return(valid_colors)
 }
 
 getCxPlotDecorations <- function(decorations, color, width, x, y) {
@@ -201,19 +218,14 @@ get_valid_symbolShapes_cxplot <- function() {
 
 get_valid_symbolShapes_ggplot <- function() {
     shape_names <- c(
-        "circle", paste("circle", c("open", "filled", "cross", "plus", "small")), "bullet",
-        "square", paste("square", c("open", "filled", "cross", "plus", "triangle")),
-        "diamond", paste("diamond", c("open", "filled", "plus")),
-        "triangle", paste("triangle", c("open", "filled", "square")),
-        paste("triangle down", c("open", "filled")),
-        "plus", "cross", "asterisk"
+        "circle", "square", "diamond", "triangle", "plus", "cross", "asterisk","bullet",
+        paste("circle", c("open", "filled", "cross", "plus", "small")),
+        paste("square", c("open", "filled", "cross", "plus", "triangle")),
+        paste("diamond", c("open", "filled", "plus")),
+        paste("triangle", c("open", "filled", "square")),
+        paste("triangle down", c("open", "filled"))
     )
-    shapes <- data.frame(
-        shape_names = shape_names,
-        x = c(1:7, 1:6, 1:3, 5, 1:3, 6, 2:3, 1:3),
-        y = -rep(1:6, c(7, 6, 4, 4, 2, 3))
-    )
-    return(shapes)
+    return(shape_names)
 }
 
 is_valid_symbolShapes_ggplot <- function(shape) {

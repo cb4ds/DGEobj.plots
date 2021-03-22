@@ -151,7 +151,9 @@ ggplotMDS <- function(DGEdata,
 
     if (plotType == "canvasxpress") {
 
+
         cx_valid_shapes <- get_valid_symbolShapes_cxplot()
+        cx_default_shapes <- cx_valid_shapes[1:8]
         if (!missing(shapes)) {
             invalid_shapes <- shapes[!shapes %in% cx_valid_shapes]
             if (length(invalid_shapes) > 0) {
@@ -165,44 +167,45 @@ ggplotMDS <- function(DGEdata,
             shapes <- cx_valid_shapes
         }
 
-        if (!missing(hlineIntercept)) {
-            if (!assertthat::see_if(!is.null(hlineIntercept), is.numeric(hlineIntercept), length(hlineIntercept) == 1 )) {
-                warning("hlineIntercept must be a singular numeric value. Removing hlineIntercept.")
-                hlineIntercept <- NULL
-            }
-        }
-
-        if (!missing(vlineIntercept)) {
-            if (!assertthat::see_if(!is.null(vlineIntercept), is.numeric(vlineIntercept), length(vlineIntercept) == 1 )) {
-                warning("vlineIntercept must be a singular numeric value. Removing vlineIntercept.")
-                vlineIntercept <- NULL
-            }
-        }
-
         intercept_flag <- FALSE
 
         if (!missing(hlineIntercept)) {
             if (!is.null(hlineIntercept)) {
                 intercept_flag <- TRUE
+                if (!(is.numeric(hlineIntercept) & length(hlineIntercept) == 1)) {
+                    warning("hlineIntercept must be a singular numeric value. Removing hlineIntercept.")
+                    hlineIntercept <- NULL
+                }
             }
         }
 
-        if (!missing(hlineIntercept)) {
-            if (!is.null(hlineIntercept)) {
+        if (!missing(vlineIntercept)) {
+            if (!is.null(vlineIntercept)) {
                 intercept_flag <- TRUE
+                if (!(is.numeric(vlineIntercept) & length(vlineIntercept) == 1)) {
+                    warning("vlineIntercept must be a singular numeric value. Removing vlineIntercept.")
+                    vlineIntercept <- NULL
+                }
             }
         }
 
         if (intercept_flag) {
-            browser()
-            if (!assertthat::see_if(!is.null(reflineColor), is.character(reflineColor), length(reflineColor) == 1)) {
-                warning("reflineColor must be a singular value of class character and must specify the name of the color or the rgb value. Assigning default value 'red'.")
-                reflineColor <- "red"
+
+            if (!missing(reflineColor)) {
+                if (!assertthat::see_if(!is.null(reflineColor), is.character(reflineColor), length(reflineColor) == 1)) {
+                    warning("reflineColor must be a singular value of class character and must specify the name of the color or the rgb value. Assigning default value 'red'.")
+                    reflineColor <- "red"
+                } else if (rgbaConversion(reflineColor) == "invalid value") {
+                    warning("Color specified is not valid. Assigning default value 'red'.")
+                    reflineColor <- "red"
+                }
             }
 
-            if (!assertthat::see_if(!is.null(reflineSize), is.numeric(reflineSize), length(reflineSize) == 1, reflineSize > 0)) {
-                warning("reflineSize must be a singular numeric value greater than 0. Assigning default value '0.5'.")
-                reflineSize <- 0.5
+            if (!missing(reflineSize)) {
+                if (!assertthat::see_if(!is.null(reflineSize), is.numeric(reflineSize), length(reflineSize) == 1, reflineSize > 0)) {
+                    warning("reflineSize must be a singular numeric value greater than 0. Assigning default value '0.5'.")
+                    reflineSize <- 0.5
+                }
             }
         }
     }
@@ -216,33 +219,27 @@ ggplotMDS <- function(DGEdata,
             }
         }
 
+        intercept_flag <- FALSE
         if (!missing(hlineIntercept)) {
-            if (!is.null(hlineIntercept) & !is.numeric(hlineIntercept)) {
-                warning("hlineIntercept must be numeric. Removing hlineIntercept.")
-                hlineIntercept <- NULL
+            if (!is.null(hlineIntercept)) {
+                intercept_flag <- TRUE
+                if (!is.numeric(hlineIntercept)) {
+                    warning("hlineIntercept must be numeric. Removing hlineIntercept.")
+                    hlineIntercept <- NULL
+                }
             }
         }
 
         if (!missing(vlineIntercept)) {
-            if (!is.null(vlineIntercept) & !is.numeric(vlineIntercept)) {
-                warning("vlineIntercept must be numeric. Removing vlineIntercept.")
-                vlineIntercept <- NULL
-            }
-        }
-
-        intercept_flag <- FALSE
-
-        if (!missing(hlineIntercept)) {
-            if (!is.null(hlineIntercept)) {
+            if (!is.null(vlineIntercept)) {
                 intercept_flag <- TRUE
+                if (!is.numeric(vlineIntercept)) {
+                    warning("vlineIntercept must be numeric. Removing vlineIntercept.")
+                    vlineIntercept <- NULL
+                }
             }
         }
 
-        if (!missing(hlineIntercept)) {
-            if (!is.null(hlineIntercept)) {
-                intercept_flag <- TRUE
-            }
-        }
 
         if (intercept_flag) {
             if (!missing(reflineColor)) {
@@ -250,6 +247,8 @@ ggplotMDS <- function(DGEdata,
                     warning("reflineColor must be a of class character and must specify the name of the color or the rgb value. Assigning default value 'red'.")
                     reflineColor <- "red"
                 }
+
+
             }
 
             if (!missing(reflineSize)) {
@@ -260,11 +259,9 @@ ggplotMDS <- function(DGEdata,
             }
         }
 
-
-
-
         #add valid shapes
         ggplot_valid_shapes <- get_valid_symbolShapes_ggplot()
+        ggplot_default_shapes <- ggplot_valid_shapes[1:8]
         if (!missing(shapes)) {
             invalid_shapes <- shapes[!shapes %in% ggplot_valid_shapes]
             if (length(invalid_shapes) > 0) {
@@ -288,9 +285,16 @@ ggplotMDS <- function(DGEdata,
         if (is.null(colors)) {
             colors <- cbbPalette
             warning("colors is NULL. Assigning default values.")
-        } else if (!is.character(colors)) {
-            colors <- cbbPalette
-            warning("Invalid colors present. Assigning default values")
+        } else {
+            valid_colors <- validate_colors(colors)
+            if (length(valid_colors) == 0) {
+                warning("No valid colors present. Assigning default values")
+                colors <- cbbPalette
+            } else if (!(length(valid_colors) == length(colors))) {
+                invalid_colors <- colors[!colors %in% valid_colors]
+                warning(paste("Invalid colors present. Eliminating invalid colors:",invalid_colors))
+            }
+
         }
     }
 
@@ -410,11 +414,6 @@ ggplotMDS <- function(DGEdata,
                                               events                  = events)
 
     } else {
-        # Shapes: solid circle, square, triangle, diamond, open circle, square, triangle, diamond
-        ggShapes = c(16, 15, 17, 18, 21, 22, 24, 23)
-        if (missing(shapes)) {
-            shapes <- ggShapes
-        }
 
         if (byShape == FALSE & bySize == FALSE) {
             mdsplot <- ggplot(plot_data, aes(x = x, y = y, color = ColorCode)) +
