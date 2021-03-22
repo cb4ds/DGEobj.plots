@@ -58,14 +58,16 @@ plotPvalHist <- function(P.Val,
 
     if (!assertthat::see_if(is.numeric(binWidth),
                             length(binWidth) == 1,
-                            binWidth > 0 & binWidth <= 1)) {
+                            binWidth > 0,
+                            binWidth <= 1)) {
         warning("binWidth must be a singular numeric value between 0 & 1. Assigning default value 0.02.")
         binWidth <- 0.02
     }
 
     if (!assertthat::see_if(is.numeric(transparency),
                             length(transparency) == 1,
-                            transparency > 0 & transparency <= 1)) {
+                            transparency > 0,
+                            transparency <= 1)) {
         warning("Transparency must be a singular numeric value and must be between 0 and 1. Assigning default value 0.6.")
         transparency <- 0.3
     }
@@ -112,7 +114,6 @@ plotPvalHist <- function(P.Val,
                                                     segregateVariablesBy = list("levels"),
                                                     events               = events)
         } else {
-            #for (i in 1:samples_num) {
             plotlist <- lapply(sample_names, function(sample) {
                 pval_subset <- dplyr::filter(P.Val, grepl(sample, levels))
                 cx.data <- pval_subset %>% dplyr::select(pval)
@@ -150,8 +151,7 @@ plotPvalHist <- function(P.Val,
                 ggplot2::scale_fill_brewer(palette = "Set1") +
                 ggplot2::facet_wrap(~levels, nrow = numrow, scales = "free")
         } else {
-            for (i in 1:samples_num) {
-                sample <- sample_names[i]
+            plotlist <- lapply(sample_names, function(sample) {
                 pval_subset <- dplyr::filter(P.Val, grepl(sample, levels))
 
                 hist_pval <- ggplot2::ggplot(data = pval_subset, aes(x = pval)) +
@@ -163,8 +163,8 @@ plotPvalHist <- function(P.Val,
                     ggplot2::ylab("Count") +
                     ggplot2::ggtitle(paste(title, "\n", sample))
 
-                plotlist[[i]] = hist_pval
-            }
+                 hist_pval
+            })
         }
     }
     return(plotlist)
