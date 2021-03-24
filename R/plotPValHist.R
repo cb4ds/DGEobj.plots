@@ -7,7 +7,7 @@
 #' @param P.Val A matrix or dataframe of numeric data; col = samples
 #' @param plotType Plot type must be canvasXpress or ggplot (default = canvasXpress).
 #' @param facet Set to FALSE to print individual plots instead of a faceted plot. (default = TRUE)
-#' @param binWidth Range is always 0-1 for p-values. (default = 0.02)
+#' @param binWidth Value is always between 0 and 1. (default = 0.02)
 #' @param transparency Set the transparency. (default = 0.6)
 #' @param color Fill & Outline color for the histogram (default = "dodgerblue3")
 #'

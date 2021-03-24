@@ -20,7 +20,7 @@ plotPvalHist(
 
 \item{facet}{Set to FALSE to print individual plots instead of a faceted plot. (default = TRUE)}
 
-\item{binWidth}{Range is always 0-1 for p-values. (default = 0.02)}
+\item{binWidth}{Value is always between 0 and 1. (default = 0.02)}
 
 \item{transparency}{Set the transparency. (default = 0.6)}
 
