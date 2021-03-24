@@ -26,8 +26,25 @@ test_that("ggplotMDS.R: ggplotMDS()", {
                           shapeBy        = t_obj1$design$ReplicateGroup,
                           sizeBy         = rep(1:4,12),
                           hlineIntercept = 0.25,
-                          vlineIntercept = 0.25)
+                          vlineIntercept = 0.25,
+                          top = 2,
+                          reflineColor = "blue",
+                          reflineSize = 3,
+                          title = "MDS",
+                          transparency = 0.7,
+                          shapes = c("sphere", "square", "triangle"),
+                          colors = c("red", "blue", "green")
+                          )
     expect_s3_class(mds_plot$plot, c("canvasXpress", "htmlwidget"))
+
+    #testing parameter - without sizeBy and shapeBy
+    mds_plot <- ggplotMDS(DGEdata        = t_obj1,
+                          colorBy        = t_obj1$design$ReplicateGroup,
+                          symShape = "square",
+                          symSize = 30
+    )
+    expect_s3_class(mds_plot$plot, c("canvasXpress", "htmlwidget"))
+
 
     #not working
     mds_plot <- ggplotMDS(DGEdata        = t_obj1,
@@ -61,8 +78,11 @@ test_that("ggplotMDS.R: ggplotMDS()", {
 
 
 
+
     # for ggplot additionally label size
 
+
+    #tests for shapes and colors
 
     #testing optional parameters
 

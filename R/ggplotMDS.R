@@ -85,8 +85,8 @@ ggplotMDS <- function(DGEdata,
 
     plotType = tolower(plotType)
 
-    assertthat::assert_that(class(DGEdata) %in% c("DGEobj", "DGEList", "matrix"),
-                            msg = "DGEdata must be of class 'DGEList', 'DGEobj', or 'matrix'.")
+    assertthat::assert_that(class(DGEdata) %in% c("DGEobj", "DGEList", "matrix", "Dataframe"),
+                            msg = "DGEdata must be of class 'DGEList', 'DGEobj', 'matrix' or 'Dataframe'.")
     assertthat::assert_that(plotType %in% c("canvasxpress", "ggplot"),
                             msg = "Plot type must be either canvasXpress or ggplot.")
 
@@ -114,12 +114,6 @@ ggplotMDS <- function(DGEdata,
         warning("transparency must be a singular numeric value and must be between 0 and 1. Assigning default value 0.7.")
         symbolTransparency <- 0.7
     }
-
-
-
-
-
-
 
     # Validate labels
     addLabels <- TRUE
@@ -149,26 +143,43 @@ ggplotMDS <- function(DGEdata,
         }
     }
 
+    if (!missing(sizeBy)) {
+        symSize <- NULL
+    } else {
+        if (!missing(symSize) & !assertthat::see_if(!is.null(symSize), length(symSize) == 1, is.numeric(symSize))) {
+            warning("symSize must be a singular numeric value. Assigning default value 5")
+            symSize <- 5
+        }
+    }
+
     if (plotType == "canvasxpress") {
 
-
-        cx_valid_shapes <- get_valid_symbolShapes_cxplot()
-        cx_default_shapes <- cx_valid_shapes[1:8]
-        if (!missing(shapes)) {
-            invalid_shapes <- shapes[!shapes %in% cx_valid_shapes]
-            if (length(invalid_shapes) > 0) {
-                shapes <- shapes[shapes %in% cx_valid_shapes]
-                warning(paste("Removing invalid shapes: ",invalid_shapes))
-                if (length(shapes) == 0) {
-                    shapes <- cx_valid_shapes
+        if (!missing(shapeBy)) {
+            cx_valid_shapes <- .get_valid_symbolShapes_cxplot()
+            if (!missing(shapes)) {
+                invalid_shapes <- shapes[!shapes %in% cx_valid_shapes]
+                if (length(invalid_shapes) > 0) {
+                    shapes <- shapes[shapes %in% cx_valid_shapes[1:8]]
+                    warning(paste("Removing invalid shapes: ",invalid_shapes))
+                    if (length(shapes) == 0) {
+                        shapes <- cx_valid_shapes[1:8]
+                    }
                 }
+            } else {
+                shapes <- cx_valid_shapes[1:8]
             }
         } else {
-            shapes <- cx_valid_shapes
+            if (!missing(symShape) & !assertthat::see_if(length(symShape) == 1, .is_valid_symbolShapes_cxplot(symShape))) {
+                warning("symShape must be a singular value of class 'character'. Assigning default value 'circle'.")
+                symShape <- "circle"
+            }
+            shapes <- symShape
         }
 
-        intercept_flag <- FALSE
 
+
+
+        intercept_flag <- FALSE
         if (!missing(hlineIntercept)) {
             if (!is.null(hlineIntercept)) {
                 intercept_flag <- TRUE
@@ -178,7 +189,6 @@ ggplotMDS <- function(DGEdata,
                 }
             }
         }
-
         if (!missing(vlineIntercept)) {
             if (!is.null(vlineIntercept)) {
                 intercept_flag <- TRUE
@@ -195,7 +205,7 @@ ggplotMDS <- function(DGEdata,
                 if (!assertthat::see_if(!is.null(reflineColor), is.character(reflineColor), length(reflineColor) == 1)) {
                     warning("reflineColor must be a singular value of class character and must specify the name of the color or the rgb value. Assigning default value 'red'.")
                     reflineColor <- "red"
-                } else if (rgbaConversion(reflineColor) == "invalid value") {
+                } else if (.rgbaConversion(reflineColor) == "invalid value") {
                     warning("Color specified is not valid. Assigning default value 'red'.")
                     reflineColor <- "red"
                 }
@@ -246,6 +256,9 @@ ggplotMDS <- function(DGEdata,
                 if (!assertthat::see_if(!is.null(reflineColor), is.character(reflineColor))) {
                     warning("reflineColor must be a of class character and must specify the name of the color or the rgb value. Assigning default value 'red'.")
                     reflineColor <- "red"
+                } else if (.rgbaConversion(reflineColor) == "invalid value") {
+                    warning("Color specified is not valid. Assigning default value 'red'.")
+                    reflineColor <- "red"
                 }
 
 
@@ -260,19 +273,25 @@ ggplotMDS <- function(DGEdata,
         }
 
         #add valid shapes
-        ggplot_valid_shapes <- get_valid_symbolShapes_ggplot()
-        ggplot_default_shapes <- ggplot_valid_shapes[1:8]
-        if (!missing(shapes)) {
-            invalid_shapes <- shapes[!shapes %in% ggplot_valid_shapes]
-            if (length(invalid_shapes) > 0) {
-                shapes <- shapes[shapes %in% ggplot_valid_shapes]
-                warning(paste("Removing invalid shapes: ",invalid_shapes))
-                if (length(shapes) == 0) {
-                    shapes <- ggplot_valid_shapes
+        if (!missing(shapeBy)) {
+            ggplot_valid_shapes <- .get_valid_symbolShapes_ggplot()
+            if (!missing(shapes)) {
+                invalid_shapes <- shapes[!shapes %in% ggplot_valid_shapes]
+                if (length(invalid_shapes) > 0) {
+                    shapes <- shapes[shapes %in% ggplot_valid_shapes]
+                    warning(paste("Removing invalid shapes: ",invalid_shapes))
+                    if (length(shapes) == 0) {
+                        shapes <- ggplot_valid_shapes[1:8]
+                    }
                 }
+            } else {
+                shapes <- ggplot_valid_shapes[1:8]
             }
-        } else {
-            shapes <- ggplot_valid_shapes
+        }
+    } else {
+        if (!missing(symShape) & !assertthat::see_if(!is.null(symShape), length(symShape) == 1, .is_valid_symbolShapes_ggplot(symShape))) {
+            warning("symShape must be a singular value of class 'character' or numeric value. Refer help documentation for valid values. Assigning default value 'circle'.")
+            symShape <- "circle"
         }
     }
 
@@ -283,16 +302,15 @@ ggplotMDS <- function(DGEdata,
         colors <- cbbPalette
     } else {
         if (is.null(colors)) {
-            colors <- cbbPalette
+            colors <- .validate_colors(cbbPalette)
             warning("colors is NULL. Assigning default values.")
         } else {
-            valid_colors <- validate_colors(colors)
+            valid_colors <- .validate_colors(colors)
             if (length(valid_colors) == 0) {
                 warning("No valid colors present. Assigning default values")
-                colors <- cbbPalette
+                colors <- .validate_colors(cbbPalette)
             } else if (!(length(valid_colors) == length(colors))) {
-                invalid_colors <- colors[!colors %in% valid_colors]
-                warning(paste("Invalid colors present. Eliminating invalid colors:",invalid_colors))
+                warning(paste("Invalid colors present. Eliminating invalid colors."))
             }
 
         }
@@ -323,23 +341,11 @@ ggplotMDS <- function(DGEdata,
     if (!missing(shapeBy)) {
         plot_data$Shape <- shapeBy
         byShape <- TRUE
-    } else {
-        if (plotType == "ggplot" & !missing(symShape) & !assertthat::see_if(!is.null(symShape), length(symShape) == 1, is_valid_symbolShapes_ggplot(symShape))) {
-            warning("symShape must be a singular value of class 'character' or numeric value. Refer help documentation for valid values. Assigning default value 'circle'.")
-            symShape <- "circle"
-        } else if (plotType == "canvasxpress" & !missing(symShape) & !assertthat::see_if(length(symShape) == 1, is_valid_symbolShapes_cxplot(symShape))) {
-            warning("symShape must be a singular value of class 'character'. Assigning default value 'circle'.")
-            symShape <- "circle"
-        }
     }
+
     if (!missing(sizeBy)) {
         plot_data$Size <- sizeBy
         bySize <- TRUE
-    } else {
-        if (!missing(symSize) & !assertthat::see_if(!is.null(symSize), length(symSize) == 1, is.numeric(symSize))) {
-            warning("symSize must be a singular numeric value. Assigning default value 5")
-            symSize <- 5
-        }
     }
 
     xylab <- list(paste(mds.data$axislabel, mds.data$dim.plot[[1]], sep = " "),
@@ -349,9 +355,6 @@ ggplotMDS <- function(DGEdata,
 
     # PlotType
     if (plotType == "canvasxpress") {
-        colors <- unlist(lapply(colors, function(col){
-            rgbaConversion(col)
-            }))
 
         colorCol <- "ColorCode"
         shapeCol <- FALSE
@@ -365,7 +368,7 @@ ggplotMDS <- function(DGEdata,
             sizeCol = "Size"
         }
 
-        reflineColor <- rgbaConversion(reflineColor)
+        reflineColor <- .rgbaConversion(reflineColor)
         decorations  <- list()
         if (!missing(hlineIntercept)) {
             decorations <- list(
@@ -404,6 +407,7 @@ ggplotMDS <- function(DGEdata,
                                               colorBy                 = colorCol,
                                               shapeBy                 = shapeCol,
                                               sizeBy                  = sizeCol,
+                                              dataPointSize           = symSize,
                                               showDecorations         = TRUE,
                                               shapes                  = shapes,
                                               title                   = title,
@@ -430,15 +434,10 @@ ggplotMDS <- function(DGEdata,
                 geom_point(alpha = transparency) +
                 scale_shape_manual(values = shapes)
         }
-
+        browser()
         if (!is.null(labels)) {
-            if (missing(labelSize)) {
                 mdsplot <- mdsplot +
-                    ggrepel::geom_text_repel(aes(label = Labels))
-            } else {
-                mdsplot <- mdsplot +
-                    ggrepel::geom_text_repel(aes(label = Labels), size = labelSize)
-            }
+                    ggrepel::geom_text_repel(aes(label = Labels), size = labelSize, max.overlaps = Inf)
         }
 
         # For discrete color values
