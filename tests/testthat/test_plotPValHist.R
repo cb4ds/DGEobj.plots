@@ -2,7 +2,6 @@ context("DGEobj.plots - tests for plotPValHist.R functions")
 
 
 test_that("plotPValHist.R: plotPvalHist()", {
-    skip_if(is.null(t_obj1$DGEList))
 
     # testing plotPvalHist with facet = TRUE
     pvalMatrix <- extractCol(getType(t_obj1, "topTable"), colName = "P.Value", robust = FALSE)
@@ -24,6 +23,11 @@ test_that("plotPValHist.R: plotPvalHist()", {
     expect_length(pval_plot, 4)
     expect_s3_class(pval_plot[[1]], c("gg","ggplot"))
 
+    #testing assert statements
+    expect_error((plotPvalHist()),
+                  reegexp = "P.Val must be specified and must be of class matrix or dataframe.")
+    expect_error(plotPvalHist(iris),
+                 regexp = "P.Val must contain only continous values and no discrete values.")
     expect_error(plotPvalHist(pvalMatrix, plotType = "cx"),
                  regexp = "Plot type must be either canvasXpress or ggplot.")
 

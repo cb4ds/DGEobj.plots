@@ -41,6 +41,9 @@ plotPvalHist <- function(P.Val,
                             class(P.Val)[[1]] %in% c("matrix","data.frame"),
                             msg = "P.Val must be specified and must be of class matrix or dataframe.")
 
+    assertthat::assert_that(all(sapply(data.frame(P.Val),is.numeric)),
+                            msg = "P.Val must contain only continous values and no discrete values.")
+
     assertthat::assert_that(plotType %in% c("canvasxpress", "ggplot"),
                             msg = "Plot type must be either canvasXpress or ggplot.")
 
@@ -69,7 +72,7 @@ plotPvalHist <- function(P.Val,
                             transparency > 0,
                             transparency <= 1)) {
         warning("Transparency must be a singular numeric value and must be between 0 and 1. Assigning default value 0.6.")
-        transparency <- 0.3
+        transparency <- 0.6
     }
 
     if (is.matrix(P.Val)) {
