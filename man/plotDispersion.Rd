@@ -9,50 +9,43 @@ plotDispersion(
   designMatrix,
   plotType = "canvasXpress",
   plotCategory = "dispersion",
-  symbolSize = 1,
-  symbolShape = 1,
+  symbolSize = 6,
+  symbolShape = "circle",
   symbolColor = "darkblue",
-  symbolFill = "darkblue",
-  symbolAlpha = 0.3,
-  linefitSize = 1,
-  linefitColor = "yellow",
+  symbolTransparency = 0.5,
+  linefitColor = "red",
   lineFit = NULL,
   lineType = "solid",
-  lineAlpha = 1,
   ...
 )
 }
 \arguments{
-\item{DGEdata}{Counts matrix or DGEList (Required)}
+\item{DGEdata}{Counts matrix or DGEList (required)}
 
-\item{designMatrix}{A design matrix created by stats::model.matrix (Required)}
+\item{designMatrix}{A design matrix created by stats::model.matrix (required)}
 
-\item{plotType}{Plot type must be canvasXpress or ggplot (Default to canvasXpress).}
+\item{plotType}{Plot type must be canvasXpress or ggplot (default = canvasXpress).}
 
-\item{plotCategory}{One of "dispersion" or "BCV" (Default = "dispersion")}
+\item{plotCategory}{One of "dispersion" or "BCV" (default = "dispersion")}
 
-\item{symbolSize}{(Default = 1)}
+\item{symbolSize}{(default = 6)}
 
-\item{symbolShape}{see
-http://www.cookbook-r.com/Graphs/Shapes_and_line_types/ (Default = 1)}
+\item{symbolShape}{Any supported shape for the points (default = "circle")
+\url{http://www.cookbook-r.com/Graphs/Shapes_and_line_types/}}
 
-\item{symbolColor}{Default = "darkblue"}
+\item{symbolColor}{Fill color (default = "darkblue")}
 
-\item{symbolFill}{Default = "darkblue"}
+\item{symbolTransparency}{Transparency for the points. Value ranges from 0 to 1. Smaller
+indicate more transparency (default = 0.5)}
 
-\item{symbolAlpha}{Transparency for the points. Value from 0 to 1. Smaller
-indicate more transparency (Default = 0.3)}
+\item{linefitColor}{(default = "red")}
 
-\item{linefitSize}{(Default = 1)}
+\item{lineFit}{(default = NULL) Any type supported by geom_smooth(if plotType is ggplot) or
+one of glm, lm, loess, gam if plotType is canvasXpress. Loess is recommended.
+  recommended.}
 
-\item{linefitColor}{(Default = "yellow")}
-
-\item{lineFit}{(Default = NULL) Any type supported by geom_smooth (Loess is
-recommended).}
-
-\item{lineType}{Any ggplot2 lineType supported by geom_smooth (Default = solid)}
-
-\item{lineAlpha}{Alpha desired for geom_smooth line (Default = 1)}
+\item{lineType}{Any supported style for the fitLine  (default = solid).
+\url{http://www.cookbook-r.com/Graphs/Shapes_and_line_types/}}
 
 \item{...}{Extra parameters to pass to edgeR::estimateDisp}
 }
@@ -68,12 +61,12 @@ dispersion) against AveLogCPM.
 \examples{
 \dontrun{
    # canvasxpress plot
-   myCxplot <- plotDispersion(myDGElist)
-   myCxplot <- plotDispersion(myDGEobj)
+   myCxplot <- plotDispersion(myDGElist, designMatrix )
+   myCxplot <- plotDispersion(myDGEobj, designMatrix)
 
    # ggplot
-   myGgplot <- plotDispersion(myDGElist, plotType = "ggplot")
-   myGgplot <- plotDispersion(myDGEobj, plotType = "ggplot")
+   myGgplot <- plotDispersion(myDGElist, designMatrix, plotType = "ggplot")
+   myGgplot <- plotDispersion(myDGEobj, designMatrix, plotType = "ggplot")
 }
 
 }
