@@ -39,10 +39,11 @@ plotPvalHist <- function(P.Val,
 
     assertthat::assert_that(!missing(P.Val),
                             class(P.Val)[[1]] %in% c("matrix","data.frame"),
-                            msg = "P.Val must be specified and must be of class matrix or dataframe.")
+                            all(sapply(data.frame(P.Val),is.numeric)),
+                            msg = "P.Val must be specified and must be of class matrix or dataframe and must contain only numeric values.")
 
     assertthat::assert_that(all(sapply(data.frame(P.Val),is.numeric)),
-                            msg = "P.Val must contain only continous values and no discrete values.")
+                            msg = "P.Val must contain only numeric values.")
 
     assertthat::assert_that(plotType %in% c("canvasxpress", "ggplot"),
                             msg = "Plot type must be either canvasXpress or ggplot.")

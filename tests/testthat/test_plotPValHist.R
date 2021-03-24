@@ -25,9 +25,9 @@ test_that("plotPValHist.R: plotPvalHist()", {
 
     #testing assert statements
     expect_error((plotPvalHist()),
-                  reegexp = "P.Val must be specified and must be of class matrix or dataframe.")
+                  reegexp = "P.Val must be specified and must be of class matrix or dataframe and must contain only numeric values.")
     expect_error(plotPvalHist(iris),
-                 regexp = "P.Val must contain only continous values and no discrete values.")
+                 regexp = "P.Val must be specified and must be of class matrix or dataframe and must contain only numeric values.")
     expect_error(plotPvalHist(pvalMatrix, plotType = "cx"),
                  regexp = "Plot type must be either canvasXpress or ggplot.")
 
