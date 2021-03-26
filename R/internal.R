@@ -21,8 +21,12 @@
 }
 
 .validate_colors <- function(colors) {
-    valid_colors <- lapply(colors, rgbaConversion)
-    valid_colors <- valid_colors[!valid_colors == "invalid value"]
+    valid_colors <- list()
+    for (color in colors) {
+        if (.rgbaConversion(color) != "invalid value") {
+           valid_colors <- append(valid_colors,color)
+        }
+    }
     return(valid_colors)
 }
 
@@ -72,8 +76,19 @@
 .is_valid_symbolShapes_ggplot <- function(shape) {
     valid_shapes <- .get_valid_symbolShapes_ggplot()
     is_valid_shape <- ifelse(shape %in% valid_shapes, TRUE, FALSE)
-    if (!is_valid_shape & (is_valid_shape %in% c(1:25))) {
+    if (!is_valid_shape & (shape %in% c(1:25))) {
         is_valid_shape <- TRUE
     }
     return(is_valid_shape)
+}
+
+.validate_shapes <- function(shapes) {
+    valid_shapes <- list()
+    for (shape in shapes) {
+        if (.is_valid_symbolShapes_ggplot(shape)) {
+            valid_shapes <- append(valid_shapes,shape)
+        }
+    }
+    return(valid_shapes)
+
 }

@@ -160,7 +160,7 @@ ggplotMDS <- function(DGEdata,
                 invalid_shapes <- shapes[!shapes %in% cx_valid_shapes]
                 if (length(invalid_shapes) > 0) {
                     shapes <- shapes[shapes %in% cx_valid_shapes[1:8]]
-                    warning(paste("Removing invalid shapes: ",invalid_shapes))
+                    warning(paste("Invalid shapes specified. Skipping invalid values:",invalid_shapes))
                     if (length(shapes) == 0) {
                         shapes <- cx_valid_shapes[1:8]
                     }
@@ -176,15 +176,12 @@ ggplotMDS <- function(DGEdata,
             shapes <- symShape
         }
 
-
-
-
         intercept_flag <- FALSE
         if (!missing(hlineIntercept)) {
             if (!is.null(hlineIntercept)) {
                 intercept_flag <- TRUE
                 if (!(is.numeric(hlineIntercept) & length(hlineIntercept) == 1)) {
-                    warning("hlineIntercept must be a singular numeric value. Removing hlineIntercept.")
+                    warning("hlineIntercept must be a singular numeric value. Ignoring hlineIntercept.")
                     hlineIntercept <- NULL
                 }
             }
@@ -193,7 +190,7 @@ ggplotMDS <- function(DGEdata,
             if (!is.null(vlineIntercept)) {
                 intercept_flag <- TRUE
                 if (!(is.numeric(vlineIntercept) & length(vlineIntercept) == 1)) {
-                    warning("vlineIntercept must be a singular numeric value. Removing vlineIntercept.")
+                    warning("vlineIntercept must be a singular numeric value. Ignoring vlineIntercept.")
                     vlineIntercept <- NULL
                 }
             }
@@ -230,12 +227,15 @@ ggplotMDS <- function(DGEdata,
         }
 
         intercept_flag <- FALSE
+        intercept_length <- 0
         if (!missing(hlineIntercept)) {
             if (!is.null(hlineIntercept)) {
                 intercept_flag <- TRUE
                 if (!is.numeric(hlineIntercept)) {
-                    warning("hlineIntercept must be numeric. Removing hlineIntercept.")
+                    warning("hlineIntercept must be numeric. Ignoring hlineIntercept.")
                     hlineIntercept <- NULL
+                } else {
+                    intercept_length <- length(hlineIntercept)
                 }
             }
         }
@@ -244,12 +244,13 @@ ggplotMDS <- function(DGEdata,
             if (!is.null(vlineIntercept)) {
                 intercept_flag <- TRUE
                 if (!is.numeric(vlineIntercept)) {
-                    warning("vlineIntercept must be numeric. Removing vlineIntercept.")
+                    warning("vlineIntercept must be numeric. Ignoring vlineIntercept.")
                     vlineIntercept <- NULL
+                } else {
+                    intercept_length <- length(vlineIntercept)
                 }
             }
         }
-
 
         if (intercept_flag) {
             if (!missing(reflineColor)) {
@@ -259,15 +260,33 @@ ggplotMDS <- function(DGEdata,
                 } else if (.rgbaConversion(reflineColor) == "invalid value") {
                     warning("Color specified is not valid. Assigning default value 'red'.")
                     reflineColor <- "red"
+                } else if (!(length(reflineColor) == intercept_length | length(reflineColor) == 1)) {
+                    warning("reflineColor must be either length 1 or the same as the intercept. Assigning default value 'red'.")
+                    reflineColor <- "red"
                 }
-
-
             }
 
             if (!missing(reflineSize)) {
                 if (!assertthat::see_if(!is.null(reflineSize), is.numeric(reflineSize), all(reflineSize > 0))) {
                     warning("reflineSize must be a numeric value greater than 0. Assigning default value '0.5'.")
                     reflineSize <- 0.5
+                }  else if (!(length(reflineColor) == intercept_length | length(reflineColor) == 1)) {
+                    warning("reflineSize must be either length 1 or the same as the intercept. Assigning default value '0.5'.")
+                    reflineSize <- 0.5
+                }
+            }
+
+            if (!missing(hlineIntercept) & !missing(vlineIntercept)) {
+                if (!length(hlineIntercept) == length(vlineIntercept)) {
+                    if (length(reflineColor) != 1) {
+                        warning("reflineColor must be either length 1 or the same as the intercept. Assigning default value 'red'.")
+                        reflineColor <- "red"
+                    }
+
+                    if (length(reflineSize) != 1) {
+                        warning("reflineSize must be either length 1 or the same as the intercept. Assigning default value '0.5'.")
+                        reflineColor <- 0.5
+                    }
                 }
             }
         }
@@ -276,10 +295,10 @@ ggplotMDS <- function(DGEdata,
         if (!missing(shapeBy)) {
             ggplot_valid_shapes <- .get_valid_symbolShapes_ggplot()
             if (!missing(shapes)) {
-                invalid_shapes <- shapes[!shapes %in% ggplot_valid_shapes]
+                invalid_shapes <- shapes[!shapes %in% .validate_shapes(shapes)]
                 if (length(invalid_shapes) > 0) {
                     shapes <- shapes[shapes %in% ggplot_valid_shapes]
-                    warning(paste("Removing invalid shapes: ",invalid_shapes))
+                    warning("Invalid shapes specified. Skipping invalid values")
                     if (length(shapes) == 0) {
                         shapes <- ggplot_valid_shapes[1:8]
                     }
@@ -287,12 +306,12 @@ ggplotMDS <- function(DGEdata,
             } else {
                 shapes <- ggplot_valid_shapes[1:8]
             }
-        }
-    } else {
-        if (!missing(symShape) & !assertthat::see_if(!is.null(symShape), length(symShape) == 1, .is_valid_symbolShapes_ggplot(symShape))) {
-            warning("symShape must be a singular value of class 'character' or numeric value. Refer help documentation for valid values. Assigning default value 'circle'.")
-            symShape <- "circle"
-        }
+        } else {
+            if (!missing(symShape) & !assertthat::see_if(!is.null(symShape), length(symShape) == 1, .is_valid_symbolShapes_ggplot(symShape))) {
+                warning("symShape must be a singular value of class 'character' or numeric value. Refer help documentation for valid values. Assigning default value 'circle'.")
+                symShape <- "circle"
+            }
+    }
     }
 
     # ColorBlind palette:
@@ -302,17 +321,17 @@ ggplotMDS <- function(DGEdata,
         colors <- cbbPalette
     } else {
         if (is.null(colors)) {
-            colors <- .validate_colors(cbbPalette)
+            colors <- cbbPalette
             warning("colors is NULL. Assigning default values.")
         } else {
             valid_colors <- .validate_colors(colors)
             if (length(valid_colors) == 0) {
                 warning("No valid colors present. Assigning default values")
-                colors <- .validate_colors(cbbPalette)
+                colors <- cbbPalette
             } else if (!(length(valid_colors) == length(colors))) {
-                warning(paste("Invalid colors present. Eliminating invalid colors."))
+                warning(paste("Invalid colors specified. Skipping invalid values"))
+                colors <- valid_colors
             }
-
         }
     }
 
@@ -355,6 +374,8 @@ ggplotMDS <- function(DGEdata,
 
     # PlotType
     if (plotType == "canvasxpress") {
+
+        colors <- lapply(colors, rgbaConversion)
 
         colorCol <- "ColorCode"
         shapeCol <- FALSE
@@ -434,7 +455,7 @@ ggplotMDS <- function(DGEdata,
                 geom_point(alpha = transparency) +
                 scale_shape_manual(values = shapes)
         }
-        browser()
+
         if (!is.null(labels)) {
                 mdsplot <- mdsplot +
                     ggrepel::geom_text_repel(aes(label = Labels), size = labelSize, max.overlaps = Inf)
@@ -525,11 +546,14 @@ MDS_var_explained <- function(mds,
                               barFill = "dodgerblue3",
                               barWidth = 0.65,
                               barSize = 0.1) {
-
+    browser()
     assertthat::assert_that(!missing(mds),
                             msg = "mds is required and must be specified.")
     assertthat::assert_that(plotType %in% c("canvasXpress", "ggplot"),
                             msg = "Plot type must be either canvasXpress or ggplot.")
+
+    #input parameter c
+
 
     if (!("MDS" %in% class(mds))) {
         mds <- limma::plotMDS(mds, plot = FALSE)

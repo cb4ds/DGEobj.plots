@@ -20,7 +20,7 @@ test_that("ggplotMDS.R: ggplotMDS()", {
     expect_type(mds_plot, "list")
     expect_s3_class(mds_plot$plot, c("gg", "ggplot"))
 
-    # testing parameter sizeBy and shapeBy
+    #Optional parameter
     mds_plot <- ggplotMDS(DGEdata        = t_obj1,
                           colorBy        = t_obj1$design$ReplicateGroup,
                           shapeBy        = t_obj1$design$ReplicateGroup,
@@ -37,7 +37,6 @@ test_that("ggplotMDS.R: ggplotMDS()", {
                           )
     expect_s3_class(mds_plot$plot, c("canvasXpress", "htmlwidget"))
 
-    #testing parameter - without sizeBy and shapeBy
     mds_plot <- ggplotMDS(DGEdata        = t_obj1,
                           colorBy        = t_obj1$design$ReplicateGroup,
                           symShape = "square",
@@ -45,20 +44,34 @@ test_that("ggplotMDS.R: ggplotMDS()", {
     )
     expect_s3_class(mds_plot$plot, c("canvasXpress", "htmlwidget"))
 
-
-    #not working
     mds_plot <- ggplotMDS(DGEdata        = t_obj1,
-                          plotType       = "ggplot",
                           colorBy        = t_obj1$design$ReplicateGroup,
                           shapeBy        = t_obj1$design$ReplicateGroup,
+                          plotType = "ggplot",
                           sizeBy         = rep(1:4,12),
                           hlineIntercept = 0.25,
-                          vlineIntercept = 0.25)
+                          vlineIntercept = 0.25,
+                          top = 2,
+                          reflineColor = "blue",
+                          reflineSize = 0.5,
+                          labels = NULL,
+                          title = "MDS",
+                          transparency = 0.7,
+                          shapes = c("circle", "square", "triangle", "diamond", "plus"),
+                          colors = c("red", "blue", "green", "yellow", "black"))
+    expect_s3_class(mds_plot$plot, c("gg", "ggplot"))
+
+    mds_plot <- ggplotMDS(DGEdata        = t_obj1,
+                          colorBy        = t_obj1$design$ReplicateGroup,
+                          plotType = "ggplot",
+                          labelSize = 2,
+                          symShape = "square",
+                          symSize = 3)
     expect_s3_class(mds_plot$plot, c("gg", "ggplot"))
 
     # testing assert statements
     expect_error(ggplotMDS(DGEdata = 1:10),
-                 regexp = "DGEdata must be of class 'DGEList', 'DGEobj', or 'matrix'.")
+                 regexp = "DGEdata must be of class 'DGEList', 'DGEobj', 'matrix' or 'Dataframe'.")
     expect_error(ggplotMDS(DGEdata = t_obj1),
                  regexp = "colorBy must be specified and should be the length of the number of columns in DGEdata.")
     expect_error(ggplotMDS(DGEdata = t_obj1,
@@ -74,15 +87,42 @@ test_that("ggplotMDS.R: ggplotMDS()", {
                            colorBy  = t_obj1$design$ReplicateGroup),
                  regexp = "Plot type must be either canvasXpress or ggplot.")
 
-    #Testing optional parameters with valid values for top, transparency, labels, hline intercept, vline intercept, refline size
 
+    #tests for shapes
+    expect_warning(mds_plot <- ggplotMDS(DGEdata = t_obj1,
+                                         colorBy = t_obj1$design$ReplicateGroup,
+                                         shapeBy = t_obj1$design$ReplicateGroup,
+                                         shapes = list(1,2)),
+                   regexp = "Invalid shapes specified. Skipping invalid values")
+    expect_s3_class(mds_plot$plot, c("canvasXpress", "htmlwidget"))
 
+    expect_warning(mds_plot <- ggplotMDS(DGEdata = t_obj1,
+                                         plotType = "ggplot",
+                                         colorBy = t_obj1$design$ReplicateGroup,
+                                         shapeBy = t_obj1$design$ReplicateGroup,
+                                         shapes = list(32,33)),
+                   regexp = "Invalid shapes specified. Skipping invalid values")
+    expect_s3_class(mds_plot$plot, c("gg", "ggplot"))
 
+    #colors
+    expect_warning(mds_plot <- ggplotMDS(DGEdata = t_obj1,
+                                         colorBy = t_obj1$design$ReplicateGroup,
+                                         shapeBy = t_obj1$design$ReplicateGroup,
+                                         colors = list(1,2)),
+                   regexp = "Invalid shapes specified. Skipping invalid values")
+    expect_s3_class(mds_plot$plot, c("canvasXpress", "htmlwidget"))
 
-    # for ggplot additionally label size
+    expect_warning(mds_plot <- ggplotMDS(DGEdata = t_obj1,
+                                         plotType = "ggplot",
+                                         colorBy = t_obj1$design$ReplicateGroup,
+                                         shapeBy = t_obj1$design$ReplicateGroup,
+                                         colors = list(1,2)),
+                   regexp = "Invalid shapes specified. Skipping invalid values")
+    expect_s3_class(mds_plot$plot, c("gg", "ggplot"))
 
+    #symshapes
 
-    #tests for shapes and colors
+    symcolors
 
     #testing optional parameters
 
@@ -122,27 +162,27 @@ test_that("ggplotMDS.R: ggplotMDS()", {
     expect_warning(mds_plot <- ggplotMDS(DGEdata = t_obj1,
                                          colorBy = t_obj1$design$ReplicateGroup,
                                          hlineIntercept = "abc"),
-                   regexp = "hlineIntercept must be a singular numeric value. Removing hlineIntercept.")
+                   regexp = "hlineIntercept must be a singular numeric value. Ignoring hlineIntercept.")
     expect_s3_class(mds_plot$plot, c("canvasXpress", "htmlwidget"))
 
     expect_warning(mds_plot <- ggplotMDS(DGEdata = t_obj1,
                                          colorBy = t_obj1$design$ReplicateGroup,
                                          hlineIntercept = c(1,2)),
-                   regexp = "hlineIntercept must be a singular numeric value. Removing hlineIntercept.")
+                   regexp = "hlineIntercept must be a singular numeric value. Ignoring hlineIntercept.")
     expect_s3_class(mds_plot$plot, c("canvasXpress", "htmlwidget"))
 
 
     expect_warning(mds_plot <- ggplotMDS(DGEdata = t_obj1,
                                          colorBy = t_obj1$design$ReplicateGroup,
                                          vlineIntercept = "abc"),
-                   regexp = "vlineIntercept must be a singular numeric value. Removing vlineIntercept.")
+                   regexp = "vlineIntercept must be a singular numeric value. Ignoring vlineIntercept.")
     expect_s3_class(mds_plot$plot, c("canvasXpress", "htmlwidget"))
 
 
     expect_warning(mds_plot <- ggplotMDS(DGEdata = t_obj1,
                                          colorBy = t_obj1$design$ReplicateGroup,
                                          vlineIntercept = c(1,2)),
-                   regexp = "vlineIntercept must be a singular numeric value. Removing vlineIntercept.")
+                   regexp = "vlineIntercept must be a singular numeric value. Ignoring vlineIntercept.")
     expect_s3_class(mds_plot$plot, c("canvasXpress", "htmlwidget"))
 
     mds_plot <- ggplotMDS(DGEdata = t_obj1,
@@ -222,7 +262,7 @@ test_that("ggplotMDS.R: ggplotMDS()", {
                                          colorBy = t_obj1$design$ReplicateGroup,
                                          plotType = "ggplot",
                                          hlineIntercept = "abc"),
-                   regexp = "hlineIntercept must be numeric. Removing hlineIntercept.")
+                   regexp = "hlineIntercept must be numeric. Ignoring hlineIntercept.")
     expect_s3_class(mds_plot$plot, c("gg", "ggplot"))
 
 
@@ -230,7 +270,7 @@ test_that("ggplotMDS.R: ggplotMDS()", {
                                          colorBy = t_obj1$design$ReplicateGroup,
                                          plotType = "ggplot",
                                          hlineIntercept = c("a","b")),
-                   regexp = "hlineIntercept must be numeric. Removing hlineIntercept.")
+                   regexp = "hlineIntercept must be numeric. Ignoring hlineIntercept.")
     expect_s3_class(mds_plot$plot, c("gg", "ggplot"))
 
 
@@ -239,7 +279,7 @@ test_that("ggplotMDS.R: ggplotMDS()", {
                                          colorBy = t_obj1$design$ReplicateGroup,
                                          plotType = "ggplot",
                                          vlineIntercept = "abc"),
-                   regexp = "vlineIntercept must be numeric. Removing vlineIntercept.")
+                   regexp = "vlineIntercept must be numeric. Ignoring vlineIntercept.")
     expect_s3_class(mds_plot$plot, c("gg", "ggplot"))
 
     mds_plot <- ggplotMDS(DGEdata = t_obj1,
@@ -256,13 +296,13 @@ test_that("ggplotMDS.R: ggplotMDS()", {
                    regexp = "reflineSize must be a numeric value greater than 0. Assigning default value '0.5'.")
     expect_s3_class(mds_plot$plot, c("gg", "ggplot"))
 
-    #nw
+
     expect_warning(mds_plot <- ggplotMDS(DGEdata = t_obj1,
                                          colorBy = t_obj1$design$ReplicateGroup,
                                          plotType = "ggplot",
                                          vlineIntercept = 1,
                                          reflineSize = c(1,2)),
-                   regexp = "reflineSize must be a numeric value greater than 0. Assigning default value '0.5'.")
+                   regexp = "reflineSize must be either length 1 or the same as the intercept. Assigning default value '0.5'.")
     expect_s3_class(mds_plot$plot, c("gg", "ggplot"))
 
     expect_warning(mds_plot <- ggplotMDS(DGEdata = t_obj1,

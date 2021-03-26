@@ -12,7 +12,7 @@ ggplotMDS(
   sizeBy,
   top = Inf,
   labels,
-  labelSize = 1,
+  labelSize = 3,
   title,
   hlineIntercept,
   vlineIntercept,
