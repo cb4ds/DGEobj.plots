@@ -10,7 +10,6 @@ MDS_var_explained(
   topN = 10,
   cumVarLimit = 0.9,
   barColor = "dodgerblue4",
-  barFill = "dodgerblue3",
   barWidth = 0.65,
   barSize = 0.1
 )
@@ -27,11 +26,11 @@ MDS_var_explained(
 
 \item{barColor}{Default = "dodgerblue4"}
 
-\item{barFill}{Default = "dodgerblue3"}
-
 \item{barWidth}{Range 0-1. (Default = 0.65)}
 
 \item{barSize}{Thickness of the fill border (Default = 0.1)}
+
+\item{barFill}{Default = "dodgerblue3"}
 }
 \value{
 A list with two ggplots and the variance explained data.frame.

@@ -27,13 +27,13 @@ test_that("ggplotMDS.R: ggplotMDS()", {
                           sizeBy         = rep(1:4,12),
                           hlineIntercept = 0.25,
                           vlineIntercept = 0.25,
-                          top = 2,
-                          reflineColor = "blue",
-                          reflineSize = 3,
-                          title = "MDS",
-                          transparency = 0.7,
-                          shapes = c("sphere", "square", "triangle"),
-                          colors = c("red", "blue", "green")
+                          top            = 10,
+                          reflineColor   = "blue",
+                          reflineSize    = 3,
+                          title          = "MDS",
+                          transparency   = 0.7,
+                          shapes         = c("sphere", "square", "triangle"),
+                          colors         = c("red", "blue", "green")
                           )
     expect_s3_class(mds_plot$plot, c("canvasXpress", "htmlwidget"))
 
@@ -57,7 +57,7 @@ test_that("ggplotMDS.R: ggplotMDS()", {
                           labels = NULL,
                           title = "MDS",
                           transparency = 0.7,
-                          shapes = c("circle", "square", "triangle", "diamond", "plus"),
+                          shapes = c("circle", "square", "triangle", "plus"),
                           colors = c("red", "blue", "green", "yellow", "black"))
     expect_s3_class(mds_plot$plot, c("gg", "ggplot"))
 

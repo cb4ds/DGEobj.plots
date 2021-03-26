@@ -342,7 +342,7 @@ ggplotMDS <- function(DGEdata,
     if ("DGEobj" %in% class(DGEdata)) {
         DGEdata <- DGEobj::getItem(DGEdata, "DGEList")
     }
-
+    browser()
     mds.data <- limma::plotMDS(DGEdata,
                           top = top,
                           dim.plot = dim.plot,
@@ -543,16 +543,29 @@ MDS_var_explained <- function(mds,
                               topN = 10,
                               cumVarLimit = 0.9,
                               barColor="dodgerblue4",
-                              barFill = "dodgerblue3",
                               barWidth = 0.65,
                               barSize = 0.1) {
-    browser()
+
     assertthat::assert_that(!missing(mds),
                             msg = "mds is required and must be specified.")
     assertthat::assert_that(plotType %in% c("canvasXpress", "ggplot"),
                             msg = "Plot type must be either canvasXpress or ggplot.")
 
-    #input parameter c
+    #input parameter validation
+    if (!assertthat::see_if(length(topN) == 1, is.numeric(topN))) {
+        warning("topN should be a numeric value. Assigning default value 10.")
+        topN <- 10
+    }
+
+    if (!assertthat::see_if(length(cumVarLimit) == 1, is.numeric(cumVarLimit), cumVarLimit > 0, cumVarLimit <= 1)) {
+        warning("cumVarLimit should be a single numeric value between 0 and 1. Assigning default value 0.9")
+        cumVarLimit <- 0.9
+    }
+
+    if (any(!is.character(barColor), length(barColor) != 1, .rgbaConversion(barColor) == "invalid value")) {
+        warning("barColor specified is not valid. Assigning default value 'dodgerblue4'.")
+        barColor <- dodgerblue4
+    }
 
 
     if (!("MDS" %in% class(mds))) {
@@ -619,9 +632,9 @@ MDS_var_explained <- function(mds,
         resultList$varexp <- ggplot(plotdat) +
             aes(x = dim, y = var) +
             geom_col(color = barColor,
-                     fill = barFill,
-                     size = barSize,
-                     width = barWidth) +
+                     fill = barColor)
+                     #size = barSize,
+                     #width = barWidth) +
             labs(title = varexp_title,
                  x = xlab,
                  y = ylab_ve) +
