@@ -21,8 +21,6 @@ ggplotMDS(
   symShape = "circle",
   symSize = 5,
   transparency = 0.7,
-  shapes,
-  colors,
   dim.plot = c(1, 2)
 )
 }
@@ -65,10 +63,6 @@ text labels.}
 
 \item{transparency}{Set transparency (Default = 0.7)}
 
-\item{shapes}{A vector of shapes to override the default 8 shapes used in shapeBy (optional)}
-
-\item{colors}{A color pallet to substitute for the default 8 color pallet used by colorBy (optional)}
-
 \item{dim.plot}{Define which dimension to plot (Default = c(1,2))}
 }
 \value{
@@ -96,11 +90,16 @@ input data.
 \examples{
 \dontrun{
      # Plot the first two dimensions using all genes
-     myMDS <- ggplotMDS(MyDGEList)
+     myMDS_cxplot <- ggplotMDS(MyDGEList)
 
      # Plot the 2nd and 3rd dimensions using the top 1000 genes
-     myMDS <- ggplotMDS(myDGEList, dim.plot = c(2, 3) ndim = 3)
-     myMDS[[1]]
+     myMDS_cxplot <- ggplotMDS(myDGEList, dim.plot = c(2, 3))
+     myMDS_cxplot[[1]]
+
+     # MDSplot - ggplot
+     myMDS_ggplot <- ggplotMDS(MyDGEList, plotType = "ggplot")
+     myMDS_ggplot <- ggplotMDS(myDGEList, plotType = "ggplot", dim.plot = c(2, 3))
+     myMDS_ggplot[[1]]
 }
 
 }
