@@ -32,13 +32,13 @@
 #' @param vlineIntercept X intercept of vertical line (Optional)
 #' @param hlineIntercept Y intercept of horizontal line (Optional)
 #' @param reflineColor Color for the horizontal and vertical reference lines
-#'   (Default = "darkgoldenrod1")
-#' @param reflineSize Thickness of the reference lines (Default = 0.5)
+#'   (default = "darkgoldenrod1")
+#' @param reflineSize Thickness of the reference lines (default = 0.5)
 #' @param symShape Set the default shape of the symbols if not mapped to a column (Default = 19, solid circle)
 #' @param symSize Set the default size of the symbols if not mapped to a column
-#'   (Default = 5)
-#' @param transparency Set transparency (Default = 0.7)
-#' @param dim.plot Define which dimension to plot (Default = c(1,2))
+#'   (default = 10)
+#' @param transparency Set transparency (default = 0.7)
+#' @param dim.plot Define which dimension to plot (default = c(1,2))
 #'
 #' @return A list with two elements, the ggplot object and the MDS object returned
 #'    by the plotMDS() function.
@@ -80,7 +80,7 @@ ggplotMDS <- function(DGEdata,
                       reflineColor = "red",
                       reflineSize = 0.5,
                       symShape = "circle",
-                      symSize = 5,
+                      symSize = 10,
                       transparency = 0.7,
                       dim.plot = c(1, 2)) {
 
@@ -143,8 +143,8 @@ ggplotMDS <- function(DGEdata,
 
     if (missing(sizeBy)) {
         if (!missing(symSize) & any(is.null(symSize), length(symSize) != 1, !is.numeric(symSize))) {
-            warning("symSize must be a singular numeric value. Assigning default value 5.")
-            symSize <- 5
+            warning("symSize must be a singular numeric value. Assigning default value 10.")
+            symSize <- 10
         }
     }
 

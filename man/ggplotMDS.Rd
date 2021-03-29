@@ -19,7 +19,7 @@ ggplotMDS(
   reflineColor = "red",
   reflineSize = 0.5,
   symShape = "circle",
-  symSize = 5,
+  symSize = 10,
   transparency = 0.7,
   dim.plot = c(1, 2)
 )
@@ -52,18 +52,18 @@ text labels.}
 \item{vlineIntercept}{X intercept of vertical line (Optional)}
 
 \item{reflineColor}{Color for the horizontal and vertical reference lines
-(Default = "darkgoldenrod1")}
+(default = "darkgoldenrod1")}
 
-\item{reflineSize}{Thickness of the reference lines (Default = 0.5)}
+\item{reflineSize}{Thickness of the reference lines (default = 0.5)}
 
 \item{symShape}{Set the default shape of the symbols if not mapped to a column (Default = 19, solid circle)}
 
 \item{symSize}{Set the default size of the symbols if not mapped to a column
-(Default = 5)}
+(default = 10)}
 
-\item{transparency}{Set transparency (Default = 0.7)}
+\item{transparency}{Set transparency (default = 0.7)}
 
-\item{dim.plot}{Define which dimension to plot (Default = c(1,2))}
+\item{dim.plot}{Define which dimension to plot (default = c(1,2))}
 }
 \value{
 A list with two elements, the ggplot object and the MDS object returned

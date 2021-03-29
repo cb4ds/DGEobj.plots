@@ -42,11 +42,6 @@ test_that("ggplotMDS.R: ggplotMDS()", {
     )
     expect_s3_class(mds_plot$plot, c("canvasXpress", "htmlwidget"))
 
-    mds_plot <- ggplotMDS(DGEdata     = t_obj1,
-                          colorBy     = t_obj1$design$ReplicateGroup,
-                          reflineSize = "a")
-    expect_s3_class(mds_plot$plot, c("canvasXpress", "htmlwidget"))
-
     mds_plot <- ggplotMDS(DGEdata        = t_obj1,
                           colorBy        = t_obj1$design$ReplicateGroup,
                           shapeBy        = t_obj1$design$ReplicateGroup,

@@ -55,15 +55,15 @@
 }
 
 .get_valid_symbolShapes_cxplot <- function() {
-    valid_shapes <- c("sphere", "square", "triangle", "star", "rhombus", "octagon", "oval",
-                      "plus", "minus", "pacman", "pacman2", "mdavid", "rect2", "pentagon",
+    valid_shapes <- c("sphere", "square", "rhombus", "triangle", "plus", "star", "octagon", "oval",
+                      "minus", "pacman", "pacman2", "mdavid", "rect2", "pentagon",
                       "rect3", "arc", "rectangle", "image")
     return(valid_shapes)
 }
 
 .get_valid_symbolShapes_ggplot <- function() {
     shape_names <- c(
-        "circle", "square", "diamond", "triangle", "plus", "cross", "asterisk","bullet",
+        "circle", "square", "diamond", "triangle", "plus", "asterisk", "cross", "bullet",
         paste("circle", c("open", "filled", "cross", "plus", "small")),
         paste("square", c("open", "filled", "cross", "plus", "triangle")),
         paste("diamond", c("open", "filled", "plus")),
