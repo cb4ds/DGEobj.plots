@@ -293,6 +293,7 @@ Dispersion is a measure of variance that is plotted against intensity as a QC pl
 # only one of each is present
 designMatrix <- getType(dgeObj, "designMatrix")[[1]]
 dgelist <- getType(dgeObj, "DGEList")[[1]]
+
 # Dispersion plot
 dispersionPlot <- plotDispersion(dgelist, designMatrix, lineFit = "loess", plotType = "dispersion")
 printAndSave(dispersionPlot, file.path(outputPath, "dispersionPlot.png"))
