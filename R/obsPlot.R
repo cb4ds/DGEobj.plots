@@ -1,4 +1,4 @@
-#' Function obsPlot2
+#' Function obsPlot
 #'
 #' Provides a summary plot (box/violin/points) for each observation (gene), showing data for each
 #' experiment group. The plot can optionally include one or more of the
@@ -79,7 +79,7 @@
 #'                           group = dgeObj$design$ReplicateGroup)
 #'
 #'   # Faceted boxplot
-#'   obsPlot2(tidyInt,
+#'   obsPlot(tidyInt,
 #'            plotByCol = "GeneID",
 #'            groupCol = "group",
 #'            valueCol ="Log2CPM",
@@ -87,7 +87,7 @@
 #'            facetRow = 2)
 #'
 #'   # Faceted violin plot
-#'   obsPlot2(tidyInt,
+#'   obsPlot(tidyInt,
 #'            plotByCol = "GeneID",
 #'            violinLayer = TRUE,
 #'            boxLayer = FALSE,
@@ -97,7 +97,7 @@
 #'            facetRow = 2)
 #'
 #'   # Return a list of ggplots for each individual gene
-#'   myplots <- obsPlot2(tidyInt,
+#'   myplots <- obsPlot(tidyInt,
 #'                       plotByCol="GeneID",
 #'                       groupCol = "group",
 #'                       valueCol ="Log2CPM",
@@ -112,7 +112,7 @@
 #' @importFrom assertthat assert_that
 #'
 #' @export
-obsPlot2 <- function(data,
+obsPlot <- function(data,
                      plotByCol,
                      groupCol,
                      valueCol,
