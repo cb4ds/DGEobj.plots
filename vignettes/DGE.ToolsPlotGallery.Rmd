@@ -35,7 +35,7 @@ The Plotting functions are:
 * `volcanoPlot`:  LogRatio vs. NegLogP    
 * `cdfPlot`:  Rank(pvalue) vs. NegLogP   
 * `comparePlot`: Compare LogRatios for two contrasts    
-* `obsPlot2`: Gene intensity boxplots (faceted)    
+* `obsPlot`: Gene intensity boxplots (faceted)    
 * `logRatioPlot`: Plot logRatios +/- 95% confidence intervals    
 * `plotDispersion`: Plot dispersion or BCV vs log intensity (type of QC plot)   
 * `plotNorm`: Plot density or boxplots before/after normalization  
@@ -215,7 +215,7 @@ tidyInt <- tidyIntensity(log2cpm,
                          group = dgeObj$design$ReplicateGroup)
 
 # Faceted boxplot
-obsPlot2(tidyInt, 
+obsPlot(tidyInt, 
          plotByCol = "GeneID",
          groupCol = "group",
          valueCol = "Log2CPM",
@@ -223,7 +223,7 @@ obsPlot2(tidyInt,
          facetRow = 2)
 
 # Faceted violin plot
-obsPlot2(tidyInt, 
+obsPlot(tidyInt, 
          plotByCol = "GeneID",
          violinLayer = TRUE,
          boxLayer = FALSE,
@@ -233,7 +233,7 @@ obsPlot2(tidyInt,
          facetRow = 2)
 
 # Return a list of individual plots
-myplots <- obsPlot2(tidyInt, 
+myplots <- obsPlot(tidyInt, 
                     plotByCol = "GeneID",
                     groupCol = "group",
                     valueCol = "Log2CPM",
@@ -243,7 +243,7 @@ myplots <- obsPlot2(tidyInt,
 printAndSave(myplots[[1]], file.path(outputPath, "obsPlot1.png"))
 ```
 
-See `?obsPlot2` options to modify various attributes (color, shape, transparency, reference lines, etc).
+See `?obsPlot` options to modify various attributes (color, shape, transparency, reference lines, etc).
 
 \newpage
 

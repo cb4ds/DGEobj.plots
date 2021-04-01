@@ -6,19 +6,17 @@
 \usage{
 obsPlot(
   data,
-  block,
-  blockOrder,
-  obsNames,
-  sampNames,
-  plotBy = "Gene",
-  valType = "Log2CPM",
+  plotByCol,
+  groupCol,
+  valueCol,
+  groupOrder = unique(as.character(data[groupCol, , drop = TRUE])),
   boxLayer = TRUE,
   violinLayer = FALSE,
   pointLayer = TRUE,
   meanLayer = TRUE,
-  xlab = NULL,
-  ylab = NULL,
-  title = NULL,
+  xlab = groupCol,
+  ylab = valueCol,
+  title,
   boxColor = "grey30",
   boxFill = "deepskyblue3",
   boxAlpha = 0.5,
@@ -41,34 +39,23 @@ obsPlot(
   baseFontSize = 12,
   themeStyle = "grey",
   facet = TRUE,
-  facetCol = NULL,
+  facetRow,
   xAngle = 30,
-  scales = "free_y",
-  returnPlotDat = FALSE
+  scales = "free_y"
 )
 }
 \arguments{
-\item{data}{Matrix or dataframe of whatever data you want to plot with
-samples in columns and observations (genes) in rows (with rownames and colnames).  Bug: Currently requires at least 2 rows of data.}
+\item{data}{A tidy dataframe of intensity data with row and colnames (required)}
 
-\item{block}{Character or numeric vector. Determines which samples belong to the same group.  Must be same
-length as ncol(data).  Assign the same value to each member of a group.
-Note that the block values are used to label the X Axis to identify the
-groups.  Thus short mnemonic labels are useful here.}
+\item{plotByCol}{Define the column name to separate plots (typically a gene ID column) (required)}
 
-\item{blockOrder}{Character vector. Use this to explicitly set the display order of the blocks
-in the plots.  blockOrder should contain unique(block) in the order you
-wish to items to be arranged along the X-axis.  (Optional: Default = unique(block))}
+\item{groupCol}{Define the column name to group boxplots by (typically a replicate group column) (required)}
 
-\item{obsNames}{Character vector of row (observation) names to use instead of actual
-rownames. (Default = NULL)}
+\item{valueCol}{Define the column of values for plotting (typically a log intensity measure) (required)}
 
-\item{sampNames}{Character vector of column (sample) names to use instead of actual
-colnames. (Default = NULL)}
-
-\item{plotBy}{Name for the type of observation being plotted (Default = "Gene")}
-
-\item{valType}{Name for the Value being plotted.  (Default = "Log2CPM")}
+\item{groupOrder}{Define the order for the groups in each plot.  Should
+contain values in unique(data$group) listed in the order that you want the
+groups to appear in the plot. (optional; default = unique(data[groupCol]))}
 
 \item{boxLayer}{Adds a boxplot layer (Default = TRUE)}
 
@@ -78,11 +65,11 @@ colnames. (Default = NULL)}
 
 \item{meanLayer}{Adds a mean layer (Default = TRUE)}
 
-\item{xlab}{X axis label (defaults to "Block")}
+\item{xlab}{X axis label (defaults to groupCol)}
 
-\item{ylab}{Y axis label (defaults to valType)}
+\item{ylab}{Y axis label (defaults to valueCol)}
 
-\item{title}{Plot title (optional; Defaults = NULL)}
+\item{title}{Plot title (optional)}
 
 \item{boxColor}{Color for the boxplot layer (Default = "grey30")}
 
@@ -96,7 +83,7 @@ colnames. (Default = NULL)}
 
 \item{violinColor}{Color for the violin layer (Default = "grey30")}
 
-\item{violinFill}{Fill Color for the violin layer (Default = "yellow")}
+\item{violinFill}{Fill Color for the violin (Default = "yellow")}
 
 \item{violinAlpha}{Alpha value for the violin layer (Default = 0.5)}
 
@@ -132,55 +119,76 @@ respectively. Default = bw"}
 \item{facet}{Specifies whether to facet (TRUE) or print individual plots
 (FALSE)  (Default = TRUE)}
 
-\item{facetCol}{If facet = TRUE, used to specify a number of columns of faceted graphs.
-(Default = NULL)}
+\item{facetRow}{Explicitly set the number of rows for the facet plot.
+Default behavior will automatically set the columns. (Default = NULL)}
 
 \item{xAngle}{Angle to set the sample labels on the X axis. (Default =  30; Range = 0-90)}
 
 \item{scales}{Specify same scales or independent scales for each subplot (Default = "free_y";
 Allowed values: "fixed", "free_x", "free_y", "free")}
-
-\item{returnPlotDat}{Returns the dataframe used for the plot as a list member (Default = FALSE)}
 }
 \value{
-ggplot object. If Facet = TRUE (default) returns a faceted ggplot object. If
-  facet = FALSE or returnPlotDat = TRUE, returns a list of ggplot objects indexed
-  by observation (gene) names. If returnPlotDat = TRUE, the last element
-  of the list is the dataframe used to generate the plot.
+ggplot. If Facet = TRUE (default) returns a faceted ggplot object. If
+  facet = FALSE, returns a list of ggplot objects indexed
+  by observation (gene) names.
 }
 \description{
-Provides a summary plot for each observation (gene), showing data for each
+Provides a summary plot (box/violin/points) for each observation (gene), showing data for each
 experiment group. The plot can optionally include one or more of the
 following layers: boxplot, violin plot, individual points, and/or mean of all
 points.  The layers are built up in the order listed with user settable
-transparency, colors etc.  By default, the Boxplot, Point, and Mean layers are
-active. Also, by default, the plots are faceted.  Faceted plot can be turned
-off to return a list of individual ggplot2 graphics for each gene.
+transparency, colors etc.  By default, the boxplot, point, and mean layers are
+active. Also, by default, the plots are faceted.  Faceting the plot can be turned
+off to return a list of individual ggplot graphics for each gene.
 }
 \details{
-Input is a dataframe or matrix of observations (rows; usually genes) by
-Samples (columns) and requires rownames to identify the observations (genes).
-A Block vector is required to define which Samples (columns) belong to the
-same group and generate a summary plot by group with a separate plot for
-each observation (gene).
-
-Rownames are required and all the data columns should be numeric.  Each
-observation (gene) generates a separate plot, so you should pass a smallish
-list of genes unless you want a lot of output.  By default the plot is
-faceted. You should turn facet off if you have more than ~25 genes to plot.
-Colnames and Rownames will be used to label the plots by default but custom
-col/row names can also be supplied as separate vectors.
+Input is a tidy dataframe of intensity data.
 }
 \examples{
 \dontrun{
-   # Simple faceted plot with custom title
-   # Get Log2CPM from a DGEobj object
-   dgelist <- getItem(DGEobj, "DGEList")
-   Log2CPM <- edgeR::cpm(dgelist, log = TRUE)
-   genes <- Log2CPM[1:12,] #first dozen genes
-   # Define six treatment groups in triplicate
-   MyBlock <- c(1, 1, 1, 2, 2, 2, 3, 3, 3, 4, 4, 4, 5, 5, 5, 6, 6, 6)
-   MyPlot <- obsPlot(genes, MyBlock, title = "Plot Title")
+  # Simulate some data with row and colnames
+  groups <- paste("group", factor(rep(1:4, each = 100)), sep = "")
+  x <- matrix(rnorm(2400, mean = 10), ncol = length(groups))
+  colnames(x) <- paste("sample", 1:ncol(x), sep = "")
+  rownames(x) <- paste("gene", 1:nrow(x), sep="")
+  # Reformat into tidy dataframe
+  tidyInt <- tidyIntensity(x)
+
+ # Or get data from a DGEobj with RNA-Seq data
+ log2cpm <- convertCounts(dgeObj$counts, unit = "cpm", log = TRUE, normalize = "tmm")
+ tidyInt <- tidyIntensity(log2cpm,
+                          rowidColname = "GeneID",
+                          keyColname = "Sample",
+                          valueColname = "Log2CPM",
+                          group = dgeObj$design$ReplicateGroup)
+
+  # Faceted boxplot
+  obsPlot(tidyInt,
+           plotByCol = "GeneID",
+           groupCol = "group",
+           valueCol ="Log2CPM",
+           pointJitter = 0.1,
+           facetRow = 2)
+
+  # Faceted violin plot
+  obsPlot(tidyInt,
+           plotByCol = "GeneID",
+           violinLayer = TRUE,
+           boxLayer = FALSE,
+           groupCol="group",
+           valueCol = "Log2CPM",
+           pointJitter = 0.1,
+           facetRow = 2)
+
+  # Return a list of ggplots for each individual gene
+  myplots <- obsPlot(tidyInt,
+                      plotByCol="GeneID",
+                      groupCol = "group",
+                      valueCol ="Log2CPM",
+                      pointJitter = 0.1,
+                      facet = FALSE)
+  # Plot one from the list
+  myplots[[2]]
 }
 
 }
