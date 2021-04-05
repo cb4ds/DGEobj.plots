@@ -56,7 +56,7 @@ text labels.}
 
 \item{reflineSize}{Thickness of the reference lines (default = 0.5)}
 
-\item{symShape}{Set the default shape of the symbols if not mapped to a column (Default = 19, solid circle)}
+\item{symShape}{Set the default shape of the symbols if not mapped to a column (default = 19, solid circle)}
 
 \item{symSize}{Set the default size of the symbols if not mapped to a column
 (default = 10)}
