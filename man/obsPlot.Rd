@@ -6,10 +6,11 @@
 \usage{
 obsPlot(
   data,
+  plotType = "canvasXpress",
   plotByCol,
   groupCol,
   valueCol,
-  groupOrder = unique(as.character(data[groupCol, , drop = TRUE])),
+  groupOrder = unique(as.character(data[, groupCol, drop = TRUE])),
   boxLayer = TRUE,
   violinLayer = FALSE,
   pointLayer = TRUE,
@@ -17,27 +18,22 @@ obsPlot(
   xlab = groupCol,
   ylab = valueCol,
   title,
-  boxColor = "grey30",
-  boxFill = "deepskyblue3",
-  boxAlpha = 0.5,
+  boxColor = "deepskyblue3",
+  boxTransparency = 0.5,
   boxNotch = FALSE,
   boxNotchWidth = 0.8,
-  violinColor = "grey30",
-  violinFill = "goldenrod1",
-  violinAlpha = 0.5,
-  pointColor = "grey30",
-  pointFill = "dodgerblue4",
+  violinColor = "goldenrod1",
+  violinTransparency = 0.5,
+  pointColor = "dodgerblue4",
   pointShape = 21,
-  pointAlpha = 1,
+  pointTransparency = 1,
   pointSize = 2,
   pointJitter = 0,
-  meanColor = "red2",
-  meanFill = "goldenrod1",
+  meanColor = "goldenrod1",
+  meanOutlineColor = "red2",
   meanShape = 22,
-  meanAlpha = 0.7,
+  meanTransparency = 0.7,
   meanSize = 3,
-  baseFontSize = 12,
-  themeStyle = "grey",
   facet = TRUE,
   facetRow,
   xAngle = 30,
@@ -71,50 +67,38 @@ groups to appear in the plot. (optional; default = unique(data[groupCol]))}
 
 \item{title}{Plot title (optional)}
 
-\item{boxColor}{Color for the boxplot layer (Default = "grey30")}
+\item{boxColor}{Color for the boxplot layer (Default = "deepskyblue3")}
 
-\item{boxFill}{Fill Color for the boxplot layer (Default = "deepskyblue3")}
-
-\item{boxAlpha}{Transparency for the box layer (Default = 0.5)}
+\item{boxTransparency}{Transparency for the box layer (Default = 0.5)}
 
 \item{boxNotch}{Turn on/off confidence interval notches on boxplots (Default = FALSE)}
 
 \item{boxNotchWidth}{Set the width of box notches (0-1) (Default = 0.8)}
 
-\item{violinColor}{Color for the violin layer (Default = "grey30")}
+\item{violinColor}{Color for the violin layer (Default = "yellow")}
 
-\item{violinFill}{Fill Color for the violin (Default = "yellow")}
+\item{violinTransparency}{Transparency for the violin layer (Default = 0.5)}
 
-\item{violinAlpha}{Alpha value for the violin layer (Default = 0.5)}
-
-\item{pointColor}{Color for the point layer (Default = "grey30")}
-
-\item{pointFill}{Fill color for the point layer (Default = "dodgerblue4")}
+\item{pointColor}{Color for the point layer (Default = "dodgerblue4")}
 
 \item{pointShape}{Shape for the point layer (Default = 21; fillable circle)}
 
-\item{pointAlpha}{Transparency for the box layer (Default = 1)}
+\item{pointTransparency}{Transparency for the box layer (Default = 1)}
 
 \item{pointSize}{Size of the points (Default = 4)}
 
 \item{pointJitter}{Amount to jitter the points (Default = 0) Try 0.2 if you
 have a lot of points.}
 
-\item{meanColor}{Color for the mean layer (Default = "red2")}
+\item{meanColor}{Color for the mean layer (Default = "goldenrod1")}
 
-\item{meanFill}{Fill color for the mean layer (Default = "goldenrod1")}
+\item{meanOutlineColor}{Fill color for the mean layer (Default = "red2")}
 
 \item{meanShape}{Shape for the mean layer (Default = 21; fillable circle)}
 
-\item{meanAlpha}{Transparency for the mean layer (Default = 0.7)}
+\item{meanTransparency}{Transparency for the mean layer (Default = 0.7)}
 
 \item{meanSize}{Size of the mean points (Default = 3)}
-
-\item{baseFontSize}{The smallest size font in the figure in points. (Default =
-12)}
-
-\item{themeStyle}{"bw" or "grey" which correspond to theme_bw or theme_grey
-respectively. Default = bw"}
 
 \item{facet}{Specifies whether to facet (TRUE) or print individual plots
 (FALSE)  (Default = TRUE)}
@@ -126,10 +110,16 @@ Default behavior will automatically set the columns. (Default = NULL)}
 
 \item{scales}{Specify same scales or independent scales for each subplot (Default = "free_y";
 Allowed values: "fixed", "free_x", "free_y", "free")}
+
+\item{boxFill}{Fill Color for the boxplot layer (Default = "deepskyblue3")}
+
+\item{violinFill}{Fill Color for the violin (Default = "yellow")}
+
+\item{pointFill}{Fill color for the point layer (Default = "dodgerblue4")}
 }
 \value{
-ggplot. If Facet = TRUE (default) returns a faceted ggplot object. If
-  facet = FALSE, returns a list of ggplot objects indexed
+Plot of type canvasXpress or ggplot. If Facet = TRUE (default) returns a faceted object. If
+  facet = FALSE, returns a list of objects indexed
   by observation (gene) names.
 }
 \description{
