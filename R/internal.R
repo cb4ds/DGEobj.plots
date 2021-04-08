@@ -17,7 +17,7 @@
     if (is.null(rgbastr)) {
         rgbastr <- "invalid value"
     }
-    return(rgbastr)
+    rgbastr
 }
 
 
@@ -34,8 +34,7 @@
     } else if (!missing(y)) {
         line <- append(line, list(y = y))
     }
-
-    decorations <- list(line = append(decorations$line, list(line)))
+    list(line = append(decorations$line, list(line)))
 }
 
 .is_valid_symbolShapes_cxplot <- function(shape) {
@@ -66,7 +65,7 @@
     if (!is_valid_shape && (shape %in% c(1:25))) {
         is_valid_shape <- TRUE
     }
-    return(is_valid_shape)
+    is_valid_shape
 }
 
 .validate_colors <- function(colors) {
@@ -74,7 +73,7 @@
     valid_colors <- lapply(colors, function(color){
         ifelse(.rgbaConversion(color) != "invalid value", color, NA)
     })
-    valid_colors <- valid_colors[!is.na(valid_colors)]
+    valid_colors[!is.na(valid_colors)]
 }
 
 .validate_cx_shapes <- function(shapes) {
@@ -82,7 +81,7 @@
     valid_shapes <- lapply(shapes, function(shape){
         ifelse(.is_valid_symbolShapes_cxplot(shape), shape, NA)
     })
-    valid_shapes <- valid_shapes[!is.na(valid_shapes)]
+    valid_shapes[!is.na(valid_shapes)]
 }
 
 .validate_gg_shapes <- function(shapes) {
@@ -90,7 +89,7 @@
     valid_shapes <- lapply(shapes, function(shape){
         ifelse(.is_valid_symbolShapes_ggplot(shape), shape, NA)
     })
-    valid_shapes <- valid_shapes[!is.na(valid_shapes)]
+    valid_shapes[!is.na(valid_shapes)]
 }
 
 .getCxPlotDecorations <- function(decorations, color, width, x, y) {
@@ -106,7 +105,6 @@
     } else if (!missing(y)) {
         line <- append(line, list(y = y))
     }
+    list(line = append(decorations$line, list(line)))
 
-    decorations <- list(line = append(decorations$line, list(line)))
-    return(decorations)
 }
