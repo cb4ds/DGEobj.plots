@@ -141,7 +141,7 @@ comparePlot <- function(compareDF,
     if (any(is.null(symbolColor),
             !is.character(symbolColor),
             length(symbolColor)  != 4,
-            .rgbaConversion(symbolColor) == "invalid value")) {
+            length(.validate_colors(symbolColor)) != 4)) {
         warning("symbolColor must be a vector of 4 character values. Assigning default values 'darkgoldenrod1', 'deepskyblue4', 'red3', 'grey25'.")
         symbolColor <- c("darkgoldenrod1", "deepskyblue4", "red3", "grey25")
     }
