@@ -264,17 +264,17 @@ comparePlot <- function(compareDF,
         dplyr::rename_with(~ c("min", "max"))
     if (plotType == "canvasxpress") {
         # adding transparency to colors
-        symbolColor <- sapply(symbolColor, rgbaConversion, alpha = transparency, USE.NAMES = FALSE)
+        symbolColor <- sapply(symbolColor, .rgbaConversion, alpha = transparency, USE.NAMES = FALSE)
         decorations <- list()
         if (!is.null(crosshair)) {
             decorations <- getCxPlotDecorations(decorations,
-                                                color = rgbaConversion(crosshair, alpha = transparency),
+                                                color = .rgbaConversion(crosshair, alpha = transparency),
                                                 width = refLineThickness,
                                                 x     = 0)
         }
         if (!is.null(referenceLine)) {
             decorations <- getCxPlotDecorations(decorations = decorations,
-                                                color       = rgbaConversion(referenceLine, alpha = transparency),
+                                                color       = .rgbaConversion(referenceLine, alpha = transparency),
                                                 width       = refLineThickness,
                                                 x           = ceiling(y_range$max),
                                                 y           = floor(y_range$min))
