@@ -267,17 +267,17 @@ comparePlot <- function(compareDF,
         symbolColor <- sapply(symbolColor, .rgbaConversion, alpha = transparency, USE.NAMES = FALSE)
         decorations <- list()
         if (!is.null(crosshair)) {
-            decorations <- getCxPlotDecorations(decorations,
-                                                color = .rgbaConversion(crosshair, alpha = transparency),
-                                                width = refLineThickness,
-                                                x     = 0)
+            decorations <- .getCxPlotDecorations(decorations,
+                                                 color = .rgbaConversion(crosshair, alpha = transparency),
+                                                 width = refLineThickness,
+                                                 x     = 0)
         }
         if (!is.null(referenceLine)) {
-            decorations <- getCxPlotDecorations(decorations = decorations,
-                                                color       = .rgbaConversion(referenceLine, alpha = transparency),
-                                                width       = refLineThickness,
-                                                x           = ceiling(y_range$max),
-                                                y           = floor(y_range$min))
+            decorations <- .getCxPlotDecorations(decorations = decorations,
+                                                 color       = .rgbaConversion(referenceLine, alpha = transparency),
+                                                 width       = refLineThickness,
+                                                 x           = ceiling(y_range$max),
+                                                 y           = floor(y_range$min))
         }
         cx.data <- compareDF %>%
             dplyr::select(c(xlabel, ylabel)) %>%
