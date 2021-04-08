@@ -11,7 +11,7 @@ test_that("comparePlot.R: comparePlot()", {
     # testing plot with significance measures supplied and default parameters
     cPlot <- comparePlot(compareDat)
     expect_s3_class(cPlot , c("canvasXpress", "htmlwidget"))
-    cPlot <- comparePlot(compareDat, plotType = "ggplot", symbolSize = c(7, 7, 7, 3))
+    cPlot <- comparePlot(compareDat, plotType = "ggplot", symbolSize = c(4, 4, 4, 2))
     expect_s3_class(cPlot , c("gg", "ggplot"))
 
     # testing plot without significance measures supplied and default parameters

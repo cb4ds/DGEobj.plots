@@ -157,7 +157,7 @@ comparePlot <- function(compareDF,
             !is.character(symbolShape),
             length(symbolShape)  != 4,
             plotType == "canvasxpress" && !is.null(symbolShape) && length(.validate_cx_shapes(symbolShape)) != 4,
-            plotType == "ggplot" && !is.null(symbolShape) && lenght(.validate_gg_shapes(symbolShape)) != 4)) {
+            plotType == "ggplot" && !is.null(symbolShape) && length(.validate_gg_shapes(symbolShape)) != 4)) {
         warning("symbolShape must be a vector of 4 charcter values. Assigning default values 'circle', 'circle', 'circle', 'circle'.")
         symbolShape  <- c("circle", "circle", "circle", "circle")
     }
