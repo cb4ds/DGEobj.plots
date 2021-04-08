@@ -46,7 +46,7 @@
 .get_valid_symbolShapes_cxplot <- function() {
     valid_shapes <- c("sphere", "square", "rhombus", "triangle", "plus", "star", "octagon", "oval",
                       "minus", "pacman", "pacman2", "mdavid", "rect2", "pentagon",
-                      "rect3", "arc", "rectangle", "image")
+                      "rect3", "arc", "rectangle", "image", "circle")
 }
 
 .get_valid_symbolShapes_ggplot <- function() {
@@ -72,7 +72,23 @@
 .validate_colors <- function(colors) {
     valid_colors <- list()
     valid_colors <- lapply(colors, function(color){
-        ifelse(.rgbaConversion(color) != "invalid value",color,NA)
+        ifelse(.rgbaConversion(color) != "invalid value", color, NA)
     })
     valid_colors <- valid_colors[!is.na(valid_colors)]
+}
+
+.validate_cx_shapes <- function(shapes) {
+    valid_shapes <- list()
+    valid_shapes <- lapply(shapes, function(shape){
+        ifelse(.is_valid_symbolShapes_cxplot(shape), shape, NA)
+    })
+    valid_shapes <- valid_shapes[!is.na(valid_shapes)]
+}
+
+.validate_gg_shapes <- function(shapes) {
+    valid_shapes <- list()
+    valid_shapes <- lapply(shapes, function(shape){
+        ifelse(.is_valid_symbolShapes_ggplot(shape), shape, NA)
+    })
+    valid_shapes <- valid_shapes[!is.na(valid_shapes)]
 }
