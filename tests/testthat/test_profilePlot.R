@@ -11,14 +11,20 @@ test_that("profilePlot.R: profilePlot()", {
     expect_s3_class(profile_plot, c("gg", "ggplot"))
     ## EXT1024_vs_BDL
     contrastDF <- t_obj1$EXT1024_vs_BDL
+    profile_plot <- profilePlot(contrastDF, title = "EXT1024_vs_BDL")
+    expect_s3_class(profile_plot, c("canvasXpress", "htmlwidget"))
     profile_plot <- profilePlot(contrastDF, title = "EXT1024_vs_BDL", plotType = "ggplot", symbolSize = c(4, 1, 4))
     expect_s3_class(profile_plot, c("gg", "ggplot"))
     ## Nint_vs_BDL
     contrastDF <- t_obj1$Nint_vs_BDL
+    profile_plot <- profilePlot(contrastDF, title = "Nint_vs_BDL")
+    expect_s3_class(profile_plot, c("canvasXpress", "htmlwidget"))
     profile_plot <- profilePlot(contrastDF, title = "Nint_vs_BDL", plotType = "ggplot", symbolSize = c(4, 1, 4))
     expect_s3_class(profile_plot, c("gg", "ggplot"))
     ## Sora_vs_BDL
     contrastDF <- t_obj1$Sora_vs_BDL
+    profile_plot <- profilePlot(contrastDF, title = "Sora_vs_BDL")
+    expect_s3_class(profile_plot, c("canvasXpress", "htmlwidget"))
     profile_plot <- profilePlot(contrastDF, title = "Sora_vs_BDL", plotType = "ggplot", symbolSize = c(4, 1, 4))
     expect_s3_class(profile_plot, c("gg", "ggplot"))
 
