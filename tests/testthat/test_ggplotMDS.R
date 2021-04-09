@@ -7,6 +7,15 @@ test_that("ggplotMDS.R: ggplotMDS()", {
 
     mds_plot <- ggplotMDS(DGEdata = t_obj1,
                           colorBy = t_obj1$design$ReplicateGroup)
+
+    dgelist <- DGEdata <- DGEobj::getItem(DGEdata, "DGEList")
+    mds_plot <- ggplotMDS(DGEdata = dgelist,
+                          colorBy = t_obj1$design$ReplicateGroup)
+
+    dge_matrix <- DGEdata <- DGEobj::getItem(DGEdata, "DGEList") %>% as.matrix()
+    mds_plot <- ggplotMDS(DGEdata = dge_matrix,
+                          colorBy = t_obj1$design$ReplicateGroup)
+
     expect_length(mds_plot, 2)
     expect_named(mds_plot, c("plot", "mdsobj"))
     expect_type(mds_plot, "list")

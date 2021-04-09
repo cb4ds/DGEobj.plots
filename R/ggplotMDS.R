@@ -87,7 +87,7 @@ ggplotMDS <- function(DGEdata,
 
     assertthat::assert_that(!missing(DGEdata),
                             !is.null(DGEdata),
-                            class(DGEdata) %in% c("DGEobj", "DGEList", "matrix", "Dataframe"),
+                            class(DGEdata)[1] %in% c("DGEobj", "DGEList", "matrix", "data.frame"),
                             msg = "DGEdata must be specified and must be of class 'DGEList', 'DGEobj', 'matrix' or 'Dataframe'.")
     assertthat::assert_that(!is.null(plotType),
                             tolower(plotType) %in% c("canvasxpress", "ggplot"),
@@ -137,10 +137,8 @@ ggplotMDS <- function(DGEdata,
         # Get labels from ReplicateGroup if present
         if ("DGEobj" %in% class(DGEdata)) {
             design <- DGEobj::getItem(DGEdata, "design")
-            if (exists("design")) {
-                if (with(design, exists("ReplicateGroup"))) {
+            if (exists("design") && (with(design, exists("ReplicateGroup")))) {
                     labels <- design$ReplicateGroup
-                }
             }
         }
     }
@@ -207,7 +205,7 @@ ggplotMDS <- function(DGEdata,
             }
             if (length(reflineSize) != 1) {
                 warning("reflineSize must be either length 1 or the same as the intercept. Assigning default value '0.5'.")
-                reflineColor <- 0.5
+                reflineSize <- 0.5
             }
         }
     }
@@ -256,7 +254,7 @@ ggplotMDS <- function(DGEdata,
     if (missing(title)) {
         title <- "MDS Plot"
     }
-
+    browser()
     if ("DGEobj" %in% class(DGEdata)) {
         DGEdata <- DGEobj::getItem(DGEdata, "DGEList")
     }
@@ -316,7 +314,7 @@ ggplotMDS <- function(DGEdata,
 
         vlineIntercept_list <- list()
         if (!missing(vlineIntercept) && !is.null(vlineIntercept)) {
-            vlineIntercept_list <- lapply(seq_along(vlineIntercept),function(i){
+            vlineIntercept_list <- lapply(seq_along(vlineIntercept), function(i){
                 list(color = ifelse(length(reflineColor) != 1, reflineColor[[i]], reflineColor),
                      width = ifelse(length(reflineSize) != 1, reflineSize[[i]], reflineSize),
                      x     = vlineIntercept[[i]])
@@ -327,7 +325,7 @@ ggplotMDS <- function(DGEdata,
         decorations <- list(line = intercept_list)
 
         cx.data  <- plot_data %>%  dplyr::select(c(x, y))
-        var.data <- subset(plot_data %>% dplyr::select(-c(x, y)))
+        var.data <- plot_data %>% dplyr::select(-c(x, y))
 
         events <- htmlwidgets::JS("{ 'mousemove' : function(o, e, t) {
                                                 if (o != null && o != false) {
@@ -473,7 +471,6 @@ MDS_var_explained <- function(mds,
                               cumVarLimit = 0.9,
                               barColor="dodgerblue4",
                               barWidth = 0.65) {
-
     plotType <- tolower(plotType)
 
     assertthat::assert_that(!missing(mds),

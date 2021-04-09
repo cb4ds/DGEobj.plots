@@ -17,7 +17,7 @@
     if (is.null(rgbastr)) {
         rgbastr <- "invalid value"
     }
-    return(rgbastr)
+    rgbastr
 }
 
 
@@ -66,5 +66,5 @@
     if (!is_valid_shape && (shape %in% c(1:25))) {
         is_valid_shape <- TRUE
     }
-    return(is_valid_shape)
+    is_valid_shape
 }
