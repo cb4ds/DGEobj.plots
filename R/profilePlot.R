@@ -215,7 +215,7 @@ profilePlot <- function(contrastDF,
    if (any(is.null(symbolShape),
            !is.character(symbolShape),
            length(symbolShape)  != 3,
-           unique(symbolShape) > 2,
+           length(unique(symbolShape)) < 2,
            plotType == "canvasxpress" && !is.null(symbolShape) && length(.validate_cx_shapes(symbolShape)) != 3,
            plotType == "ggplot" && !is.null(symbolShape) && length(.validate_gg_shapes(symbolShape)) != 3)) {
        warning("symbolShape must be a vector of 3 charcter values with 2 different values at least. Assigning canvasXpress default values 'circle', 'triangle', 'circle'.")
@@ -299,7 +299,6 @@ profilePlot <- function(contrastDF,
     colnames(contrastDF)[colnames(contrastDF) %in% logIntCol] <- xlabel
     colnames(contrastDF)[colnames(contrastDF) %in% logRatioCol] <- ylabel
 
-    # Need a NLP column for sizing
     if (sizeBySignificance) {
         contrastDF <- contrastDF %>%
             dplyr::mutate(negLog10P = -log10(!!sym(pvalCol)))
@@ -310,14 +309,6 @@ profilePlot <- function(contrastDF,
                                                TRUE ~"Decreased"),
                       group = factor(group,
                                      levels = c("Increased", "No Change", "Decreased")))
-
-    # Need a NLP column for sizing
-    if (sizeBySignificance) {
-        contrastDF <- contrastDF %>%
-            dplyr::mutate(negLog10P = -log10(pvalCol))
-    }
-
-
     if (plotType == "canvasxpress") {
         symbolColor <- sapply(symbolColor, .rgbaConversion, alpha = transparency, USE.NAMES = FALSE)
         cx.data <- contrastDF %>%

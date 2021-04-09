@@ -5,7 +5,8 @@ test_that("profilePlot.R: profilePlot()", {
     # testing contrast objects
     ## BDL_vs_Sham
     contrastDF <- t_obj1$BDL_vs_Sham
-    profilePlot(contrastDF, title = "BDL_vs_Sham")
+    profile_plot <- profilePlot(contrastDF, title = "BDL_vs_Sham")
+    expect_s3_class(profile_plot, c("canvasXpress", "htmlwidget"))
     profile_plot <- profilePlot(contrastDF, title = "BDL_vs_Sham", plotType = "ggplot", symbolSize = c(4, 1, 4))
     expect_s3_class(profile_plot, c("gg", "ggplot"))
     ## EXT1024_vs_BDL
