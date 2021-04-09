@@ -8,11 +8,11 @@ test_that("ggplotMDS.R: ggplotMDS()", {
     mds_plot <- ggplotMDS(DGEdata = t_obj1,
                           colorBy = t_obj1$design$ReplicateGroup)
 
-    dgelist <- DGEdata <- DGEobj::getItem(DGEdata, "DGEList")
+    dgelist <- DGEdata <- DGEobj::getItem(t_obj1, "DGEList")
     mds_plot <- ggplotMDS(DGEdata = dgelist,
                           colorBy = t_obj1$design$ReplicateGroup)
 
-    dge_matrix <- DGEdata <- DGEobj::getItem(DGEdata, "DGEList") %>% as.matrix()
+    dge_matrix <- DGEdata <- DGEobj::getItem(t_obj1, "DGEList") %>% as.matrix()
     mds_plot <- ggplotMDS(DGEdata = dge_matrix,
                           colorBy = t_obj1$design$ReplicateGroup)
 

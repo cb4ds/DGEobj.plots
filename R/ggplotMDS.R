@@ -254,7 +254,7 @@ ggplotMDS <- function(DGEdata,
     if (missing(title)) {
         title <- "MDS Plot"
     }
-    browser()
+
     if ("DGEobj" %in% class(DGEdata)) {
         DGEdata <- DGEobj::getItem(DGEdata, "DGEList")
     }

@@ -3,6 +3,7 @@
     message(date(), ": ", ...)
 }
 
+# A function that returns a rgb specification if a valid color is provided as input.
 .rgbaConversion <- function(color, alpha = 0.5){
     rgbastr <- NULL
     if (!is.character(color)) {
