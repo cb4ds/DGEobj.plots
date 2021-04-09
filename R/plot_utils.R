@@ -149,19 +149,6 @@ addFootnote <- function(my.ggp,
                  vjust = 1)
 }
 
-cxSupportedLineFit <- function(linefit) {
-    if (!(linefit %in% c("lm", "loess"))) {
-        if (linefit == "glm") {
-            linefit <- "lm"
-        } else if (linefit == "gam") {
-            linefit <- "loess"
-        }
-        warning("Model type is not supported for canvasXpress charts and ", linefit," is being used")
-    }
-
-    return(linefit)
-}
-
 rgbaConversion <- function(color, alpha = 0.5){
     rgbastr <- NULL
     if (!is.character(color)) {
@@ -177,4 +164,17 @@ rgbaConversion <- function(color, alpha = 0.5){
         rgbastr <- "invalid value"
     }
     return(rgbastr)
+}
+
+cxSupportedLineFit <- function(linefit) {
+    if (!(linefit %in% c("lm", "loess"))) {
+        if (linefit == "glm") {
+            linefit <- "lm"
+        } else if (linefit == "gam") {
+            linefit <- "loess"
+        }
+        warning("Model type is not supported for canvasXpress charts and ", linefit," is being used")
+    }
+
+    return(linefit)
 }
