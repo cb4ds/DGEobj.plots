@@ -162,20 +162,24 @@ obsPlot <- function(data,
     #assertthat::assert_that(all(groupOrder %in% as.character(data[, ,groupCol, drop = TRUE])))
 
     #input validations
+    plotType = tolower(plotType)
 
     if (any(is.null(facet), !is.logical(facet), length(facet) != 1)) {
         warning("facet must be a singular logical value. Assigning default value TRUE.")
         facet <- TRUE
     }
 
+
     if (facet) {
 
-        if (is.null(facetRow) || length(facetRow) != 1 || (!is.numeric(facetRow))) {
-            numcol <- data[plotByCol] %>% unique %>% length %>% sqrt %>% ceiling
-            warning(paste("facetRow needs a singular numeric value. Assigning default value",numcol))
-        } else {
-            numcol <- facetRow
-        }
+      if  (missing(facetRow)) {
+          numcol <- data[plotByCol] %>% unique %>% length %>% sqrt %>% ceiling
+      } else if (is.null(facetRow) || length(facetRow) != 1 || (!is.numeric(facetRow))) {
+          numcol <- data[plotByCol] %>% unique %>% length %>% sqrt %>% ceiling
+          warning(paste("facetRow needs a singular numeric value. Assigning default value",numcol))
+      } else {
+          numcol <- facetRow
+    }
     }
 
     if (missing(title)) {
@@ -186,12 +190,12 @@ obsPlot <- function(data,
     }
 
     if (!is.character(xlab) || length(xlab) != 1) {
-        warning("xlab value specified is not valid. Assigning groupCol as the default value.")
+        warning("xlab value specified is not valid. Assigning groupCol name as the default value.")
         xlab <- groupCol
     }
 
     if (!is.character(ylab) || length(ylab) != 1) {
-        warning("ylab value specified is not valid. Assigning valueCol as the default value.")
+        warning("ylab value specified is not valid. Assigning valueCol name as the default value.")
         ylab <- valueCol
     }
 
@@ -224,7 +228,8 @@ obsPlot <- function(data,
 
     #Violin Validations
     if (any(is.null(violinLayer),length(violinLayer) != 1, !is.logical(violinLayer))) {
-        warning("violinLayer must be a singular logical value")
+        warning("violinLayer must be a singular logical value. Assigning default value FALSE.")
+        violinLayer <- FALSE
     }
 
     if (violinLayer) {
@@ -244,7 +249,8 @@ obsPlot <- function(data,
 
     #Mean layer validations
     if (any(is.null(meanLayer),length(meanLayer) != 1, !is.logical(meanLayer))) {
-        warning("meanLayer must be a singular logical value")
+        warning("meanLayer must be a singular logical value. Assigning default value TRUE.")
+        meanLayer <- TRUE
     }
 
     if (meanLayer) {
@@ -395,6 +401,54 @@ obsPlot <- function(data,
         }
     } else {
 
+        .addGeoms <- function(obsPlot) {
+            if (boxLayer == TRUE) {
+                obsPlot <- obsPlot + geom_boxplot(alpha = boxTransparency,
+                                                  color = boxColor,
+                                                  fill = boxColor,
+                                                  notch = boxNotch,
+                                                  notchwidth = boxNotchWidth,
+                                                  outlier.shape = outlier.shape,
+                                                  outlier.size = outlier.size)
+            }
+
+            if (violinLayer == TRUE) {
+                obsPlot <- obsPlot + geom_violin(alpha = violinTransparency,
+                                                 color = violinColor,
+                                                 fill = violinColor)
+            }
+
+            if (pointLayer == TRUE) {
+                if (pointJitter > 0) {
+                    obsPlot <- obsPlot + geom_point(position = position_jitter(width = pointJitter),
+                                                    alpha = pointTransparency,
+                                                    color = pointColor,
+                                                    fill = pointColor,
+                                                    size = pointSize,
+                                                    shape = pointShape)
+                } else {
+                    obsPlot <- obsPlot + geom_point(alpha = pointTransparency,
+                                                    color = pointColor,
+                                                    fill = pointColor,
+                                                    size = pointSize,
+                                                    shape = pointShape)
+                }
+            }
+
+            if (meanLayer == TRUE) {
+                obsPlot <- obsPlot +
+                    stat_summary(fun.y = mean,
+                                 geom = "point",
+                                 shape = meanShape,
+                                 size = meanSize,
+                                 color = meanOutlineColor,
+                                 fill = meanColor,
+                                 alpha = meanTransparency)
+            }
+
+            return(obsPlot)
+        }
+
 
         # Reduce box outliers to a dot if geom_points turned on
         outlier.size <- 1.5
@@ -414,19 +468,14 @@ obsPlot <- function(data,
             }
 
             obsPlot <- ggplot2::ggplot(data, aes_string(x = groupCol, y = valueCol))
-            obsPlot <- .addGeoms(MyPlot)
+            obsPlot <- .addGeoms(obsPlot)
             facetFormula <- stringr::str_c("~", plotByCol, sep = " ")
             obsPlot <- obsPlot + ggplot2::facet_wrap(facetFormula, nrow = numcol, scales = scales)
 
             obsPlot <- obsPlot + ggplot2::xlab(xlab)
-            obsPlot <- MyPlot + ggplot2::ylab(ylab)
+            obsPlot <- obsPlot + ggplot2::ylab(ylab)
             if (!missing(title)) {
                 obsPlot <- obsPlot + ggplot2::ggtitle(title)
-            }
-            if (tolower(themeStyle) == "bw") {
-                obsPlot <- obsPlot + theme_bw(baseFontSize)
-            } else {
-                obsPlot <- obsPlot + theme_grey(baseFontSize)
             }
 
             # Rotate xaxis group labels
@@ -463,50 +512,4 @@ obsPlot <- function(data,
     return(obsPlot)
 }
 
-.addGeoms <- function(MyPlot) {
-    if (boxLayer == TRUE) {
-        obsPlot <- obsPlot + geom_boxplot(alpha = boxTransparency,
-                                          color = boxColor,
-                                          fill = boxColor,
-                                          notch = boxNotch,
-                                          notchwidth = boxNotchWidth,
-                                          outlier.shape = outlier.shape,
-                                          outlier.size = outlier.size)
-    }
 
-    if (violinLayer == TRUE) {
-        obsPlot <- obsPlot + geom_violin(alpha = violinTransparency,
-                                         color = violinColor,
-                                         fill = violinColor)
-    }
-
-    if (pointLayer == TRUE) {
-        if (pointJitter > 0) {
-            obsPlot <- obsPlot + geom_point(position = position_jitter(width = pointJitter),
-                                            alpha = pointTransparency,
-                                            color = pointColor,
-                                            fill = pointColor,
-                                            size = pointSize,
-                                            shape = pointShape)
-        } else {
-            obsPlot <- obsPlot + geom_point(alpha = pointTransparency,
-                                            color = pointColor,
-                                            fill = pointColor,
-                                            size = pointSize,
-                                            shape = pointShape)
-        }
-    }
-
-    if (meanLayer == TRUE) {
-        obsPlot <- obsPlot +
-            stat_summary(fun.y = mean,
-                         geom = "point",
-                         shape = meanShape,
-                         size = meanSize,
-                         color = meanOutlineColor,
-                         fill = meanColor,
-                         alpha = meanTransparency)
-    }
-
-    return(obsPlot)
-}

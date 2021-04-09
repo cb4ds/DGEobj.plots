@@ -43,7 +43,7 @@ test_that("obsPlot.R: obsPlot()", {
                          valueCol = "Log2CPM"),
                  regexp = msg)
     expect_error(obsPlot(tidyInt,
-                         plotByCol = GeneID,
+                         plotByCol = "GeneID",
                          groupCol = NULL,
                          valueCol = "Log2CPM"),
                  regexp = msg)
@@ -55,7 +55,7 @@ test_that("obsPlot.R: obsPlot()", {
                          valueCol = "sampleID"),
                  regexp = msg)
     expect_error(obsPlot(tidyInt,
-                         plotByCol = GeneID,
+                         plotByCol = "GeneID",
                          groupCol = "group",
                          valueCol = NULL),
                  regexp = msg)
@@ -107,7 +107,6 @@ test_that("obsPlot.R: obsPlot()", {
                    regexp = msg)
     expect_s3_class(obs_plot, c("canvasXpress", "htmlwidget"))
 
-    msg <- "facetRow needs a singular numeric value. Assigning default value"
     expect_warning(obs_plot <- obsPlot(tidyInt,
                                        plotByCol = "GeneID",
                                        groupCol  = "group",
@@ -116,7 +115,6 @@ test_that("obsPlot.R: obsPlot()", {
                    regexp = msg)
     expect_s3_class(obs_plot, c("canvasXpress", "htmlwidget"))
 
-    msg <- "facetRow needs a singular numeric value. Assigning default value"
     expect_warning(obs_plot <- obsPlot(tidyInt,
                                        plotByCol = "GeneID",
                                        groupCol  = "group",
@@ -144,7 +142,7 @@ test_that("obsPlot.R: obsPlot()", {
     expect_s3_class(obs_plot, c("canvasXpress", "htmlwidget"))
 
     #xlab
-    msg <- 'xlab value specified is not valid. Assigning groupCol as the default value.'
+    msg <- 'xlab value specified is not valid. Assigning groupCol name as the default value.'
     expect_warning(obs_plot <- obsPlot(tidyInt,
                                        plotByCol = "GeneID",
                                        groupCol  = "group",
@@ -162,7 +160,7 @@ test_that("obsPlot.R: obsPlot()", {
     expect_s3_class(obs_plot, c("canvasXpress", "htmlwidget"))
 
     #ylab
-    msg <- 'ylab value specified is not valid. Assigning groupCol as the default value.'
+    msg <- 'ylab value specified is not valid. Assigning valueCol name as the default value.'
     expect_warning(obs_plot <- obsPlot(tidyInt,
                                        plotByCol = "GeneID",
                                        groupCol  = "group",
@@ -215,7 +213,7 @@ test_that("obsPlot.R: obsPlot()", {
                                        valueCol  = "Log2CPM",
                                        boxTransparency = NULL),
                    regexp = msg)
-    expect_s3_class(mds_plot$plot, c("canvasXpress", "htmlwidget"))
+    expect_s3_class(obs_plot, c("canvasXpress", "htmlwidget"))
 
     expect_warning(obs_plot <- obsPlot(tidyInt,
                                        plotByCol = "GeneID",
@@ -223,7 +221,7 @@ test_that("obsPlot.R: obsPlot()", {
                                        valueCol  = "Log2CPM",
                                        boxTransparency = "abc"),
                    regexp = msg)
-    expect_s3_class(mds_plot$plot, c("canvasXpress", "htmlwidget"))
+    expect_s3_class(obs_plot, c("canvasXpress", "htmlwidget"))
 
     expect_warning(obs_plot <- obsPlot(tidyInt,
                                        plotByCol = "GeneID",
@@ -231,7 +229,7 @@ test_that("obsPlot.R: obsPlot()", {
                                        valueCol  = "Log2CPM",
                                        boxTransparency = c(1,2)),
                    regexp = msg)
-    expect_s3_class(mds_plot$plot, c("canvasXpress", "htmlwidget"))
+    expect_s3_class(obs_plot, c("canvasXpress", "htmlwidget"))
 
     expect_warning(obs_plot <- obsPlot(tidyInt,
                                        plotByCol = "GeneID",
@@ -239,7 +237,7 @@ test_that("obsPlot.R: obsPlot()", {
                                        valueCol  = "Log2CPM",
                                        boxTransparency = -2),
                    regexp = msg)
-    expect_s3_class(mds_plot$plot, c("canvasXpress", "htmlwidget"))
+    expect_s3_class(obs_plot, c("canvasXpress", "htmlwidget"))
 
     expect_warning(obs_plot <- obsPlot(tidyInt,
                                        plotByCol = "GeneID",
@@ -247,7 +245,7 @@ test_that("obsPlot.R: obsPlot()", {
                                        valueCol  = "Log2CPM",
                                        boxTransparency = 2),
                    regexp = msg)
-    expect_s3_class(mds_plot$plot, c("canvasXpress", "htmlwidget"))
+    expect_s3_class(obs_plot, c("canvasXpress", "htmlwidget"))
 
     #boxColor
     msg <- "boxColor must be of class character and must specify the name of the color or the rgb value. Assigning default value 'deepskyblue3'."
@@ -257,7 +255,7 @@ test_that("obsPlot.R: obsPlot()", {
                                        valueCol  = "Log2CPM",
                                        boxColor = NULL),
                    regexp = msg)
-    expect_s3_class(mds_plot$plot, c("canvasXpress", "htmlwidget"))
+    expect_s3_class(obs_plot, c("canvasXpress", "htmlwidget"))
 
     expect_warning(obs_plot <- obsPlot(tidyInt,
                                        plotByCol = "GeneID",
@@ -265,7 +263,7 @@ test_that("obsPlot.R: obsPlot()", {
                                        valueCol  = "Log2CPM",
                                        boxColor = c("red","blue")),
                    regexp = msg)
-    expect_s3_class(mds_plot$plot, c("canvasXpress", "htmlwidget"))
+    expect_s3_class(obs_plot, c("canvasXpress", "htmlwidget"))
 
     expect_warning(obs_plot <- obsPlot(tidyInt,
                                        plotByCol = "GeneID",
@@ -273,7 +271,7 @@ test_that("obsPlot.R: obsPlot()", {
                                        valueCol  = "Log2CPM",
                                        boxColor = 1),
                    regexp = msg)
-    expect_s3_class(mds_plot$plot, c("canvasXpress", "htmlwidget"))
+    expect_s3_class(obs_plot, c("canvasXpress", "htmlwidget"))
 
     expect_warning(obs_plot <- obsPlot(tidyInt,
                                        plotByCol = "GeneID",
@@ -281,7 +279,7 @@ test_that("obsPlot.R: obsPlot()", {
                                        valueCol  = "Log2CPM",
                                        boxColor = "notavalidcolor"),
                    regexp = "boxColor specified is not valid. Assigning default value 'deepskyblue3'.")
-    expect_s3_class(mds_plot$plot, c("canvasXpress", "htmlwidget"))
+    expect_s3_class(obs_plot, c("canvasXpress", "htmlwidget"))
 
     #boxNotch
     msg <- "boxNotch must be a single logical value. Assigning default value 'FALSE'."
@@ -313,7 +311,7 @@ test_that("obsPlot.R: obsPlot()", {
     #Violinplot Validations
 
     #violinLayer
-    msg <- "violinLayer must be a single logical value. Assigning default value 'TRUE'."
+    msg <- "violinLayer must be a singular logical value. Assigning default value FALSE."
     expect_warning(obs_plot <- obsPlot(tidyInt,
                                        plotByCol = "GeneID",
                                        groupCol  = "group",
@@ -344,41 +342,46 @@ test_that("obsPlot.R: obsPlot()", {
                                        plotByCol = "GeneID",
                                        groupCol  = "group",
                                        valueCol  = "Log2CPM",
+                                       violinLayer = TRUE,
                                        violinTransparency = NULL),
                    regexp = msg)
-    expect_s3_class(mds_plot$plot, c("canvasXpress", "htmlwidget"))
+    expect_s3_class(obs_plot, c("canvasXpress", "htmlwidget"))
 
     expect_warning(obs_plot <- obsPlot(tidyInt,
                                        plotByCol = "GeneID",
                                        groupCol  = "group",
                                        valueCol  = "Log2CPM",
+                                       violinLayer = TRUE,
                                        violinTransparency = "abc"),
                    regexp = msg)
-    expect_s3_class(mds_plot$plot, c("canvasXpress", "htmlwidget"))
+    expect_s3_class(obs_plot, c("canvasXpress", "htmlwidget"))
 
     expect_warning(obs_plot <- obsPlot(tidyInt,
                                        plotByCol = "GeneID",
                                        groupCol  = "group",
                                        valueCol  = "Log2CPM",
+                                       violinLayer = TRUE,
                                        violinTransparency = c(1,2)),
                    regexp = msg)
-    expect_s3_class(mds_plot$plot, c("canvasXpress", "htmlwidget"))
+    expect_s3_class(obs_plot, c("canvasXpress", "htmlwidget"))
 
     expect_warning(obs_plot <- obsPlot(tidyInt,
                                        plotByCol = "GeneID",
                                        groupCol  = "group",
                                        valueCol  = "Log2CPM",
+                                       violinLayer = TRUE,
                                        violinTransparency = -2),
                    regexp = msg)
-    expect_s3_class(mds_plot$plot, c("canvasXpress", "htmlwidget"))
+    expect_s3_class(obs_plot, c("canvasXpress", "htmlwidget"))
 
     expect_warning(obs_plot <- obsPlot(tidyInt,
                                        plotByCol = "GeneID",
                                        groupCol  = "group",
                                        valueCol  = "Log2CPM",
+                                       violinLayer = TRUE,
                                        violinTransparency = 2),
                    regexp = msg)
-    expect_s3_class(mds_plot$plot, c("canvasXpress", "htmlwidget"))
+    expect_s3_class(obs_plot, c("canvasXpress", "htmlwidget"))
 
     #violinColor
     msg <- "violinColor must be of class character and must specify the name of the color or the rgb value. Assigning default value 'goldenrod1'."
@@ -389,7 +392,7 @@ test_that("obsPlot.R: obsPlot()", {
                                        violinLayer = TRUE,
                                        violinColor = NULL),
                    regexp = msg)
-    expect_s3_class(mds_plot$plot, c("canvasXpress", "htmlwidget"))
+    expect_s3_class(obs_plot, c("canvasXpress", "htmlwidget"))
 
     expect_warning(obs_plot <- obsPlot(tidyInt,
                                        plotByCol = "GeneID",
@@ -398,7 +401,7 @@ test_that("obsPlot.R: obsPlot()", {
                                        violinLayer = TRUE,
                                        violinColor = c("red","blue")),
                    regexp = msg)
-    expect_s3_class(mds_plot$plot, c("canvasXpress", "htmlwidget"))
+    expect_s3_class(obs_plot, c("canvasXpress", "htmlwidget"))
 
     expect_warning(obs_plot <- obsPlot(tidyInt,
                                        plotByCol = "GeneID",
@@ -407,7 +410,7 @@ test_that("obsPlot.R: obsPlot()", {
                                        violinLayer = TRUE,
                                        violinColor = 1),
                    regexp = msg)
-    expect_s3_class(mds_plot$plot, c("canvasXpress", "htmlwidget"))
+    expect_s3_class(obs_plot, c("canvasXpress", "htmlwidget"))
 
     expect_warning(obs_plot <- obsPlot(tidyInt,
                                        plotByCol = "GeneID",
@@ -416,13 +419,13 @@ test_that("obsPlot.R: obsPlot()", {
                                        violinLayer = TRUE,
                                        violinColor = "notavalidcolor"),
                    regexp = "violinColor specified is not valid. Assigning default value 'goldenrod1'.")
-    expect_s3_class(mds_plot$plot, c("canvasXpress", "htmlwidget"))
+    expect_s3_class(obs_plot, c("canvasXpress", "htmlwidget"))
 
 
     #MeanLayer Validations
 
     #meanLayer
-    msg <- "meanLayer must be a single logical value. Assigning default value 'TRUE'."
+    msg <- "meanLayer must be a singular logical value. Assigning default value TRUE."
     expect_warning(obs_plot <- obsPlot(tidyInt,
                                        plotByCol = "GeneID",
                                        groupCol  = "group",
