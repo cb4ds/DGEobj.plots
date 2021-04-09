@@ -275,7 +275,7 @@ obsPlot <- function(data,
             meanTransparency <- 0.7
         }
 
-        if (plotType == "canvasXpress" && any(is.null(meanShape), length(meanShape) != 1, !.is_valid_symbolShapes_cxplot(meanShape))) {
+        if (plotType == "canvasxpress" && any(is.null(meanShape), length(meanShape) != 1, !.is_valid_symbolShapes_cxplot(meanShape))) {
             warning("meanShape specified is not valid. Assigning default value 'square'.")
             meanShape <- "square"
         }

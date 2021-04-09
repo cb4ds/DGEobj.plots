@@ -458,7 +458,7 @@ test_that("obsPlot.R: obsPlot()", {
                                        valueCol  = "Log2CPM",
                                        meanColor = NULL),
                    regexp = msg)
-    expect_s3_class(mds_plot$plot, c("canvasXpress", "htmlwidget"))
+    expect_s3_class(obs_plot, c("canvasXpress", "htmlwidget"))
 
     expect_warning(obs_plot <- obsPlot(tidyInt,
                                        plotByCol = "GeneID",
@@ -466,7 +466,7 @@ test_that("obsPlot.R: obsPlot()", {
                                        valueCol  = "Log2CPM",
                                        meanColor = c("red","blue")),
                    regexp = msg)
-    expect_s3_class(mds_plot$plot, c("canvasXpress", "htmlwidget"))
+    expect_s3_class(obs_plot, c("canvasXpress", "htmlwidget"))
 
     expect_warning(obs_plot <- obsPlot(tidyInt,
                                        plotByCol = "GeneID",
@@ -474,7 +474,7 @@ test_that("obsPlot.R: obsPlot()", {
                                        valueCol  = "Log2CPM",
                                        meanColor = 1),
                    regexp = msg)
-    expect_s3_class(mds_plot$plot, c("canvasXpress", "htmlwidget"))
+    expect_s3_class(obs_plot, c("canvasXpress", "htmlwidget"))
 
     expect_warning(obs_plot <- obsPlot(tidyInt,
                                        plotByCol = "GeneID",
@@ -482,7 +482,7 @@ test_that("obsPlot.R: obsPlot()", {
                                        valueCol  = "Log2CPM",
                                        meanColor = "notavalidcolor"),
                    regexp = "meanColor specified is not valid. Assigning default value 'goldenrod1'.")
-    expect_s3_class(mds_plot$plot, c("canvasXpress", "htmlwidget"))
+    expect_s3_class(obs_plot, c("canvasXpress", "htmlwidget"))
 
     #meanOutlineColor
     msg <- "meanOutlineColor must be of class character and must specify the name of the color or the rgb value. Assigning default value 'goldenrod1'."
@@ -492,7 +492,7 @@ test_that("obsPlot.R: obsPlot()", {
                                        valueCol  = "Log2CPM",
                                        meanOutlineColor = NULL),
                    regexp = msg)
-    expect_s3_class(mds_plot$plot, c("canvasXpress", "htmlwidget"))
+    expect_s3_class(obs_plot, c("canvasXpress", "htmlwidget"))
 
     expect_warning(obs_plot <- obsPlot(tidyInt,
                                        plotByCol = "GeneID",
@@ -500,7 +500,7 @@ test_that("obsPlot.R: obsPlot()", {
                                        valueCol  = "Log2CPM",
                                        meanOutlineColor = c("red","blue")),
                    regexp = msg)
-    expect_s3_class(mds_plot$plot, c("canvasXpress", "htmlwidget"))
+    expect_s3_class(obs_plot, c("canvasXpress", "htmlwidget"))
 
     expect_warning(obs_plot <- obsPlot(tidyInt,
                                        plotByCol = "GeneID",
@@ -508,7 +508,7 @@ test_that("obsPlot.R: obsPlot()", {
                                        valueCol  = "Log2CPM",
                                        meanOutlineColor = 1),
                    regexp = msg)
-    expect_s3_class(mds_plot$plot, c("canvasXpress", "htmlwidget"))
+    expect_s3_class(obs_plot, c("canvasXpress", "htmlwidget"))
 
     expect_warning(obs_plot <- obsPlot(tidyInt,
                                        plotByCol = "GeneID",
@@ -516,7 +516,7 @@ test_that("obsPlot.R: obsPlot()", {
                                        valueCol  = "Log2CPM",
                                        meanOutlineColor = "notavalidcolor"),
                    regexp = "meanOutlineColor specified is not valid. Assigning default value 'goldenrod1'.")
-    expect_s3_class(mds_plot$plot, c("canvasXpress", "htmlwidget"))
+    expect_s3_class(obs_plot, c("canvasXpress", "htmlwidget"))
 
     #meanTransparency
     msg <- "meanTransparency must be a singular numeric value and must be between 0 and 1. Assigning default value 0.7."
@@ -526,7 +526,7 @@ test_that("obsPlot.R: obsPlot()", {
                                        valueCol  = "Log2CPM",
                                        meanTransparency = NULL),
                    regexp = msg)
-    expect_s3_class(mds_plot$plot, c("canvasXpress", "htmlwidget"))
+    expect_s3_class(obs_plot, c("canvasXpress", "htmlwidget"))
 
     expect_warning(obs_plot <- obsPlot(tidyInt,
                                        plotByCol = "GeneID",
@@ -534,7 +534,8 @@ test_that("obsPlot.R: obsPlot()", {
                                        valueCol  = "Log2CPM",
                                        meanTransparency = "abc"),
                    regexp = msg)
-    expect_s3_class(mds_plot$plot, c("canvasXpress", "htmlwidget"))
+
+    expect_s3_class(obs_plot, c("canvasXpress", "htmlwidget"))
 
     expect_warning(obs_plot <- obsPlot(tidyInt,
                                        plotByCol = "GeneID",
@@ -542,7 +543,7 @@ test_that("obsPlot.R: obsPlot()", {
                                        valueCol  = "Log2CPM",
                                        meanTransparency = c(1,2)),
                    regexp = msg)
-    expect_s3_class(mds_plot$plot, c("canvasXpress", "htmlwidget"))
+    expect_s3_class(obs_plot, c("canvasXpress", "htmlwidget"))
 
     expect_warning(obs_plot <- obsPlot(tidyInt,
                                        plotByCol = "GeneID",
@@ -550,7 +551,7 @@ test_that("obsPlot.R: obsPlot()", {
                                        valueCol  = "Log2CPM",
                                        meanTransparency = -2),
                    regexp = msg)
-    expect_s3_class(mds_plot$plot, c("canvasXpress", "htmlwidget"))
+    expect_s3_class(obs_plot, c("canvasXpress", "htmlwidget"))
 
     expect_warning(obs_plot <- obsPlot(tidyInt,
                                        plotByCol = "GeneID",
@@ -558,7 +559,7 @@ test_that("obsPlot.R: obsPlot()", {
                                        valueCol  = "Log2CPM",
                                        meanTransparency = 2),
                    regexp = msg)
-    expect_s3_class(mds_plot$plot, c("canvasXpress", "htmlwidget"))
+    expect_s3_class(obs_plot, c("canvasXpress", "htmlwidget"))
 
     #meanShape - cxplot
     msg <- "meanShape specified is not valid. Assigning default value 'square'."
@@ -568,7 +569,7 @@ test_that("obsPlot.R: obsPlot()", {
                                        valueCol  = "Log2CPM",
                                        meanShape = NULL),
                    regexp = msg)
-    expect_s3_class(mds_plot$plot, c("canvasXpress", "htmlwidget"))
+    expect_s3_class(obs_plot, c("canvasXpress", "htmlwidget"))
 
     expect_warning(obs_plot <- obsPlot(tidyInt,
                                        plotByCol = "GeneID",
@@ -576,7 +577,7 @@ test_that("obsPlot.R: obsPlot()", {
                                        valueCol  = "Log2CPM",
                                        meanShape = c(2,4)),
                    regexp = msg)
-    expect_s3_class(mds_plot$plot, c("canvasXpress", "htmlwidget"))
+    expect_s3_class(obs_plot, c("canvasXpress", "htmlwidget"))
 
     expect_warning(obs_plot <- obsPlot(tidyInt,
                                        plotByCol = "GeneID",
@@ -584,7 +585,7 @@ test_that("obsPlot.R: obsPlot()", {
                                        valueCol  = "Log2CPM",
                                        meanShape = "notavalidshape"),
                    regexp = msg)
-    expect_s3_class(mds_plot$plot, c("canvasXpress", "htmlwidget"))
+    expect_s3_class(obs_plot, c("canvasXpress", "htmlwidget"))
 
     #meanshape - ggplot
     msg <- "meanShape specified is not valid. Assigning default value '22'."
@@ -623,7 +624,7 @@ test_that("obsPlot.R: obsPlot()", {
                                       valueCol  = "Log2CPM",
                                       meanSize = NULL),
                   regexp = msg)
-   expect_s3_class(mds_plot$plot, c("canvasXpress", "htmlwidget"))
+   expect_s3_class(obs_plot, c("canvasXpress", "htmlwidget"))
 
    expect_warning(obs_plot <- obsPlot(tidyInt,
                                       plotByCol = "GeneID",
@@ -631,7 +632,7 @@ test_that("obsPlot.R: obsPlot()", {
                                       valueCol  = "Log2CPM",
                                       meanSize = c(1,2)),
                   regexp = msg)
-   expect_s3_class(mds_plot$plot, c("canvasXpress", "htmlwidget"))
+   expect_s3_class(obs_plot, c("canvasXpress", "htmlwidget"))
 
    expect_warning(obs_plot <- obsPlot(tidyInt,
                                       plotByCol = "GeneID",
@@ -639,7 +640,7 @@ test_that("obsPlot.R: obsPlot()", {
                                       valueCol  = "Log2CPM",
                                       meanSize = "notasize"),
                   regexp = msg)
-   expect_s3_class(mds_plot$plot, c("canvasXpress", "htmlwidget"))
+   expect_s3_class(obs_plot, c("canvasXpress", "htmlwidget"))
 
 
     #PointLayer Validations
@@ -678,7 +679,7 @@ test_that("obsPlot.R: obsPlot()", {
                                        valueCol  = "Log2CPM",
                                        pointTransparency = NULL),
                    regexp = msg)
-    expect_s3_class(mds_plot$plot, c("canvasXpress", "htmlwidget"))
+    expect_s3_class(obs_plot, c("canvasXpress", "htmlwidget"))
 
     expect_warning(obs_plot <- obsPlot(tidyInt,
                                        plotByCol = "GeneID",
@@ -686,7 +687,7 @@ test_that("obsPlot.R: obsPlot()", {
                                        valueCol  = "Log2CPM",
                                        pointTransparency = "abc"),
                    regexp = msg)
-    expect_s3_class(mds_plot$plot, c("canvasXpress", "htmlwidget"))
+    expect_s3_class(obs_plot, c("canvasXpress", "htmlwidget"))
 
     expect_warning(obs_plot <- obsPlot(tidyInt,
                                        plotByCol = "GeneID",
@@ -694,7 +695,7 @@ test_that("obsPlot.R: obsPlot()", {
                                        valueCol  = "Log2CPM",
                                        pointTransparency = c(1,2)),
                    regexp = msg)
-    expect_s3_class(mds_plot$plot, c("canvasXpress", "htmlwidget"))
+    expect_s3_class(obs_plot, c("canvasXpress", "htmlwidget"))
 
     expect_warning(obs_plot <- obsPlot(tidyInt,
                                        plotByCol = "GeneID",
@@ -702,7 +703,7 @@ test_that("obsPlot.R: obsPlot()", {
                                        valueCol  = "Log2CPM",
                                        pointTransparency = -2),
                    regexp = msg)
-    expect_s3_class(mds_plot$plot, c("canvasXpress", "htmlwidget"))
+    expect_s3_class(obs_plot, c("canvasXpress", "htmlwidget"))
 
     expect_warning(obs_plot <- obsPlot(tidyInt,
                                        plotByCol = "GeneID",
@@ -710,7 +711,7 @@ test_that("obsPlot.R: obsPlot()", {
                                        valueCol  = "Log2CPM",
                                        pointTransparency = 2),
                    regexp = msg)
-    expect_s3_class(mds_plot$plot, c("canvasXpress", "htmlwidget"))
+    expect_s3_class(obs_plot, c("canvasXpress", "htmlwidget"))
 
     #pointColor
     msg <- "pointColor must be of class character and must specify the name of the color or the rgb value. Assigning default value 'dodgerblue4'."
@@ -720,7 +721,7 @@ test_that("obsPlot.R: obsPlot()", {
                                        valueCol  = "Log2CPM",
                                        pointColor = NULL),
                    regexp = msg)
-    expect_s3_class(mds_plot$plot, c("canvasXpress", "htmlwidget"))
+    expect_s3_class(obs_plot, c("canvasXpress", "htmlwidget"))
 
     expect_warning(obs_plot <- obsPlot(tidyInt,
                                        plotByCol = "GeneID",
@@ -728,7 +729,7 @@ test_that("obsPlot.R: obsPlot()", {
                                        valueCol  = "Log2CPM",
                                        pointColor = c("red","blue")),
                    regexp = msg)
-    expect_s3_class(mds_plot$plot, c("canvasXpress", "htmlwidget"))
+    expect_s3_class(obs_plot, c("canvasXpress", "htmlwidget"))
 
     expect_warning(obs_plot <- obsPlot(tidyInt,
                                        plotByCol = "GeneID",
@@ -736,7 +737,7 @@ test_that("obsPlot.R: obsPlot()", {
                                        valueCol  = "Log2CPM",
                                        pointColor = 1),
                    regexp = msg)
-    expect_s3_class(mds_plot$plot, c("canvasXpress", "htmlwidget"))
+    expect_s3_class(obs_plot, c("canvasXpress", "htmlwidget"))
 
     expect_warning(obs_plot <- obsPlot(tidyInt,
                                        plotByCol = "GeneID",
@@ -744,7 +745,7 @@ test_that("obsPlot.R: obsPlot()", {
                                        valueCol  = "Log2CPM",
                                        pointColor = "notavalidcolor"),
                    regexp = "pointColor specified is not valid. Assigning default value 'dodgerblue4'.")
-    expect_s3_class(mds_plot$plot, c("canvasXpress", "htmlwidget"))
+    expect_s3_class(obs_plot, c("canvasXpress", "htmlwidget"))
 
     #pointShape - cxplot
     msg <- "pointShape specified is not valid. Assigning default value 'sphere'."
@@ -754,7 +755,7 @@ test_that("obsPlot.R: obsPlot()", {
                                        valueCol  = "Log2CPM",
                                        pointShape = NULL),
                    regexp = msg)
-    expect_s3_class(mds_plot$plot, c("canvasXpress", "htmlwidget"))
+    expect_s3_class(obs_plot, c("canvasXpress", "htmlwidget"))
 
     expect_warning(obs_plot <- obsPlot(tidyInt,
                                        plotByCol = "GeneID",
@@ -762,7 +763,7 @@ test_that("obsPlot.R: obsPlot()", {
                                        valueCol  = "Log2CPM",
                                        pointShape = c(2,4)),
                    regexp = msg)
-    expect_s3_class(mds_plot$plot, c("canvasXpress", "htmlwidget"))
+    expect_s3_class(obs_plot, c("canvasXpress", "htmlwidget"))
 
     expect_warning(obs_plot <- obsPlot(tidyInt,
                                        plotByCol = "GeneID",
@@ -770,7 +771,7 @@ test_that("obsPlot.R: obsPlot()", {
                                        valueCol  = "Log2CPM",
                                        pointShape = "notavalidshape"),
                    regexp = msg)
-    expect_s3_class(mds_plot$plot, c("canvasXpress", "htmlwidget"))
+    expect_s3_class(obs_plot, c("canvasXpress", "htmlwidget"))
 
     #pointshape - ggplot
     msg <- "pointShape specified is not valid. Assigning default value '21'."
@@ -809,7 +810,7 @@ test_that("obsPlot.R: obsPlot()", {
                                        valueCol  = "Log2CPM",
                                        pointSize = NULL),
                    regexp = msg)
-    expect_s3_class(mds_plot$plot, c("canvasXpress", "htmlwidget"))
+    expect_s3_class(obs_plot, c("canvasXpress", "htmlwidget"))
 
     expect_warning(obs_plot <- obsPlot(tidyInt,
                                        plotByCol = "GeneID",
@@ -817,7 +818,7 @@ test_that("obsPlot.R: obsPlot()", {
                                        valueCol  = "Log2CPM",
                                        pointSize = c(1,2)),
                    regexp = msg)
-    expect_s3_class(mds_plot$plot, c("canvasXpress", "htmlwidget"))
+    expect_s3_class(obs_plot, c("canvasXpress", "htmlwidget"))
 
     expect_warning(obs_plot <- obsPlot(tidyInt,
                                        plotByCol = "GeneID",
@@ -825,7 +826,7 @@ test_that("obsPlot.R: obsPlot()", {
                                        valueCol  = "Log2CPM",
                                        pointSize = "notasize"),
                    regexp = msg)
-    expect_s3_class(mds_plot$plot, c("canvasXpress", "htmlwidget"))
+    expect_s3_class(obs_plot, c("canvasXpress", "htmlwidget"))
 
 
 
