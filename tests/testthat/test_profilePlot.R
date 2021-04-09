@@ -2,12 +2,18 @@ context("DGEobj.plots - tests for profilePlot.R functions")
 
 
 test_that("profilePlot.R: profilePlot()", {
-    # testing contrast objects
+    # testing contrast objects defualts (no sizeBySignificance and no geneSymCol)
     ## BDL_vs_Sham
     contrastDF <- t_obj1$BDL_vs_Sham
     profile_plot <- profilePlot(contrastDF, title = "BDL_vs_Sham")
     expect_s3_class(profile_plot, c("canvasXpress", "htmlwidget"))
     profile_plot <- profilePlot(contrastDF, title = "BDL_vs_Sham", plotType = "ggplot", symbolSize = c(4, 1, 4))
+    expect_s3_class(profile_plot, c("gg", "ggplot"))
+    ### contrast objects defualts (with sizeBySignificance and no geneSymCol)-
+    profile_plot <- profilePlot(contrastDF, title = "BDL_vs_Sham", sizeBySignificance = TRUE)
+    expect_s3_class(profile_plot, c("canvasXpress", "htmlwidget"))
+    profile_plot <- profilePlot(contrastDF, title = "BDL_vs_Sham", plotType = "ggplot",
+                                symbolSize = c(4, 1, 4), sizeBySignificance = TRUE)
     expect_s3_class(profile_plot, c("gg", "ggplot"))
     ## EXT1024_vs_BDL
     contrastDF <- t_obj1$EXT1024_vs_BDL
@@ -240,10 +246,10 @@ test_that("profilePlot.R: profilePlot()", {
                    regexp = msg)
     expect_s3_class(pPlot , c("gg", "ggplot"))
     expect_warning(pPlot <- profilePlot(contrastDF, symbolShape = c("circle", "circle", "circle")),
-                  regexp = msg_cx)
+                  regexp = msg)
     expect_s3_class(pPlot , c("canvasXpress", "htmlwidget"))
     expect_warning(pPlot <- profilePlot(contrastDF, plotType = "ggplot", symbolShape = c("circle", "circle", "circle")),
-                  regexp = msg_gg)
+                  regexp = msg)
     ## symbolColor
     msg <- "symbolColor must be a vector of 3 character values. Assigning default values 'red3', 'grey25', 'deepskyblue4'."
     expect_warning(pPlot <- profilePlot(contrastDF, symbolColor = NULL),

@@ -313,34 +313,91 @@ profilePlot <- function(contrastDF,
         symbolColor <- sapply(symbolColor, .rgbaConversion, alpha = transparency, USE.NAMES = FALSE)
         cx.data <- contrastDF %>%
             dplyr::select(c(xlabel, ylabel))
-        var.annot <- contrastDF %>%
-            dplyr::select(group)
         sizes   <- symbolSize[c(3,1,2)]
         colors  <- symbolColor[c(3,1,2)]
+        shapes  <- symbolShape[c(3,1,2)]
+        decorations <- list()
+
+        if (!is.null(referenceLine)) {
+            referenceLine <- .rgbaConversion(referenceLine, alpha = transparency)
+            decorations <- getCxPlotDecorations(decorations = decorations,
+                                                color = referenceLine,
+                                                width = refLineThickness,
+                                                y     = 0)
+        }
+
+        if (!is.null(foldChangeLines)) {
+            decorations <- getCxPlotDecorations(decorations = decorations,
+                                                color       = colors[2],
+                                                width       = refLineThickness,
+                                                y           = foldChangeLines)
+            decorations <- getCxPlotDecorations(decorations = decorations,
+                                                color       = colors[1],
+                                                width       = refLineThickness,
+                                                y           = -1*foldChangeLines)
+        }
+        if (missing(geneSymCol) && sizeBySignificance) {
+            var.annot <- contrastDF %>%
+                dplyr::select(group, negLog10P)
+            sizeBy <- "negLog10P"
+            sizeByShowLegend <- TRUE
+        } else if (!missing(geneSymCol) && !sizeBySignificance) {
+            var.annot <- contrastDF %>%
+                dplyr::select(c(group,geneSymCol))
+            sizeBy <- "group"
+            sizeByShowLegend <- FALSE
+        } else if (!missing(geneSymCol) && sizeBySignificance) {
+            var.annot <- contrastDF %>%
+                dplyr::select(group, geneSymCol, negLog10P)
+            sizeBy <- "negLog10P"
+            sizeByShowLegend <- TRUE
+        } else {
+            var.annot <- contrastDF %>%
+                dplyr::select(group)
+            sizeBy  <- "group"
+            sizeByShowLegend <- FALSE
+        }
+
+        showLoessFit <- FALSE
+        afterRender  <- NULL
+        if (!is.null(lineFitType)) {
+            lineFitType <- cxSupportedLineFit(lineFitType)
+            lineFitColor <- .rgbaConversion(lineFitColor, alpha = transparency)
+
+            if (lineFitType == "lm") {
+                afterRender <- list(list("addRegressionLine"))
+            } else if (lineFitType == "loess") {
+                showLoessFit <- TRUE
+            }
+        }
+
+        if (missing(footnote)) {
+            footnote <- NULL
+        }
         canvasXpress::canvasXpress(data                    = cx.data,
                                    varAnnot                = var.annot,
-                                   #decorations             = decorations,
+                                   decorations             = decorations,
                                    graphType               = "Scatter2D",
                                    colorBy                 = "group",
                                    colors                  = colors,
+                                   shapes                   = shapes,
                                    # legendPosition          = legendPosition,
-                                   # showDecorations         = TRUE,
-                                   # showLoessFit            = showLoessFit,
-                                   # fitLineColor            = lineFitColor,
+                                   showDecorations         = TRUE,
+                                   showLoessFit            = showLoessFit,
+                                   fitLineColor            = lineFitColor,
                                    sizes                   = sizes,
-                                   # sizeByShowLegend        = sizeByShowLegend,
+                                   sizeByShowLegend        = FALSE,
                                    title                   = title,
                                    xAxisTitle              = xlab,
                                    yAxisTitle              = ylab,
-                                    sizeBy                  = "group",
+                                   sizeBy                  = sizeBy,
                                    # setMaxY                 = foldChangeMargin,
                                    # setMinY                 = -1*foldChangeMargin,
                                    # citation                = footnote,
                                    # citationFontSize        = footnoteSize,
                                    # citationColor           = footnoteColor,
                                    # events                  = events,
-                                   # afterRender             = afterRender
-                                   )
+                                    afterRender             = afterRender)
     } else {
         groupNames <- c("Increased", "No Change", "Decreased")
         names(symbolShape) <-  groupNames
@@ -406,12 +463,12 @@ profilePlot <- function(contrastDF,
         }
 
         # Add genesym labels to increased, decreased genes
-        if (!missing(geneSymLabels) & !missing(geneSymCol)) {
+        if (!missing(geneSymLabels) && !missing(geneSymCol)) {
             idx <- contrastDF[[geneSymCol]] %in% geneSymLabels
             contrastDFsubset <- contrastDF[idx,]
             profilePlot <- profilePlot +
                 geom_text_repel(data = contrastDFsubset,
-                                aes_string(x = x, y = y, label = geneSymCol),
+                                aes_string(x = xlabel, y = ylabel, label = geneSymCol),
                                 show.legend = FALSE)
         }
 
