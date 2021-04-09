@@ -50,18 +50,15 @@
 #'        not in topTable output by default so the user has to bind this column
 #'        to the dataframe in advance.  Then this column will be used to label
 #'        significantly changed points.
-#' @param symbolSize Size of symbols for Up, no change, and Down (ggplot default = c(4, 1, 4),
-#'       canvasXpress default = c(10, 10, 4));
+#' @param symbolSize Size of symbols for Up, no change, and Down (default = c(10, 4, 10));
 #'        Note: All three cannot be the same size. Decimal values are acceptable to help offset that
 #'        (e.g. 4, 4.1, 4.2).
 #' @param symbolShape Shape of the symbols for Up, no change, and Down;
-#'        (canvasXpress default = c("sphere", "square", "sphere"),
-#'         ggplot default = c("circle filled", "circle small", "circle filled"))
+#'        (default = c("circle", "triangle", "circle"),
 #'        Note: The same symbol shape cannot be selected for all three symbols.
 #'        See \url{http://www.cookbook-r.com/Graphs/Shapes_and_line_types}
 #' @param symbolColor c(Up, NoChange, Down) (default = c("red3", "grey25", "deepskyblue4"))
 #'        See \url{http://research.stowers-institute.org/efg/R/Color/Chart}
-#'        Note: Colors cannot be duplicated.
 #'        Note: Colors cannot be duplicated.
 #' @param transparency Controls the transparency of the plotted points (0-1; default = 0.5)
 #' @param sizeBySignificance Set to TRUE to size points by the negative Log10 of the
@@ -118,9 +115,9 @@ profilePlot <- function(contrastDF,
                         xlab = NULL,
                         ylab = NULL,
                         title = NULL,
-                        symbolSize,
-                        symbolShape,
-                        symbolColor = c("red3", "deepskyblue4", "grey25"),
+                        symbolSize = c(10, 4, 10),
+                        symbolShape = c("circle", "triangle", "circle"),
+                        symbolColor = c("red3", "grey25", "deepskyblue4"),
                         transparency = 0.5,
                         sizeBySignificance = FALSE,
                         referenceLine = "darkgoldenrod1",
@@ -206,41 +203,24 @@ profilePlot <- function(contrastDF,
         lineFitColor <- "goldenrod1"
     }
 
-    if (missing(symbolSize)) {
-        if (plotType == "canvasxpress") {
-            symbolSize  <-  c(10, 10, 4)
-        } else {
-            symbolSize  <-  c(4, 1, 4)
-        }
-    } else if (any(is.null(symbolSize),
-                   !is.numeric(symbolSize),
-                   length(symbolSize)  != 3)) {
-        if (plotType == "canvasxpress") {
-            warning("symbolSize must be a vector of 3 integer values. Assigning canvasXpress default values 10, 10, 4.")
-            symbolSize  <-  c(10, 10, 4)
-        } else {
-            warning("symbolSize must be a vector of 3 integer values. Assigning ggplot default values 4, 1, 4.")
-            symbolSize  <-  c(4, 1, 4)
-        }
+    if (any(is.null(symbolSize),
+            !is.numeric(symbolSize),
+            length(symbolSize)  != 3,
+            length(unique(symbolSize)) < 2)) {
+        warning("symbolSize must be a vector of 3 integer values, at least 2 of them are different. Assigning default values 10, 4, 10.")
+        symbolSize  <-  c(10, 4, 10)
+
     }
 
-    if (missing(symbolShape)) {
-        if (plotType == "canvasxpress") {
-            symbolShape  <- c("sphere", "square", "sphere")
-        } else {
-            symbolShape  <- c("circle filled", "circle small", "circle filled")
-        }
-    } else if (any(is.null(symbolShape),
-                   !is.character(symbolShape),
-                   length(symbolShape)  != 3,
-                   unique(symbolShape) > 2)) {
-        if (plotType == "canvasxpress") {
-            warning("symbolShape must be a vector of 3 charcter values. Assigning canvasXpress default values 'sphere', 'square', 'sphere'.")
-            symbolShape  <- c("sphere", "square", "sphere")
-        } else {
-            warning("symbolShape must be a vector of 3 character values. Assigning ggplot default values 'circle filled', 'circle open', 'circle filled'.")
-            symbolShape  <- c("circle filled", "circle small", "circle filled")
-        }
+   if (any(is.null(symbolShape),
+           !is.character(symbolShape),
+           length(symbolShape)  != 3,
+           unique(symbolShape) > 2,
+           plotType == "canvasxpress" && !is.null(symbolShape) && length(.validate_cx_shapes(symbolShape)) != 3,
+           plotType == "ggplot" && !is.null(symbolShape) && length(.validate_gg_shapes(symbolShape)) != 3)) {
+       warning("symbolShape must be a vector of 3 charcter values with 2 different values at least. Assigning canvasXpress default values 'circle', 'triangle', 'circle'.")
+       symbolShape  <- c("circle", "triangle", "circle")
+
     }
 
     if (any(is.null(symbolColor),
@@ -311,8 +291,65 @@ profilePlot <- function(contrastDF,
         warning("sizeBySignificance must be a singular logical value. Assigning default value FALSE")
         sizeBySignificance = FALSE
     }
+    # Columns to plot
+    # Capture the labels from the colname
+    xlabel <- make.names(logIntCol)
+    ylabel <- make.names(logRatioCol)
+    # Now make the columnames suitable for use with aes_string
+    colnames(contrastDF)[colnames(contrastDF) %in% logIntCol] <- xlabel
+    colnames(contrastDF)[colnames(contrastDF) %in% logRatioCol] <- ylabel
+
+    # Need a NLP column for sizing
+    if (sizeBySignificance) {
+        contrastDF <- contrastDF %>%
+            dplyr::mutate(negLog10P = -log10(!!sym(pvalCol)))
+    }
+    contrastDF <- contrastDF %>%
+        dplyr::mutate(group = dplyr::case_when(!!sym(pvalCol) > pthreshold ~ "No Change",
+                                               !!sym(logRatioCol) > 0 ~ "Increased",
+                                               TRUE ~"Decreased"),
+                      group = factor(group,
+                                     levels = c("Increased", "No Change", "Decreased")))
+
+    # Need a NLP column for sizing
+    if (sizeBySignificance) {
+        contrastDF <- contrastDF %>%
+            dplyr::mutate(negLog10P = -log10(pvalCol))
+    }
+
+
     if (plotType == "canvasxpress") {
-        symbolColor <- sapply(symbolColor, .rgbaConversion, alpha = alpha, USE.NAMES = FALSE)
+        symbolColor <- sapply(symbolColor, .rgbaConversion, alpha = transparency, USE.NAMES = FALSE)
+        cx.data <- contrastDF %>%
+            dplyr::select(c(xlabel, ylabel))
+        var.annot <- contrastDF %>%
+            dplyr::select(group)
+        sizes   <- symbolSize[c(3,1,2)]
+        colors  <- symbolColor[c(3,1,2)]
+        canvasXpress::canvasXpress(data                    = cx.data,
+                                   varAnnot                = var.annot,
+                                   #decorations             = decorations,
+                                   graphType               = "Scatter2D",
+                                   colorBy                 = "group",
+                                   colors                  = colors,
+                                   # legendPosition          = legendPosition,
+                                   # showDecorations         = TRUE,
+                                   # showLoessFit            = showLoessFit,
+                                   # fitLineColor            = lineFitColor,
+                                   sizes                   = sizes,
+                                   # sizeByShowLegend        = sizeByShowLegend,
+                                   title                   = title,
+                                   xAxisTitle              = xlab,
+                                   yAxisTitle              = ylab,
+                                    sizeBy                  = "group",
+                                   # setMaxY                 = foldChangeMargin,
+                                   # setMinY                 = -1*foldChangeMargin,
+                                   # citation                = footnote,
+                                   # citationFontSize        = footnoteSize,
+                                   # citationColor           = footnoteColor,
+                                   # events                  = events,
+                                   # afterRender             = afterRender
+                                   )
     } else {
         groupNames <- c("Increased", "No Change", "Decreased")
         names(symbolShape) <-  groupNames
@@ -324,27 +361,6 @@ profilePlot <- function(contrastDF,
                             symbolSize = symbolSize,
                             symbolColor = symbolColor,
                             stringsAsFactors = FALSE)
-        # Columns to plot
-        # Capture the labels from the colname
-        xlabel <- make.names(logIntCol)
-        ylabel <- make.names(logRatioCol)
-        # Now make the columnames suitable for use with aes_string
-        colnames(contrastDF)[colnames(contrastDF) %in% logIntCol] <- xlabel
-        colnames(contrastDF)[colnames(contrastDF) %in% logRatioCol] <- ylabel
-
-        # Need a NLP column for sizing
-        if (sizeBySignificance) {
-            contrastDF <- contrastDF %>%
-                dplyr::mutate(negLog10P = -log10(pvalCol))
-        }
-        contrastDF <- contrastDF %>%
-            dplyr::mutate(group = dplyr::case_when(!!sym(pvalCol) > pthreshold ~ "No Change",
-                                                   !!sym(logRatioCol) > 0 ~ "Increased",
-                                                   TRUE ~"Decreased"),
-                          group = factor(group,
-                                     levels = c("Increased", "Decreased", "No Change"))) %>%
-            dplyr::left_join(ssc)
-
         profilePlot <- ggplot(contrastDF, aes_string(x = xlabel, y = ylabel)) +
             aes(shape = group,
                 size = group,
