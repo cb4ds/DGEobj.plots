@@ -646,7 +646,7 @@ test_that("obsPlot.R: obsPlot()", {
     #PointLayer Validations
 
     #pointLayer
-    msg <- "pointLayer must be a single logical value. Assigning default value 'TRUE'."
+    msg <- "pointLayer must be a singular logical value. Assigning default value TRUE."
     expect_warning(obs_plot <- obsPlot(tidyInt,
                                        plotByCol = "GeneID",
                                        groupCol  = "group",

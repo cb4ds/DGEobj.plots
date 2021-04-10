@@ -109,16 +109,20 @@
 #' @importFrom canvasXpress canvasXpress
 #'
 #' @export
-obsPlot <- function(data,
+obsPlot <- function(intensityObj,
                     plotType = "canvasXpress",
-                     plotByCol,
-                     groupCol,
-                     valueCol,
-                     groupOrder = unique(as.character(data[,groupCol, drop = TRUE])),
-                     boxLayer = TRUE,
-                     violinLayer = FALSE,
-                     pointLayer = TRUE,
-                     meanLayer = TRUE,
+                    rowIDcolname,
+                    keyColname,
+                    valueColname,
+                    group,
+                    plotByCol,
+                    groupCol,
+                    valueCol,
+                    groupOrder = unique(as.character(data[,groupCol, drop = TRUE])),
+                    boxLayer = TRUE,
+                    violinLayer = FALSE,
+                    pointLayer = TRUE,
+                    meanLayer = TRUE,
                      xlab = groupCol,
                      ylab = valueCol,
                      title,
@@ -143,6 +147,39 @@ obsPlot <- function(data,
                      xAngle = 30,
                      scales = "free_y")
 {
+  assertthat::assert_that(any(c("data.frame", "matrix") %in% class(intensityObj)),
+                          msg = "intensityObj must be of class 'data.frame' or 'matrix'.")
+  assertthat::assert_that(!missing(rowIDcolname),
+                          rowIDcolname %in% intensityObj,
+                          msg = "rowIDcolname must be specified and must be a column in intensityObj")
+  assertthat::assert_that(!missing(keyColname),
+                          msg = "keyColname must be specified.")
+  assertthat::assert_that(!missing(valueColname),
+                          msg = "valueColname must be specified.")
+  assertthat::assert_that(!missing(group),
+                          length(group) == ncol(intensityObj),
+                          !is.null(rownames(group)),
+                          nrows(group) = ncol(intensityObj),
+                          intersect(rownames(group), colnames(intensityObj) == nrows(group)),
+                          msg = "group must be specified and the rownames of the group must be the same as column names of intensityObj")
+
+  if ("matrix" %in% class(intensityObj)) {
+    intensityObj <- as.data.frame(intensityObj)
+  }
+  samples <- colnames(intensityObj)
+
+  # Create a rownames column
+  xcol <- ncol(intensityObj) + 1
+  intensityObj <- cbind(GeneID = rownames(intensityObj), data.frame(intensityObj, row.names = NULL))
+  intensityObj <- tidyr::gather(intensityObj, key = !!keyColname, value = !!valueColname, 2:xcol)
+
+  # Join the group info
+  groupinfo <- data.frame(keycol = samples, group = group)
+  intensityObj <- merge(x = intensityObj, y = groupinfo, by.x = "Sample", by.y = "keycol", all.x = TRUE, sort = FALSE)
+  intensityObj <- intensityObj[,c("GeneID", "Sample", "Log2CPM", "group")]
+
+
+
     #assert statements
     assertthat::assert_that(!missing(data),
                             "data.frame" %in% class(data),
@@ -293,7 +330,9 @@ obsPlot <- function(data,
 
     #point validations
     if (any(is.null(pointLayer),length(pointLayer) != 1, !is.logical(pointLayer))) {
-        warning("pointLayer must be a singular logical value")
+        warning("pointLayer must be a singular logical value. Assigning default value TRUE.")
+        pointLayer <- TRUE
+
     }
 
     if (pointLayer) {
