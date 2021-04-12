@@ -2,7 +2,7 @@ context("DGEobj.plots - tests for ggplotMDS.R functions")
 
 
 test_that("obsPlot.R: obsPlot()", {
-    data <- convertCounts(t_obj1$counts, unit = "cpm", log = TRUE, normalize = "tmm")
+    data   <- convertCounts(t_obj1$counts, unit = "cpm", log = TRUE, normalize = "tmm")
     design <- getItem(t_obj1,"design")
     replicategroup <- design[,"ReplicateGroup",drop = FALSE]
 
@@ -10,6 +10,12 @@ test_that("obsPlot.R: obsPlot()", {
                         group = replicategroup)
     expect_s3_class(obs_plot, c("canvasXpress", "htmlwidget"))
 
+    #facet = FALSE
+    obs_plot <- obsPlot(data,
+                        group = replicategroup,
+                        facet = FALSE)
+    expect_length(obs_plot, length(unique(rownames(data))))
+    expect_s3_class(obs_plot[[1]], c("canvasXpress", "htmlwidget"))
 
     obs_plot <- obsPlot(data,
                         group = replicategroup,
@@ -18,61 +24,71 @@ test_that("obsPlot.R: obsPlot()", {
 
     obs_plot <- obsPlot(data,
                         group = replicategroup,
-                        boxLayer = TRUE,
+                        facet = FALSE,
+                        plotType = "ggplot")
+    expect_length(obs_plot, length(unique(rownames(data))))
+    expect_s3_class(obs_plot[[1]], c("gg", "ggplot"))
+
+    obs_plot <- obsPlot(data,
+                        group       = replicategroup,
+                        boxLayer    = TRUE,
                         violinLayer = TRUE,
-                        pointLayer = TRUE,
-                        meanLayer = TRUE,
-                        xlab = "value",
-                        ylab = "replicate_group",
-                        title = "obsPlot",
+                        pointLayer  = TRUE,
+                        meanLayer   = TRUE,
+                        xlab     = "value",
+                        ylab     = "replicate_group",
+                        title    = "obsPlot",
                         boxColor = "deepskyblue3",
                         boxTransparency = 0.5,
-                        boxNotch = TRUE,
+                        boxNotch    = FALSE,
                         violinColor = "goldenrod1",
                         violinTransparency = 0.5,
-                        pointColor = "dodgerblue4",
-                        pointShape = "circle",
+                        pointColor  = "dodgerblue4",
+                        pointShape  = "circle",
                         pointTransparency = 1,
-                        pointSize = 2,
+                        pointSize   = 2,
                         pointJitter = 0.1,
-                        meanColor = "goldenrod",
-                        meanShape = "square",
+                        meanColor   = "goldenrod",
+                        meanShape   = "square",
                         meanTransparency = 0.7,
                         meanSize = 3,
-                        facet = TRUE,
+                        facet    = TRUE,
                         facetRow = 3)
+    expect_s3_class(obs_plot, c("canvasXpress", "htmlwidget"))
+
+
 
 obs_plot <- obsPlot(data,
-                    plotType = "ggplot",
-                    group = replicategroup,
+                    plotType    = "ggplot",
+                    group       = replicategroup,
                     #groupOrder = unique(as.character(data[,groupCol, drop = TRUE])),
-                    boxLayer = TRUE,
+                    boxLayer    = TRUE,
                     violinLayer = TRUE,
-                    pointLayer = TRUE,
-                    meanLayer = TRUE,
-                    xlab = "value",
-                    ylab = "replicate_group",
-                    title = "obsPlot",
+                    pointLayer  = TRUE,
+                    meanLayer   = TRUE,
+                    xlab     = "value",
+                    ylab     = "replicate_group",
+                    title    = "obsPlot",
                     boxColor = "deepskyblue3",
                     boxTransparency = 0.5,
                     boxNotch = FALSE,
                     boxNotchWidth = 0.8,
-                    violinColor = "goldenrod1",
+                    violinColor   = "goldenrod1",
                     violinTransparency = 0.5,
                     pointColor = "dodgerblue4",
                     pointShape = "circle",
                     pointTransparency = 1,
-                    pointSize = 1,
+                    pointSize   = 1,
                     pointJitter = 0.1,
-                    meanColor = "goldenrod",
+                    meanColor   = "goldenrod",
                     #meanOutlineColor = "red",
                     meanShape = "square",
                     meanTransparency = 0.7,
-                    meanSize = 3,
-                    facet = TRUE,
-                    facetRow = 3,
-                    xAngle = 30,
-                    scales = "free")
+                    meanSize  = 3,
+                    facet     = TRUE,
+                    facetRow  = 3,
+                    xAngle    = 30,
+                    scales    = "free")
 
 
     # testing assert statements
@@ -84,11 +100,11 @@ obs_plot <- obsPlot(data,
 
     msg <- "Plot type must be either canvasXpress or ggplot."
     expect_error(obsPlot(data,
-                         group = replicategroup,
+                         group    = replicategroup,
                          plotType = "cx"),
                  regexp = msg)
     expect_error(obsPlot(data,
-                         group = replicategroup,
+                         group    = replicategroup,
                          plotType = NULL),
                  regexp = msg)
 
@@ -137,25 +153,25 @@ obs_plot <- obsPlot(data,
     msg <- paste("facetRow needs a singular numeric value lesser  than the total number of unique column by which the plot is segregated.",
                  "Assigning default value.")
     expect_warning(obs_plot <- obsPlot(data,
-                                       group = replicategroup,
+                                       group    = replicategroup,
                                        facetRow = NULL),
                    regexp = msg)
     expect_s3_class(obs_plot, c("canvasXpress", "htmlwidget"))
 
     expect_warning(obs_plot <- obsPlot(data,
-                                       group = replicategroup,
+                                       group    = replicategroup,
                                        facetRow = c(1,2)),
                    regexp = msg)
     expect_s3_class(obs_plot, c("canvasXpress", "htmlwidget"))
 
     expect_warning(obs_plot <- obsPlot(data,
-                                       group = replicategroup,
+                                       group    = replicategroup,
                                        facetRow = "abc"),
                    regexp = msg)
     expect_s3_class(obs_plot, c("canvasXpress", "htmlwidget"))
 
     expect_warning(obs_plot <- obsPlot(data,
-                                       group = replicategroup,
+                                       group    = replicategroup,
                                        facetRow = length(unique(rownames(data))) + 2),
                    regexp = msg)
     expect_s3_class(obs_plot, c("canvasXpress", "htmlwidget"))
@@ -190,25 +206,25 @@ obs_plot <- obsPlot(data,
     msg <- 'xlab value specified is not valid. Assigning groupCol name as the default value.'
     expect_warning(obs_plot <- obsPlot(data,
                                        group = replicategroup,
-                                       xlab = 1),
+                                       xlab  = 1),
                    regexp = msg)
     expect_s3_class(obs_plot, c("canvasXpress", "htmlwidget"))
 
     expect_warning(obs_plot <- obsPlot(data,
                                        group = replicategroup,
-                                       xlab = c("xlab1", "xlab2")),
+                                       xlab  = c("xlab1", "xlab2")),
                    regexp = msg)
     expect_s3_class(obs_plot, c("canvasXpress", "htmlwidget"))
 
     obs_plot <- obsPlot(data,
                         group = replicategroup,
-                        xlab = NULL)
+                        xlab  = NULL)
     expect_s3_class(obs_plot, c("canvasXpress", "htmlwidget"))
 
     obs_plot <- obsPlot(data,
                         plotType = "ggplot",
-                        group = replicategroup,
-                        xlab = NULL)
+                        group    = replicategroup,
+                        xlab     = NULL)
     expect_s3_class(obs_plot, c("gg", "ggplot"))
 
 
@@ -217,37 +233,37 @@ obs_plot <- obsPlot(data,
     msg <- 'ylab value specified is not valid. Assigning valueCol name as the default value.'
     expect_warning(obs_plot <- obsPlot(data,
                                        group = replicategroup,
-                                       ylab = 1),
+                                       ylab  = 1),
                    regexp = msg)
     expect_s3_class(obs_plot, c("canvasXpress", "htmlwidget"))
 
     expect_warning(obs_plot <- obsPlot(data,
                                        group = replicategroup,
-                                       ylab = c("ylab1", "ylab2")),
+                                       ylab  = c("ylab1", "ylab2")),
                    regexp = msg)
     expect_s3_class(obs_plot, c("canvasXpress", "htmlwidget"))
 
     obs_plot <- obsPlot(data,
                         group = replicategroup,
-                        ylab = NULL)
+                        ylab  = NULL)
     expect_s3_class(obs_plot, c("canvasXpress", "htmlwidget"))
 
     obs_plot <- obsPlot(data,
                         plotType = "ggplot",
-                        group = replicategroup,
-                        ylab = NULL)
+                        group    = replicategroup,
+                        ylab     = NULL)
     expect_s3_class(obs_plot, c("gg", "ggplot"))
 
     #xAngle
-    msg <- "xAngle must be a single numeric value. Assigning default value 30."
+    msg <- "xAngle must be a single numeric value greater than 0. Assigning default value 30."
     expect_warning(obs_plot <- obsPlot(data,
-                                       group = replicategroup,
+                                       group  = replicategroup,
                                        xAngle = "abc"),
                    regexp = msg)
     expect_s3_class(obs_plot, c("canvasXpress", "htmlwidget"))
 
     expect_warning(obs_plot <- obsPlot(data,
-                                       group = replicategroup,
+                                       group  = replicategroup,
                                        xAngle = c(1, 2)),
                    regexp = msg)
     expect_s3_class(obs_plot, c("canvasXpress", "htmlwidget"))
@@ -258,19 +274,19 @@ obs_plot <- obsPlot(data,
     #boxlayer
     msg <- "boxLayer must be a single logical value. Assigning default value 'TRUE'."
     expect_warning(obs_plot <- obsPlot(data,
-                                       group = replicategroup,
+                                       group    = replicategroup,
                                        boxLayer = NULL),
                    regexp = msg)
     expect_s3_class(obs_plot, c("canvasXpress", "htmlwidget"))
 
     expect_warning(obs_plot <- obsPlot(data,
-                                       group = replicategroup,
+                                       group    = replicategroup,
                                        boxLayer = c(1,2)),
                    regexp = msg)
     expect_s3_class(obs_plot, c("canvasXpress", "htmlwidget"))
 
     expect_warning(obs_plot <- obsPlot(data,
-                                       group = replicategroup,
+                                       group    = replicategroup,
                                        boxLayer = "abc"),
                    regexp = msg)
     expect_s3_class(obs_plot, c("canvasXpress", "htmlwidget"))
@@ -310,25 +326,25 @@ obs_plot <- obsPlot(data,
     #boxColor
     msg <- "boxColor must be of class character and must specify the name of the color or the rgb value. Assigning default value 'deepskyblue3'."
     expect_warning(obs_plot <- obsPlot(data,
-                                       group = replicategroup,
+                                       group    = replicategroup,
                                        boxColor = NULL),
                    regexp = msg)
     expect_s3_class(obs_plot, c("canvasXpress", "htmlwidget"))
 
     expect_warning(obs_plot <- obsPlot(data,
-                                       group = replicategroup,
+                                       group    = replicategroup,
                                        boxColor = c("red","blue")),
                    regexp = msg)
     expect_s3_class(obs_plot, c("canvasXpress", "htmlwidget"))
 
     expect_warning(obs_plot <- obsPlot(data,
-                                       group = replicategroup,
+                                       group    = replicategroup,
                                        boxColor = 1),
                    regexp = msg)
     expect_s3_class(obs_plot, c("canvasXpress", "htmlwidget"))
 
     expect_warning(obs_plot <- obsPlot(data,
-                                       group = replicategroup,
+                                       group    = replicategroup,
                                        boxColor = "notavalidcolor"),
                    regexp = "boxColor specified is not valid. Assigning default value 'deepskyblue3'.")
     expect_s3_class(obs_plot, c("canvasXpress", "htmlwidget"))
@@ -336,19 +352,19 @@ obs_plot <- obsPlot(data,
     #boxNotch
     msg <- "boxNotch must be a single logical value. Assigning default value 'FALSE'."
     expect_warning(obs_plot <- obsPlot(data,
-                                       group = replicategroup,
+                                       group    = replicategroup,
                                        boxNotch = NULL),
                    regexp = msg)
     expect_s3_class(obs_plot, c("canvasXpress", "htmlwidget"))
 
     expect_warning(obs_plot <- obsPlot(data,
-                                       group = replicategroup,
+                                       group    = replicategroup,
                                        boxNotch = c(1,2)),
                    regexp = msg)
     expect_s3_class(obs_plot, c("canvasXpress", "htmlwidget"))
 
     expect_warning(obs_plot <- obsPlot(data,
-                                       group = replicategroup,
+                                       group    = replicategroup,
                                        boxNotch = "abc"),
                    regexp = msg)
     expect_s3_class(obs_plot, c("canvasXpress", "htmlwidget"))
@@ -359,19 +375,19 @@ obs_plot <- obsPlot(data,
     #violinLayer
     msg <- "violinLayer must be a singular logical value. Assigning default value FALSE."
     expect_warning(obs_plot <- obsPlot(data,
-                                       group = replicategroup,
+                                       group       = replicategroup,
                                        violinLayer = NULL),
                    regexp = msg)
     expect_s3_class(obs_plot, c("canvasXpress", "htmlwidget"))
 
     expect_warning(obs_plot <- obsPlot(data,
-                                       group = replicategroup,
+                                       group       = replicategroup,
                                        violinLayer = c(1,2)),
                    regexp = msg)
     expect_s3_class(obs_plot, c("canvasXpress", "htmlwidget"))
 
     expect_warning(obs_plot <- obsPlot(data,
-                                       group = replicategroup,
+                                       group       = replicategroup,
                                        violinLayer = "abc"),
                    regexp = msg)
     expect_s3_class(obs_plot, c("canvasXpress", "htmlwidget"))
@@ -379,35 +395,35 @@ obs_plot <- obsPlot(data,
     #Violin Transparency
     msg <- "violinTransparency must be a singular numeric value and must be between 0 and 1. Assigning default value 0.5."
     expect_warning(obs_plot <- obsPlot(data,
-                                       group = replicategroup,
+                                       group       = replicategroup,
                                        violinLayer = TRUE,
                                        violinTransparency = NULL),
                    regexp = msg)
     expect_s3_class(obs_plot, c("canvasXpress", "htmlwidget"))
 
     expect_warning(obs_plot <- obsPlot(data,
-                                       group = replicategroup,
+                                       group       = replicategroup,
                                        violinLayer = TRUE,
                                        violinTransparency = "abc"),
                    regexp = msg)
     expect_s3_class(obs_plot, c("canvasXpress", "htmlwidget"))
 
     expect_warning(obs_plot <- obsPlot(data,
-                                       group = replicategroup,
+                                       group       = replicategroup,
                                        violinLayer = TRUE,
                                        violinTransparency = c(1,2)),
                    regexp = msg)
     expect_s3_class(obs_plot, c("canvasXpress", "htmlwidget"))
 
     expect_warning(obs_plot <- obsPlot(data,
-                                       group = replicategroup,
+                                       group       = replicategroup,
                                        violinLayer = TRUE,
                                        violinTransparency = -2),
                    regexp = msg)
     expect_s3_class(obs_plot, c("canvasXpress", "htmlwidget"))
 
     expect_warning(obs_plot <- obsPlot(data,
-                                       group = replicategroup,
+                                       group       = replicategroup,
                                        violinLayer = TRUE,
                                        violinTransparency = 2),
                    regexp = msg)
@@ -416,28 +432,28 @@ obs_plot <- obsPlot(data,
     #violinColor
     msg <- "violinColor must be of class character and must specify the name of the color or the rgb value. Assigning default value 'goldenrod1'."
     expect_warning(obs_plot <- obsPlot(data,
-                                       group = replicategroup,
+                                       group       = replicategroup,
                                        violinLayer = TRUE,
                                        violinColor = NULL),
                    regexp = msg)
     expect_s3_class(obs_plot, c("canvasXpress", "htmlwidget"))
 
     expect_warning(obs_plot <- obsPlot(data,
-                                       group = replicategroup,
+                                       group       = replicategroup,
                                        violinLayer = TRUE,
                                        violinColor = c("red","blue")),
                    regexp = msg)
     expect_s3_class(obs_plot, c("canvasXpress", "htmlwidget"))
 
     expect_warning(obs_plot <- obsPlot(data,
-                                      group = replicategroup,
+                                      group        = replicategroup,
                                        violinLayer = TRUE,
                                        violinColor = 1),
                    regexp = msg)
     expect_s3_class(obs_plot, c("canvasXpress", "htmlwidget"))
 
     expect_warning(obs_plot <- obsPlot(data,
-                                       group = replicategroup,
+                                       group       = replicategroup,
                                        violinLayer = TRUE,
                                        violinColor = "notavalidcolor"),
                    regexp = "violinColor specified is not valid. Assigning default value 'goldenrod1'.")
@@ -449,19 +465,19 @@ obs_plot <- obsPlot(data,
     #meanLayer
     msg <- "meanLayer must be a singular logical value. Assigning default value TRUE."
     expect_warning(obs_plot <- obsPlot(data,
-                                       group = replicategroup,
+                                       group     = replicategroup,
                                        meanLayer = NULL),
                    regexp = msg)
     expect_s3_class(obs_plot, c("canvasXpress", "htmlwidget"))
 
     expect_warning(obs_plot <- obsPlot(data,
-                                       group = replicategroup,
+                                       group     = replicategroup,
                                        meanLayer = c(1,2)),
                    regexp = msg)
     expect_s3_class(obs_plot, c("canvasXpress", "htmlwidget"))
 
     expect_warning(obs_plot <- obsPlot(data,
-                                       group = replicategroup,
+                                       group     = replicategroup,
                                        meanLayer = "abc"),
                    regexp = msg)
     expect_s3_class(obs_plot, c("canvasXpress", "htmlwidget"))
@@ -469,13 +485,13 @@ obs_plot <- obsPlot(data,
     #meanColor
     msg <- "meanColor must be of class character and must specify the name of the color or the rgb value. Assigning default value 'goldenrod1'."
     expect_warning(obs_plot <- obsPlot(data,
-                                       group = replicategroup,
+                                       group     = replicategroup,
                                        meanColor = NULL),
                    regexp = msg)
     expect_s3_class(obs_plot, c("canvasXpress", "htmlwidget"))
 
     expect_warning(obs_plot <- obsPlot(data,
-                                       group = replicategroup,
+                                       group     = replicategroup,
                                        meanColor = c("red","blue")),
                    regexp = msg)
     expect_s3_class(obs_plot, c("canvasXpress", "htmlwidget"))
@@ -487,7 +503,7 @@ obs_plot <- obsPlot(data,
     expect_s3_class(obs_plot, c("canvasXpress", "htmlwidget"))
 
     expect_warning(obs_plot <- obsPlot(data,
-                                       group = replicategroup,
+                                       group     = replicategroup,
                                        meanColor = "notavalidcolor"),
                    regexp = "meanColor specified is not valid. Assigning default value 'goldenrod1'.")
     expect_s3_class(obs_plot, c("canvasXpress", "htmlwidget"))
@@ -549,21 +565,21 @@ obs_plot <- obsPlot(data,
     msg <- "meanShape specified is not valid. Assigning default value '22'."
     expect_warning(obs_plot <- obsPlot(data,
                                        plotType = "ggplot",
-                                       group = replicategroup,
+                                       group    = replicategroup,
                                        meanShape = NULL),
                    regexp = msg)
     expect_s3_class(obs_plot, c("gg", "ggplot"))
 
     expect_warning(obs_plot <- obsPlot(data,
-                                       plotType = "ggplot",
-                                       group = replicategroup,
+                                       plotType  = "ggplot",
+                                       group     = replicategroup,
                                        meanShape = c(2,4)),
                    regexp = msg)
     expect_s3_class(obs_plot, c("gg", "ggplot"))
 
     expect_warning(obs_plot <- obsPlot(data,
-                                       plotType = "ggplot",
-                                       group = replicategroup,
+                                       plotType  = "ggplot",
+                                       group     = replicategroup,
                                        meanShape = "notavalidshape"),
                    regexp = msg)
    expect_s3_class(obs_plot, c("gg", "ggplot"))
@@ -571,19 +587,19 @@ obs_plot <- obsPlot(data,
    #meansize
    msg <- "meanSize must be a singular numeric value. Assigning default value 3."
    expect_warning(obs_plot <- obsPlot(data,
-                                      group = replicategroup,
+                                      group     = replicategroup,
                                       meanSize = NULL),
                   regexp = msg)
    expect_s3_class(obs_plot, c("canvasXpress", "htmlwidget"))
 
    expect_warning(obs_plot <- obsPlot(data,
-                                      group = replicategroup,
+                                      group    = replicategroup,
                                       meanSize = c(1,2)),
                   regexp = msg)
    expect_s3_class(obs_plot, c("canvasXpress", "htmlwidget"))
 
    expect_warning(obs_plot <- obsPlot(data,
-                                      group = replicategroup,
+                                      group    = replicategroup,
                                       meanSize = "notasize"),
                   regexp = msg)
    expect_s3_class(obs_plot, c("canvasXpress", "htmlwidget"))
@@ -594,19 +610,19 @@ obs_plot <- obsPlot(data,
     #pointLayer
     msg <- "pointLayer must be a singular logical value. Assigning default value TRUE."
     expect_warning(obs_plot <- obsPlot(data,
-                                       group = replicategroup,
+                                       group      = replicategroup,
                                        pointLayer = NULL),
                    regexp = msg)
     expect_s3_class(obs_plot, c("canvasXpress", "htmlwidget"))
 
     expect_warning(obs_plot <- obsPlot(data,
-                                       group = replicategroup,
+                                       group      = replicategroup,
                                        pointLayer = c(1,2)),
                    regexp = msg)
     expect_s3_class(obs_plot, c("canvasXpress", "htmlwidget"))
 
     expect_warning(obs_plot <- obsPlot(data,
-                                       group = replicategroup,
+                                       group      = replicategroup,
                                        pointLayer = "abc"),
                    regexp = msg)
     expect_s3_class(obs_plot, c("canvasXpress", "htmlwidget"))
@@ -678,13 +694,13 @@ obs_plot <- obsPlot(data,
     expect_s3_class(obs_plot, c("canvasXpress", "htmlwidget"))
 
     expect_warning(obs_plot <- obsPlot(data,
-                                       group = replicategroup,
+                                       group      = replicategroup,
                                        pointShape = c(2,4)),
                    regexp = msg)
     expect_s3_class(obs_plot, c("canvasXpress", "htmlwidget"))
 
     expect_warning(obs_plot <- obsPlot(data,
-                                       group = replicategroup,
+                                       group      = replicategroup,
                                        pointShape = "notavalidshape"),
                    regexp = msg)
     expect_s3_class(obs_plot, c("canvasXpress", "htmlwidget"))
@@ -692,22 +708,22 @@ obs_plot <- obsPlot(data,
     #pointshape - ggplot
     msg <- "pointShape specified is not valid. Assigning default value 'circle'."
     expect_warning(obs_plot <- obsPlot(data,
-                                       plotType = "ggplot",
-                                       group = replicategroup,
+                                       plotType   = "ggplot",
+                                       group      = replicategroup,
                                        pointShape = NULL),
                    regexp = msg)
     expect_s3_class(obs_plot, c("gg", "ggplot"))
 
     expect_warning(obs_plot <- obsPlot(data,
-                                       plotType = "ggplot",
-                                       group = replicategroup,
+                                       plotType   = "ggplot",
+                                       group      = replicategroup,
                                        pointShape = c(2,4)),
                    regexp = msg)
     expect_s3_class(obs_plot, c("gg", "ggplot"))
 
     expect_warning(obs_plot <- obsPlot(data,
-                                       plotType = "ggplot",
-                                       group = replicategroup,
+                                       plotType   = "ggplot",
+                                       group      = replicategroup,
                                        pointShape = "notavalidshape"),
                    regexp = msg)
     expect_s3_class(obs_plot, c("gg", "ggplot"))
@@ -715,19 +731,19 @@ obs_plot <- obsPlot(data,
     #pointSize
     msg <- "pointSize must be a singular numeric value. Assigning default value 2."
     expect_warning(obs_plot <- obsPlot(data,
-                                       group = replicategroup,
+                                       group     = replicategroup,
                                        pointSize = NULL),
                    regexp = msg)
     expect_s3_class(obs_plot, c("canvasXpress", "htmlwidget"))
 
     expect_warning(obs_plot <- obsPlot(data,
-                                       group = replicategroup,
+                                       group     = replicategroup,
                                        pointSize = c(1,2)),
                    regexp = msg)
     expect_s3_class(obs_plot, c("canvasXpress", "htmlwidget"))
 
     expect_warning(obs_plot <- obsPlot(data,
-                                       group = replicategroup,
+                                       group     = replicategroup,
                                        pointSize = "notasize"),
                    regexp = msg)
     expect_s3_class(obs_plot, c("canvasXpress", "htmlwidget"))
@@ -741,30 +757,26 @@ obs_plot <- obsPlot(data,
     #pointJitter
     msg <- "pointJitter must be a singular numeric value. Assigning default value 0."
     expect_warning(obs_plot <- obsPlot(data,
-                                       group = replicategroup,
+                                       group       = replicategroup,
                                        pointJitter = NULL),
                    regexp = msg)
     expect_s3_class(obs_plot, c("canvasXpress", "htmlwidget"))
 
     expect_warning(obs_plot <- obsPlot(data,
-                                       group = replicategroup,
+                                       group       = replicategroup,
                                        pointJitter = c(1,2)),
                    regexp = msg)
     expect_s3_class(obs_plot, c("canvasXpress", "htmlwidget"))
 
     expect_warning(obs_plot <- obsPlot(data,
-                                       group = replicategroup,
+                                       group       = replicategroup,
                                        pointJitter = "notasize"),
                    regexp = msg)
     expect_s3_class(obs_plot, c("canvasXpress", "htmlwidget"))
 
     expect_warning(obs_plot <- obsPlot(data,
-                                       group = replicategroup,
+                                       group       = replicategroup,
                                        pointJitter = -1),
                    regexp = msg)
     expect_s3_class(obs_plot, c("canvasXpress", "htmlwidget"))
-
-
-
-
 })
