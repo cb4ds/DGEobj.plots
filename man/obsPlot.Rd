@@ -7,16 +7,13 @@
 obsPlot(
   data,
   plotType = "canvasXpress",
-  plotByCol,
-  groupCol,
-  valueCol,
-  groupOrder = unique(as.character(data[, groupCol, drop = TRUE])),
+  group,
   boxLayer = TRUE,
   violinLayer = FALSE,
   pointLayer = TRUE,
   meanLayer = TRUE,
-  xlab = groupCol,
-  ylab = valueCol,
+  xlab,
+  ylab,
   title,
   boxColor = "deepskyblue3",
   boxTransparency = 0.5,
@@ -25,13 +22,12 @@ obsPlot(
   violinColor = "goldenrod1",
   violinTransparency = 0.5,
   pointColor = "dodgerblue4",
-  pointShape = 21,
+  pointShape = "circle",
   pointTransparency = 1,
   pointSize = 2,
   pointJitter = 0,
-  meanColor = "goldenrod1",
-  meanOutlineColor = "red2",
-  meanShape = 22,
+  meanColor = "goldenrod",
+  meanShape = "square",
   meanTransparency = 0.7,
   meanSize = 3,
   facet = TRUE,
@@ -42,16 +38,6 @@ obsPlot(
 }
 \arguments{
 \item{data}{A tidy dataframe of intensity data with row and colnames (required)}
-
-\item{plotByCol}{Define the column name to separate plots (typically a gene ID column) (required)}
-
-\item{groupCol}{Define the column name to group boxplots by (typically a replicate group column) (required)}
-
-\item{valueCol}{Define the column of values for plotting (typically a log intensity measure) (required)}
-
-\item{groupOrder}{Define the order for the groups in each plot.  Should
-contain values in unique(data$group) listed in the order that you want the
-groups to appear in the plot. (optional; default = unique(data[groupCol]))}
 
 \item{boxLayer}{Adds a boxplot layer (Default = TRUE)}
 
@@ -92,8 +78,6 @@ have a lot of points.}
 
 \item{meanColor}{Color for the mean layer (Default = "goldenrod1")}
 
-\item{meanOutlineColor}{Fill color for the mean layer (Default = "red2")}
-
 \item{meanShape}{Shape for the mean layer (Default = 21; fillable circle)}
 
 \item{meanTransparency}{Transparency for the mean layer (Default = 0.7)}
@@ -110,6 +94,16 @@ Default behavior will automatically set the columns. (Default = NULL)}
 
 \item{scales}{Specify same scales or independent scales for each subplot (Default = "free_y";
 Allowed values: "fixed", "free_x", "free_y", "free")}
+
+\item{plotByCol}{Define the column name to separate plots (typically a gene ID column) (required)}
+
+\item{groupCol}{Define the column name to group boxplots by (typically a replicate group column) (required)}
+
+\item{valueCol}{Define the column of values for plotting (typically a log intensity measure) (required)}
+
+\item{groupOrder}{Define the order for the groups in each plot.  Should
+contain values in unique(data$group) listed in the order that you want the
+groups to appear in the plot. (optional; default = unique(data[groupCol]))}
 
 \item{boxFill}{Fill Color for the boxplot layer (Default = "deepskyblue3")}
 

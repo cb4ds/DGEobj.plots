@@ -40,7 +40,6 @@
 #' @param pointJitter Amount to jitter the points (Default = 0) Try 0.2 if you
 #'   have a lot of points.
 #' @param meanColor Color for the mean layer (Default = "goldenrod1")
-#' @param meanOutlineColor Fill color for the mean layer (Default = "red2")
 #' @param meanShape Shape for the mean layer (Default = 21; fillable circle)
 #' @param meanTransparency Transparency for the mean layer (Default = 0.7)
 #' @param meanSize Size of the mean points (Default = 3)
@@ -104,98 +103,116 @@
 #' }
 #'
 #' @import ggplot2 magrittr
+#' @importFrom tidyr gather
 #' @importFrom dplyr left_join filter select
 #' @importFrom assertthat assert_that
 #' @importFrom canvasXpress canvasXpress
 #'
 #' @export
-obsPlot <- function(intensityObj,
+obsPlot <- function(data,
                     plotType = "canvasXpress",
-                    rowIDcolname,
-                    keyColname,
-                    valueColname,
                     group,
-                    plotByCol,
-                    groupCol,
-                    valueCol,
-                    groupOrder = unique(as.character(data[,groupCol, drop = TRUE])),
+                    #groupOrder = unique(as.character(data[,groupCol, drop = TRUE])),
                     boxLayer = TRUE,
                     violinLayer = FALSE,
                     pointLayer = TRUE,
                     meanLayer = TRUE,
-                     xlab = groupCol,
-                     ylab = valueCol,
-                     title,
-                     boxColor = "deepskyblue3",
-                     boxTransparency = 0.5,
-                     boxNotch = FALSE,
-                     boxNotchWidth = 0.8,
-                     violinColor = "goldenrod1",
-                     violinTransparency = 0.5,
-                     pointColor = "dodgerblue4",
-                     pointShape = 21,
-                     pointTransparency = 1,
-                     pointSize = 2,
-                     pointJitter = 0,
-                     meanColor = "goldenrod1",
-                     meanOutlineColor = "red2",
-                     meanShape = 22,
-                     meanTransparency = 0.7,
-                     meanSize = 3,
-                     facet = TRUE,
-                     facetRow,
-                     xAngle = 30,
-                     scales = "free_y")
+                    xlab,
+                    ylab,
+                    title,
+                    boxColor = "deepskyblue3",
+                    boxTransparency = 0.5,
+                    boxNotch = FALSE,
+                    boxNotchWidth = 0.8,
+                    violinColor = "goldenrod1",
+                    violinTransparency = 0.5,
+                    pointColor = "dodgerblue4",
+                    pointShape = "circle",
+                    pointTransparency = 1,
+                    pointSize = 2,
+                    pointJitter = 0,
+                    meanColor = "goldenrod",
+                    meanShape = "square",
+                    meanTransparency = 0.7,
+                    meanSize = 3,
+                    facet = TRUE,
+                    facetRow,
+                    xAngle = 30,
+                    scales = "free_y")
 {
-  assertthat::assert_that(any(c("data.frame", "matrix") %in% class(intensityObj)),
-                          msg = "intensityObj must be of class 'data.frame' or 'matrix'.")
-  assertthat::assert_that(!missing(rowIDcolname),
-                          rowIDcolname %in% intensityObj,
-                          msg = "rowIDcolname must be specified and must be a column in intensityObj")
-  assertthat::assert_that(!missing(keyColname),
-                          msg = "keyColname must be specified.")
-  assertthat::assert_that(!missing(valueColname),
-                          msg = "valueColname must be specified.")
+
+  assertthat::assert_that(!missing(data),
+                          !is.null(data),
+                          any(c("data.frame", "matrix") %in% class(data)),
+                          msg = "data must be specified and should be of class 'data.frame' or 'matrix.'")
+
+  assertthat::assert_that(!is.null(rownames(data)),
+                          !is.null(colnames(data)),
+                          msg = "data must have row and column names")
+
+  assertthat::assert_that(!is.null(plotType),
+                          tolower(plotType) %in% c("canvasxpress", "ggplot"),
+                          msg = "Plot type must be either canvasXpress or ggplot.")
+
+  # assertthat::assert_that(!missing(groupCol),
+  #                         !is.null(groupCol),
+  #                         groupCol %in% colnames(data),
+  #                         msg = "groupCol must be specified and must be one othe columns in data. ")
+
   assertthat::assert_that(!missing(group),
-                          length(group) == ncol(intensityObj),
+                          "data.frame" %in% class(group),
+                          nrow(group) == ncol(data),
                           !is.null(rownames(group)),
-                          nrows(group) = ncol(intensityObj),
-                          intersect(rownames(group), colnames(intensityObj) == nrows(group)),
+                          length(intersect(rownames(group), colnames(data))) == nrow(group),
                           msg = "group must be specified and the rownames of the group must be the same as column names of intensityObj")
 
-  if ("matrix" %in% class(intensityObj)) {
-    intensityObj <- as.data.frame(intensityObj)
+
+  # assertthat::assert_that(!missing(rowIDcolname),
+  #                         rowIDcolname %in% intensityObj,
+  #                         msg = "rowIDcolname must be specified and must be a column in intensityObj")
+  # assertthat::assert_that(!missing(keyColname),
+  #                         msg = "keyColname must be specified.")
+  # assertthat::assert_that(!missing(valueColname),
+  #                         msg = "valueColname must be specified.")
+  # assertthat::assert_that(!missing(group),
+  #                         length(group) == ncol(intensityObj),
+  #                         !is.null(rownames(group)),
+  #                         nrows(group) = ncol(intensityObj),
+  #                         intersect(rownames(group), colnames(intensityObj) == nrows(group)),
+  #                         msg = "group must be specified and the rownames of the group must be the same as column names of intensityObj")
+
+  if ("matrix" %in% class(data)) {
+    data <- as.data.frame(data)
   }
-  samples <- colnames(intensityObj)
 
   # Create a rownames column
-  xcol <- ncol(intensityObj) + 1
-  intensityObj <- cbind(GeneID = rownames(intensityObj), data.frame(intensityObj, row.names = NULL))
-  intensityObj <- tidyr::gather(intensityObj, key = !!keyColname, value = !!valueColname, 2:xcol)
+  data <- cbind(GeneID = rownames(data), data.frame(data, row.names = NULL))
+  data <- tidyr::gather(data, key = "Sample", value = "Log2CPM", -GeneID)
 
-  # Join the group info
-  groupinfo <- data.frame(keycol = samples, group = group)
-  intensityObj <- merge(x = intensityObj, y = groupinfo, by.x = "Sample", by.y = "keycol", all.x = TRUE, sort = FALSE)
-  intensityObj <- intensityObj[,c("GeneID", "Sample", "Log2CPM", "group")]
+  colnames(group) <- "group"
+  group$Sample <- rownames(group);rownames(group) <- NULL
+  data <- merge(x = data, y = group, by = "Sample", all.x = TRUE, sort = FALSE)
+  data <- data[,c("GeneID", "Sample", "Log2CPM", "group")]
+
+  a <- unique(data$GeneID)
+  tidyInt_sub <- data %>% filter(.,GeneID %in% a[1:6]) %>% as.data.frame()
+  data <- tidyInt_sub
+
+  plotByCol <-  "GeneID"
+  valueCol <- "Log2CPM"
+  groupCol <-  "group"
 
 
 
     #assert statements
-    assertthat::assert_that(!missing(data),
-                            "data.frame" %in% class(data),
-                            msg = "data must be specified and should be of class 'data.frame'.")
-    assertthat::assert_that(!is.null(plotType),
-                            tolower(plotType) %in% c("canvasxpress", "ggplot"),
-                            msg = "Plot type must be either canvasXpress or ggplot.")
-    assertthat::assert_that(!is.null(plotByCol),
-                            plotByCol %in% colnames(data),
-                            msg = 'The plotByCol must be included in the colnames of the specified data.')
-    assertthat::assert_that(!is.null(groupCol),
-                            groupCol %in% colnames(data),
-                            msg = "The groupCol must be included in the colnames of the specified data.")
-    assertthat::assert_that(!is.null(valueCol),
-                            valueCol %in% colnames(data),
-                            msg = "The valueCol must be included in the colnames of the specified data.")
+
+    # assertthat::assert_that(!is.null(plotByCol),
+    #                         plotByCol %in% colnames(data),
+    #                         msg = 'The plotByCol must be included in the colnames of the specified data.')
+    #
+    # assertthat::assert_that(!is.null(valueCol),
+    #                         valueCol %in% colnames(data),
+    #                         msg = "The valueCol must be included in the colnames of the specified data.")
     #assertthat::assert_that(all(groupOrder %in% as.character(data[, ,groupCol, drop = TRUE])))
 
     #input validations
@@ -206,34 +223,43 @@ obsPlot <- function(intensityObj,
         facet <- TRUE
     }
 
-
+    unique_rownames <- rownames(data) %>% unique
     if (facet) {
-
       if  (missing(facetRow)) {
-          numcol <- data[plotByCol] %>% unique %>% length %>% sqrt %>% ceiling
-      } else if (is.null(facetRow) || length(facetRow) != 1 || (!is.numeric(facetRow))) {
-          numcol <- data[plotByCol] %>% unique %>% length %>% sqrt %>% ceiling
-          warning(paste("facetRow needs a singular numeric value. Assigning default value",numcol))
+          numrow <- data[plotByCol] %>% unique %>% length %>% sqrt %>% ceiling
+      } else if (is.null(facetRow) || length(facetRow) != 1 || (!is.numeric(facetRow)) || facetRow > length(unique_rownames)) {
+          numrow <- data[plotByCol] %>% unique %>% length %>% sqrt %>% ceiling
+          warning(paste("facetRow needs a singular numeric value lesser  than the total number of unique column by which the plot is segregated.",
+                        "Assigning default value."))
       } else {
-          numcol <- facetRow
+          numrow <- facetRow
     }
     }
 
     if (missing(title)) {
         title <- NULL
-    } else if (!is.character(title) || length(title) != 1) {
+    } else if ((!is.null(title)) && (!is.character(title) || length(title) != 1)) {
         warning("Invalid title specificed. Title must be singular value of class character.")
         title <- NULL
     }
 
-    if (!is.character(xlab) || length(xlab) != 1) {
+    if ((!missing(xlab)) && (!is.null(xlab)) && ((!is.character(xlab)) || length(xlab) != 1)) {
         warning("xlab value specified is not valid. Assigning groupCol name as the default value.")
         xlab <- groupCol
+    } else if (missing(xlab)) {
+      xlab <- groupCol
     }
 
-    if (!is.character(ylab) || length(ylab) != 1) {
+    if (!missing(ylab) && !is.null(ylab) && (!is.character(ylab) || length(ylab) != 1)) {
         warning("ylab value specified is not valid. Assigning valueCol name as the default value.")
         ylab <- valueCol
+    } else if (missing(ylab)) {
+      ylab <- valueCol
+    }
+
+    if (!missing(xAngle) && any(!is.numeric(xAngle), length(xAngle) != 1, xAngle <= 0)) {
+      warning("xAngle must be a single numeric value greater than 0. Assigning default value 30.")
+      xAngle <- 30
     }
 
     #boxplot Validations
@@ -299,14 +325,6 @@ obsPlot <- function(intensityObj,
             meanColor <- "goldenrod1"
         }
 
-        if (any(is.null(meanOutlineColor), length(meanOutlineColor) != 1, !is.character(meanOutlineColor))) {
-            warning("meanOutlineColor must be of class character and must specify the name of the color or the rgb value. Assigning default value 'goldenrod1'.")
-            meanOutlineColor <- "red2"
-        } else if (.rgbaConversion(meanOutlineColor) == "invalid value") {
-            warning("meanOutlineColor specified is not valid. Assigning default value 'goldenrod1'.")
-            meanOutlineColor <- "red2"
-        }
-
         if (any(is.null(meanTransparency),!is.numeric(meanTransparency), length(meanTransparency) != 1, meanTransparency <= 0, meanTransparency > 1)) {
             warning("meanTransparency must be a singular numeric value and must be between 0 and 1. Assigning default value 0.7.")
             meanTransparency <- 0.7
@@ -349,30 +367,37 @@ obsPlot <- function(intensityObj,
             pointTransparency <- 1
         }
 
-        if (plotType == "canvasXpress" && any(is.null(pointShape), length(pointShape) != 1, !.is_valid_symbolShapes_cxplot(pointShape))) {
-            warning("pointShape specified is not valid. Assigning default value 'sphere'.")
-            pointShape <- "sphere"
+        if (plotType == "canvasxpress" && any(is.null(pointShape), length(pointShape) != 1, !.is_valid_symbolShapes_cxplot(pointShape))) {
+            warning("pointShape specified is not valid. Assigning default value 'circle'.")
+            pointShape <- "circle"
         }
 
         if (plotType == "ggplot" && any(is.null(pointShape), length(pointShape) != 1, !.is_valid_symbolShapes_ggplot(pointShape))) {
-            warning("pointShape specified is not valid. Assigning default value '21'.")
-            pointShape <- 21
+            warning("pointShape specified is not valid. Assigning default value 'circle'.")
+            pointShape <- "circle"
         }
 
-        if (any(is.null(pointSize), length(pointSize) != 1, !is.numeric(pointSize))) {
+        if (any(is.null(pointSize), length(pointSize) != 1, !is.numeric(pointSize), pointSize <= 0)) {
             warning("pointSize must be a singular numeric value. Assigning default value 2.")
             pointSize <- 2
         }
+       browser()
+      if (any(is.null(pointJitter), length(pointJitter) != 1, !is.numeric(pointJitter), pointJitter <= 0)) {
+        warning("pointJitter must be a singular numeric value. Assigning default value 0.")
+        pointJitter <- 0
+      }
     }
 
     obsPlot <- NULL
     if (plotType == "canvasxpress") {
 
         if (facet == TRUE) {
+            numcol <- ((data[[plotByCol]] %>% unique %>% length)/numrow) %>% ceiling
+
+
             cx_data <- data %>% select(Log2CPM) %>% t() %>% as.data.frame()
             smp_data <- data %>% select(-Log2CPM)
             rownames(smp_data) <- colnames(cx_data)
-
             obsPlot <- canvasXpress(data = cx_data,
                                     smpAnnot = smp_data,
                                     graphOrientation = "vertical",
@@ -381,6 +406,7 @@ obsPlot <- function(intensityObj,
                                     boxplotColor = boxColor,
                                     boxplotDataPointTransparency = boxTransparency,
                                     boxplotMean = meanLayer,
+                                    boxplotMeanColor = meanColor,
                                     boxplotWhiskersType = "single",
                                     showViolinBoxplot = violinLayer,
                                     showBoxplotIfViolin = boxLayer,
@@ -394,9 +420,11 @@ obsPlot <- function(intensityObj,
                                     layoutAdjust = TRUE,
                                     showBoxplotOriginalData = pointLayer,
                                     theme = "CanvasXpress",
-                                    xAxisTitle = "Log2CPM",
-                                    xAxis2Show = ylab,
+                                    xAxisTitle = ylab,
+                                    xAxis2Show = TRUE,
+                                    title = title,
                                     showLegend = FALSE,
+                                    layoutTopology = paste0(numrow,'X', numcol),
                                     segregateSamplesBy = plotByCol)
 
         } else {
@@ -419,6 +447,7 @@ obsPlot <- function(intensityObj,
                              boxplotColor = boxColor,
                              boxplotDataPointTransparency = boxTransparency,
                              boxplotMean = meanLayer,
+                             boxplotMeanColor = meanColor,
                              boxplotWhiskersType = "single",
                              showViolinBoxplot = violinLayer,
                              showBoxplotIfViolin = boxLayer,
@@ -433,6 +462,7 @@ obsPlot <- function(intensityObj,
                              showBoxplotOriginalData = pointLayer,
                              theme = "CanvasXpress",
                              xAxisTitle = "Log2CPM",
+                             title = title,
                              xAxis2Show = ylab,
                              showLegend = FALSE)
             })
@@ -475,19 +505,19 @@ obsPlot <- function(intensityObj,
             }
 
             if (meanLayer == TRUE) {
+
                 obsPlot <- obsPlot +
-                    stat_summary(fun.y = mean,
+                    stat_summary(fun = mean,
                                  geom = "point",
                                  shape = meanShape,
                                  size = meanSize,
-                                 color = meanOutlineColor,
+                                 color = meanColor,
                                  fill = meanColor,
                                  alpha = meanTransparency)
             }
 
             return(obsPlot)
         }
-
 
         # Reduce box outliers to a dot if geom_points turned on
         outlier.size <- 1.5
@@ -499,17 +529,13 @@ obsPlot <- function(intensityObj,
 
         # Plot code here
         if (facet == TRUE) {
-            # Set facet columns to sqrt of unique observations (rounded up)
-            if (missing(facetRow)) {
-                numcol <- data[plotByCol] %>% unique %>% length %>% sqrt %>% ceiling
-            } else {
-                numcol <- facetRow
-            }
+
+
 
             obsPlot <- ggplot2::ggplot(data, aes_string(x = groupCol, y = valueCol))
             obsPlot <- .addGeoms(obsPlot)
             facetFormula <- stringr::str_c("~", plotByCol, sep = " ")
-            obsPlot <- obsPlot + ggplot2::facet_wrap(facetFormula, nrow = numcol, scales = scales)
+            obsPlot <- obsPlot + ggplot2::facet_wrap(facetFormula, nrow = numrow, scales = scales)
 
             obsPlot <- obsPlot + ggplot2::xlab(xlab)
             obsPlot <- obsPlot + ggplot2::ylab(ylab)
@@ -523,6 +549,7 @@ obsPlot <- function(intensityObj,
             }
 
         } else {
+
             plotlist <- list()
 
             for (obs in unique(data[[plotByCol]])) {
@@ -530,8 +557,7 @@ obsPlot <- function(intensityObj,
                 aplot <- ggplot(dat, aes_string(x = groupCol, y = valueCol)) + # Samples vs Log2CPM
                     xlab(xlab) +
                     ylab(ylab) +
-                    ggtitle(obs) +
-                    theme_grey(baseFontSize)
+                    ggtitle(obs)
                 aplot <- .addGeoms(aplot)
 
                 # Rotate xaxis group labels
