@@ -233,7 +233,7 @@ test_that("profilePlot.R: profilePlot()", {
                    regexp = msg)
     expect_s3_class(pPlot , c("gg", "ggplot"))
     ## symbolShape
-    msg <- "symbolShape must be a vector of 3 charcter values with 2 different values at least. Assigning canvasXpress default values 'circle', 'triangle', 'circle'."
+    msg <- "symbolShape must be a vector of 3 charcter values with 2 different values at least. Assigning canvasXpress default values 'circle', 'circle', 'circle'."
     expect_warning(pPlot <- profilePlot(contrastDF, symbolShape = NULL),
                    regexp = msg)
     expect_s3_class(pPlot , c("canvasXpress", "htmlwidget"))

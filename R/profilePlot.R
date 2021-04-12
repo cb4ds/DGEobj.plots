@@ -54,8 +54,7 @@
 #'        Note: All three cannot be the same size. Decimal values are acceptable to help offset that
 #'        (e.g. 4, 4.1, 4.2).
 #' @param symbolShape Shape of the symbols for Up, no change, and Down;
-#'        (default = c("circle", "triangle", "circle"),
-#'        Note: The same symbol shape cannot be selected for all three symbols.
+#'        (default = c("circle", "circle", "circle").
 #'        See \url{http://www.cookbook-r.com/Graphs/Shapes_and_line_types}
 #' @param symbolColor c(Up, NoChange, Down) (default = c("red3", "grey25", "deepskyblue4"))
 #'        See \url{http://research.stowers-institute.org/efg/R/Color/Chart}
@@ -118,7 +117,7 @@ profilePlot <- function(contrastDF,
                         ylab = NULL,
                         title = NULL,
                         symbolSize = c(10, 4, 10),
-                        symbolShape = c("circle", "triangle", "circle"),
+                        symbolShape = c("circle", "circle", "circle"),
                         symbolColor = c("red3", "grey25", "deepskyblue4"),
                         transparency = 0.5,
                         sizeBySignificance = FALSE,
@@ -220,8 +219,8 @@ profilePlot <- function(contrastDF,
            length(unique(symbolShape)) < 2,
            plotType == "canvasxpress" && !is.null(symbolShape) && length(.validate_cx_shapes(symbolShape)) != 3,
            plotType == "ggplot" && !is.null(symbolShape) && length(.validate_gg_shapes(symbolShape)) != 3)) {
-       warning("symbolShape must be a vector of 3 charcter values with 2 different values at least. Assigning canvasXpress default values 'circle', 'triangle', 'circle'.")
-       symbolShape  <- c("circle", "triangle", "circle")
+       warning("symbolShape must be a vector of 3 charcter values with 2 different values at least. Assigning canvasXpress default values 'circle', 'circle', 'circle'.")
+       symbolShape  <- c("circle", "circle", "circle")
 
     }
 
