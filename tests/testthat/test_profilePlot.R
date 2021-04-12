@@ -13,7 +13,7 @@ test_that("profilePlot.R: profilePlot()", {
     profile_plot <- profilePlot(contrastDF, title = "BDL_vs_Sham", sizeBySignificance = TRUE)
     expect_s3_class(profile_plot, c("canvasXpress", "htmlwidget"))
     profile_plot <- profilePlot(contrastDF, title = "BDL_vs_Sham", plotType = "ggplot",
-                                symbolSize = c(4, 1, 4), sizeBySignificance = TRUE)
+                                sizeBySignificance = TRUE)
     expect_s3_class(profile_plot, c("gg", "ggplot"))
     ## EXT1024_vs_BDL
     contrastDF <- t_obj1$EXT1024_vs_BDL
@@ -40,6 +40,13 @@ test_that("profilePlot.R: profilePlot()", {
         dplyr::select(rgd_symbol)
     contrastDF <- merge(contrastDF, gene_data, by = 0, all = TRUE)
     sym_labels <- contrastDF[sample(nrow(contrastDF), 10), ]$rgd_symbol
+    profile_plot <- profilePlot(contrastDF         = contrastDF,
+                                title              = "BDL_vs_Sham with Symbols",
+                                sizeBySignificance = TRUE,
+                                geneSymCol         = "rgd_symbol",
+                                geneSymLabels      = sym_labels,
+                                footnote           = "This is footnote")
+    expect_s3_class(profile_plot, c("canvasXpress","htmlwidget"))
     profile_plot <- profilePlot(contrastDF         = contrastDF,
                                 title              = "BDL_vs_Sham with Symbols",
                                 plotType           = "ggplot",
