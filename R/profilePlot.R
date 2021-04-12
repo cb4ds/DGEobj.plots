@@ -45,11 +45,13 @@
 #' @param ylab Y axis label (defaults = "LogRatio column name")
 #' @param title Plot title (optional)
 #' @param pthreshold Used to color points (default = 0.01)
-#' @param geneSymLabels Gene Symbols to be labeled.
+#' @param geneSymLabels Gene Symbols to be labeled. For canvasXpress, these information will
+#'        be displayed for each data point.
 #' @param geneSymCol Name of the gene symbol column in contrastDF.  The gene symbol is
 #'        not in topTable output by default so the user has to bind this column
 #'        to the dataframe in advance.  Then this column will be used to label
-#'        significantly changed points.
+#'        significantly changed points for ggplot type. For canvasXpress plot type,
+#'        gene information is displayed in the tooltip.
 #' @param symbolSize Size of symbols for Up, no change, and Down (default = c(10, 4, 10));
 #'        Note: All three cannot be the same size. Decimal values are acceptable to help offset that
 #'        (e.g. 4, 4.1, 4.2).
