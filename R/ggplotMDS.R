@@ -238,12 +238,16 @@ ggplotMDS <- function(DGEdata,
         }
 
         #add valid shapes
-        if (missing(shapeBy)) {
-            if (!missing(symShape) && any(is.null(symShape), length(symShape) != 1, !.is_valid_symbolShapes_ggplot(symShape))) {
-                warning("symShape must be a singular value of class 'character' or numeric value. Refer help documentation for valid values. Assigning default value 'circle'.")
-                symShape <- "circle"
+
+        if (missing(shapeBy) &&
+            !missing(symShape) &&
+            any(is.null(symShape),
+                length(symShape) != 1,
+                !.is_valid_symbolShapes_ggplot(symShape))) {
+            warning("symShape must be a singular value of class 'character' or numeric value. Refer help documentation for valid values. Assigning default value 'circle'.")
+            symShape <- "circle"
             }
-        }
+
     }
 
     # ColorBlind palette:
@@ -305,7 +309,7 @@ ggplotMDS <- function(DGEdata,
         decorations  <- list()
         hlineIntercept_list <- list()
         if (!missing(hlineIntercept) && !is.null(hlineIntercept)) {
-            hlineIntercept_list <- lapply(seq_along(hlineIntercept),function(i){
+            hlineIntercept_list <- lapply(seq_along(hlineIntercept),function(i) {
                 list(color = ifelse(length(reflineColor) != 1, reflineColor[[i]], reflineColor),
                      width = ifelse(length(reflineSize) != 1, reflineSize[[i]], reflineSize),
                      y     = hlineIntercept[[i]])
@@ -314,15 +318,15 @@ ggplotMDS <- function(DGEdata,
 
         vlineIntercept_list <- list()
         if (!missing(vlineIntercept) && !is.null(vlineIntercept)) {
-            vlineIntercept_list <- lapply(seq_along(vlineIntercept), function(i){
+            vlineIntercept_list <- lapply(seq_along(vlineIntercept), function(i) {
                 list(color = ifelse(length(reflineColor) != 1, reflineColor[[i]], reflineColor),
                      width = ifelse(length(reflineSize) != 1, reflineSize[[i]], reflineSize),
                      x     = vlineIntercept[[i]])
             })
         }
 
-        intercept_list = c(hlineIntercept_list, vlineIntercept_list)
-        decorations <- list(line = intercept_list)
+        intercept_list <- c(hlineIntercept_list, vlineIntercept_list)
+        decorations    <- list(line = intercept_list)
 
         cx.data  <- plot_data %>%  dplyr::select(c(x, y))
         var.data <- plot_data %>% dplyr::select(-c(x, y))
@@ -360,17 +364,17 @@ ggplotMDS <- function(DGEdata,
 
         shapes <- .get_valid_symbolShapes_ggplot()[1:8]
 
-        if (byShape == FALSE && bySize == FALSE) {
+        if (!byShape && !bySize) {
             mdsplot <- ggplot(plot_data, aes(x = x, y = y, color = ColorCode)) +
                 geom_point(shape = symShape, size = symSize, alpha = transparency)
-        } else if (byShape == TRUE && bySize == FALSE) {
+        } else if (byShape && !bySize) {
             mdsplot <- ggplot(plot_data, aes(x = x, y = y, color = ColorCode, shape = Shape)) +
                 geom_point(size = symSize, alpha = transparency) +
                 scale_shape_manual(values = shapes)
-        } else if (byShape == FALSE && bySize == TRUE) {
+        } else if (!byShape && bySize) {
             mdsplot <- ggplot(plot_data, aes(x = x, y = y, color = ColorCode, size = Size)) +
                 geom_point(shape = symShape, alpha = transparency)
-        } else if (byShape == TRUE && bySize == TRUE) {
+        } else if (byShape && bySize) {
             mdsplot <- ggplot(plot_data, aes(x = x, y = y, color = ColorCode, shape = Shape, size = Size)) +
                 geom_point(alpha = transparency) #+
                 scale_shape_manual(values = shapes)
