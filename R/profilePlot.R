@@ -386,9 +386,6 @@ profilePlot <- function(contrastDF,
             }
         }
 
-        if (missing(footnote)) {
-            footnote <- NULL
-        }
         if (sizeBy == "group") {
             canvasXpress::canvasXpress(data             = cx.data,
                                        varAnnot         = var.annot,

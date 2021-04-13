@@ -15,6 +15,24 @@ test_that("profilePlot.R: profilePlot()", {
     profile_plot <- profilePlot(contrastDF, title = "BDL_vs_Sham", plotType = "ggplot",
                                 sizeBySignificance = TRUE)
     expect_s3_class(profile_plot, c("gg", "ggplot"))
+    ### contrast objects defualts (without sizeBySignificance and with geneSymCol)-
+    gene_data <- t_obj1$geneData %>%
+        dplyr::select(rgd_symbol)
+    contrastDF <- merge(contrastDF, gene_data, by = 0, all = TRUE)
+    profile_plot <- profilePlot(contrastDF, title = "BDL_vs_Sham", geneSymCol = "rgd_symbol")
+    expect_s3_class(profile_plot, c("canvasXpress", "htmlwidget"))
+    profile_plot <- profilePlot(contrastDF, title = "BDL_vs_Sham", plotType = "ggplot",
+                                geneSymCol = "rgd_symbol", symbolSize = c(4, 1, 4))
+    expect_s3_class(profile_plot, c("gg", "ggplot"))
+    ### testing lineFitType
+    contrastDF <- t_obj1$BDL_vs_Sham
+    profile_plot <- profilePlot(contrastDF, title = "BDL_vs_Sham", lineFitType = "lm",
+                                xlab = "X label", ylab = "Y label")
+    expect_s3_class(profile_plot, c("canvasXpress", "htmlwidget"))
+    profile_plot <- profilePlot(contrastDF, title = "BDL_vs_Sham", lineFitType = "lm",
+                                plotType = "ggplot", symbolSize = c(4, 1, 4),
+                                xlab = "X label", ylab = "Y label")
+    expect_s3_class(profile_plot, c("gg", "ggplot"))
     ## EXT1024_vs_BDL
     contrastDF <- t_obj1$EXT1024_vs_BDL
     profile_plot <- profilePlot(contrastDF, title = "EXT1024_vs_BDL")
