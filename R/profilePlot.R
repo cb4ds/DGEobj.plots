@@ -218,10 +218,9 @@ profilePlot <- function(contrastDF,
    if (any(is.null(symbolShape),
            !is.character(symbolShape),
            length(symbolShape)  != 3,
-           length(unique(symbolShape)) < 2,
            plotType == "canvasxpress" && !is.null(symbolShape) && length(.validate_cx_shapes(symbolShape)) != 3,
            plotType == "ggplot" && !is.null(symbolShape) && length(.validate_gg_shapes(symbolShape)) != 3)) {
-       warning("symbolShape must be a vector of 3 charcter values with 2 different values at least. Assigning canvasXpress default values 'circle', 'circle', 'circle'.")
+       warning("symbolShape must be a vector of 3 charcter values. Assigning default values 'circle', 'circle', 'circle'.")
        symbolShape  <- c("circle", "circle", "circle")
 
     }

@@ -233,7 +233,7 @@ test_that("profilePlot.R: profilePlot()", {
                    regexp = msg)
     expect_s3_class(pPlot , c("gg", "ggplot"))
     ## symbolShape
-    msg <- "symbolShape must be a vector of 3 charcter values with 2 different values at least. Assigning canvasXpress default values 'circle', 'circle', 'circle'."
+    msg <- "symbolShape must be a vector of 3 charcter values. Assigning default values 'circle', 'circle', 'circle'."
     expect_warning(pPlot <- profilePlot(contrastDF, symbolShape = NULL),
                    regexp = msg)
     expect_s3_class(pPlot , c("canvasXpress", "htmlwidget"))
@@ -252,11 +252,6 @@ test_that("profilePlot.R: profilePlot()", {
     expect_warning(pPlot <- profilePlot(contrastDF, plotType = "ggplot", symbolShape = c(1, 2)),
                    regexp = msg)
     expect_s3_class(pPlot , c("gg", "ggplot"))
-    expect_warning(pPlot <- profilePlot(contrastDF, symbolShape = c("circle", "circle", "circle")),
-                  regexp = msg)
-    expect_s3_class(pPlot , c("canvasXpress", "htmlwidget"))
-    expect_warning(pPlot <- profilePlot(contrastDF, plotType = "ggplot", symbolShape = c("circle", "circle", "circle")),
-                  regexp = msg)
     ## symbolColor
     msg <- "symbolColor must be a vector of 3 character values. Assigning default values 'red3', 'grey25', 'deepskyblue4'."
     expect_warning(pPlot <- profilePlot(contrastDF, symbolColor = NULL),
