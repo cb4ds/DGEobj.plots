@@ -46,12 +46,23 @@ plotNorm <- function(DGEdata,
                             !is.null(DGEdata),
                             any(c("matrix", "DGEobj") %in% class(DGEdata)),
                             msg = "DGEdata must be of either class 'matrix' or 'DGEobj'.")
-    assertthat::assert_that(plotType %in% c("canvasxpress", "ggplot"),
+    assertthat::assert_that(length(plotType) == 1,
+                            plotType %in% c("canvasxpress", "ggplot"),
                             msg = "plotType must be either canvasXpress or ggplot.")
-    assertthat::assert_that(plotCategory %in% c("box", "density"),
-                            msg = "plotCategory must be one of 'box' or 'density'.")
-    assertthat::assert_that(normalize %in% c("tmm", "rle", "upperquartile", "none"),
-                            msg = "normalize must be one of 'TMM', 'RLE', 'upperquartile', or 'none'.")
+    if (any(is.null(plotCategory),
+            !plotCategory %in% c("box", "density"),
+            length(plotCategory) != 1)) {
+        warning("plotCategory must be one of 'box' or 'density'. Setting default value 'box'")
+        plotCategory <- "box"
+    }
+
+    if (any(is.null(normalize),
+           length(normalize) != 1,
+           !normalize %in% c("tmm", "rle", "upperquartile", "none"))) {
+        warning("normalize must be one of 'TMM', 'RLE', 'upperquartile', or 'none'. Setting default value 'tmm'")
+        normalize <- "tmm"
+    }
+
 
     if ("matrix" %in% class(DGEdata)) {
         counts <- DGEdata

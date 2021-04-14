@@ -78,14 +78,35 @@ test_that("plotNorm.R: plotNorm()", {
     expect_s3_class(norm_plot, c("gg", "ggplot"))
 
     ######### testing assert statements ####################
+    ## DGEdata
     expect_error(plotNorm(),
                  regexp = "DGEdata must be of either class 'matrix' or 'DGEobj'.")
     expect_error(plotNorm(NULL),
                  regexp = "DGEdata must be of either class 'matrix' or 'DGEobj'.")
-    expect_error(plotNorm(t_obj1, plotCategory = "heatmap"),
-                 regexp = "plotCategory must be one of 'box' or 'density'.")
-    expect_error(plotNorm(t_obj1, normalize = "xyz"),
-                 regexp = "normalize must be one of 'TMM', 'RLE', 'upperquartile', or 'none'.")
+    expect_error(plotNorm(t_obj1$BDL_vs_Sham),
+                 regexp = "DGEdata must be of either class 'matrix' or 'DGEobj'.")
+    ## plotCategory
+    msg <- "plotCategory must be one of 'box' or 'density'. Setting default value 'box'"
+    expect_warning(plotNorm(t_obj1, plotCategory = NULL),
+                   regexp = msg)
+    expect_warning(plotNorm(t_obj1, plotCategory = "xyz"),
+                   regexp = msg)
+    expect_warning(plotNorm(t_obj1, plotCategory = c("box", "box")),
+                   regexp = msg)
+    ## normalize
+    msg <- "normalize must be one of 'TMM', 'RLE', 'upperquartile', or 'none'. Setting default value 'tmm'"
+    expect_warning(plotNorm(t_obj1, normalize = NULL),
+                 regexp = msg)
+    expect_warning(plotNorm(t_obj1, normalize = "xyz"),
+                 regexp = msg)
+    expect_warning(plotNorm(t_obj1, normalize = c("TMM", "RLE")),
+                 regexp = msg)
+    ## plotType
+    msg <- "plotType must be either canvasXpress or ggplot."
     expect_error(plotNorm(t_obj1, plotType = "myplot"),
-                 regexp = "plotType must be either canvasXpress or ggplot.")
+                 regexp = msg)
+    expect_error(plotNorm(t_obj1, plotType = NULL),
+                 regexp = msg)
+    expect_error(plotNorm(t_obj1, plotType = c("canvasXpress", "ggplot")),
+                 regexp = msg)
 })
