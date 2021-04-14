@@ -291,6 +291,9 @@ profilePlot <- function(contrastDF,
             length(footnoteColor) != 1)) {
         warning("footnoteColor must be a singular value of class character. Assigning default value 'black'.")
         footnoteColor <- "black"
+    } else if (.rgbaConversion(footnoteColor) == "invalid value") {
+        warning("Color specified is not valid. Assigning default value 'black'.")
+        footnoteColor <- "black"
     }
 
     if (any(is.null(sizeBySignificance),

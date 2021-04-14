@@ -442,6 +442,15 @@ test_that("profilePlot.R: profilePlot()", {
     #expect_s3_class(pPlot , c("canvasXpress", "htmlwidget"))
     expect_warning(pPlot <- profilePlot(contrastDF, footnote = "notes", plotType = "ggplot", footnoteColor = c(123, 456)),
                    regexp = msg)
+    expect_s3_class(pPlot , c("gg", "ggplot"))
+    msg <- "Color specified is not valid. Assigning default value 'black'."
+    expect_warning(pPlot <- profilePlot(contrastDF, footnote = "notes", footnoteColor = "abc"),
+                   regexp = msg)
+    #expect_s3_class(pPlot , c("canvasXpress", "htmlwidget"))
+    expect_warning(pPlot <- profilePlot(contrastDF, footnote = "notes", plotType = "ggplot",
+                                        footnoteColor = "abc"),
+                   regexp = msg)
+    expect_s3_class(pPlot , c("gg", "ggplot"))
     ## footnoteSize
     msg <- "footnoteSize must be a singular value of class numeric. Assigning default value '3'."
     expect_warning(pPlot <- profilePlot(contrastDF, footnote = "notes", footnoteSize = "123"),
