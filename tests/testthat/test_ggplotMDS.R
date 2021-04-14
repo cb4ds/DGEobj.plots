@@ -5,16 +5,19 @@ test_that("ggplotMDS.R: ggplotMDS()", {
     skip_if(is.null(t_obj1$DGEList))
     skip_if(is.null(t_obj1$design$ReplicateGroup))
 
+    design <- getItem(t_obj1,"design")
+    replicategroup <- design[,"ReplicateGroup",drop = FALSE]
+
     mds_plot <- ggplotMDS(DGEdata = t_obj1,
-                          colorBy = t_obj1$design$ReplicateGroup)
+                          colorBy = replicategroup)
 
-    dgelist <- DGEdata <- DGEobj::getItem(t_obj1, "DGEList")
-    mds_plot <- ggplotMDS(DGEdata = dgelist,
-                          colorBy = t_obj1$design$ReplicateGroup)
+    dgelist  <- DGEobj::getItem(t_obj1, "DGEList")
+    mds_plot_1 <- ggplotMDS(DGEdata = dgelist,
+                          colorBy = replicategroup)
 
-    dge_matrix <- DGEdata <- DGEobj::getItem(t_obj1, "DGEList") %>% as.matrix()
+    dge_matrix  <- DGEobj::getItem(t_obj1, "DGEList") %>% as.matrix()
     mds_plot <- ggplotMDS(DGEdata = dge_matrix,
-                          colorBy = t_obj1$design$ReplicateGroup)
+                          colorBy = replicategroup)
 
     expect_length(mds_plot, 2)
     expect_named(mds_plot, c("plot", "mdsobj"))

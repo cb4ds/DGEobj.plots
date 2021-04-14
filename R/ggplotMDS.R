@@ -93,7 +93,7 @@ ggplotMDS <- function(DGEdata,
                             tolower(plotType) %in% c("canvasxpress", "ggplot"),
                             msg = "Plot type must be either canvasXpress or ggplot.")
     assertthat::assert_that(!missing(colorBy),
-                            length(colorBy) == ncol(DGEdata),
+                            nrow(colorBy) == ncol(DGEdata),
                             msg = "colorBy must be specified and should be the length of the number of columns in DGEdata.")
 
     plotType = tolower(plotType)
@@ -259,6 +259,7 @@ ggplotMDS <- function(DGEdata,
         title <- "MDS Plot"
     }
 
+
     if ("DGEobj" %in% class(DGEdata)) {
         DGEdata <- DGEobj::getItem(DGEdata, "DGEList")
     }
@@ -269,7 +270,15 @@ ggplotMDS <- function(DGEdata,
                           plot = FALSE)
 
     # Pull the plotting data together
-    plot_data <- data.frame(x = mds.data$x, y = mds.data$y, ColorCode = colorBy)
+    plot_data <- merge(mds.data$x, mds.data$y, by = "row.names")
+    rownames(plot_data) <- plot_data$Row.names;plot_data$Row.names <- NULL
+
+    plot_data <- merge(plot_data, colorBy, by = "row.names")
+    rownames(plot_data) <- plot_data$Row.names;plot_data$Row.names <- NULL
+    colnames(plot_data) <- c('x','y','ColorCode')
+
+    #plot_data <- data.frame(x = mds.data$x, y = mds.data$y, ColorCode = colorBy)
+
     if (addLabels) {
         plot_data$Labels <- labels
     }
