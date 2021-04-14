@@ -250,6 +250,12 @@ test_that("profilePlot.R: profilePlot()", {
     expect_warning(pPlot <- profilePlot(contrastDF, plotType = "ggplot", symbolSize = c(1, 1, 1)),
                    regexp = msg)
     expect_s3_class(pPlot , c("gg", "ggplot"))
+    expect_warning(pPlot <- profilePlot(contrastDF, symbolSize = c(1, -1, 1)),
+                   regexp = msg)
+    expect_s3_class(pPlot , c("canvasXpress", "htmlwidget"))
+    expect_warning(pPlot <- profilePlot(contrastDF, plotType = "ggplot", symbolSize = c(1, -1, 1)),
+                   regexp = msg)
+    expect_s3_class(pPlot , c("gg", "ggplot"))
     ## symbolShape
     msg <- "symbolShape must be a vector of 3 charcter values. Assigning default values 'circle', 'circle', 'circle'."
     expect_warning(pPlot <- profilePlot(contrastDF, symbolShape = NULL),
@@ -363,6 +369,12 @@ test_that("profilePlot.R: profilePlot()", {
     expect_warning(pPlot <- profilePlot(contrastDF, plotType = "ggplot", refLineThickness = NULL),
                    regexp = msg)
     expect_s3_class(pPlot , c("gg", "ggplot"))
+    expect_warning(pPlot <- profilePlot(contrastDF, refLineThickness = -1),
+                   regexp = msg)
+    #expect_s3_class(pPlot , c("canvasXpress", "htmlwidget"))
+    expect_warning(pPlot <- profilePlot(contrastDF, plotType = "ggplot", refLineThickness = -1),
+                   regexp = msg)
+    expect_s3_class(pPlot , c("gg", "ggplot"))
     ## legendPosition
     msg <- "legendPosition must be one value from 'top', 'bottom', 'left', 'right', 'ne', 'se', 'nw', 'sw' or 'NULL' to disable. Assigning default value 'right'."
     expect_warning(pPlot <- profilePlot(contrastDF, legendPosition = 123),
@@ -455,41 +467,49 @@ test_that("profilePlot.R: profilePlot()", {
     msg <- "footnoteSize must be a singular value of class numeric. Assigning default value '3'."
     expect_warning(pPlot <- profilePlot(contrastDF, footnote = "notes", footnoteSize = "123"),
                    regexp = msg)
-    #expect_s3_class(pPlot , c("canvasXpress", "htmlwidget"))
+    expect_s3_class(pPlot , c("canvasXpress", "htmlwidget"))
     expect_warning(pPlot <- profilePlot(contrastDF, footnote = "notes", plotType = "ggplot", footnoteSize = "123"),
                    regexp = msg)
     expect_s3_class(pPlot , c("gg", "ggplot"))
     expect_warning(pPlot <- profilePlot(contrastDF, footnote = "notes", footnoteSize = c(123, 456)),
                    regexp = msg)
-    #expect_s3_class(pPlot , c("canvasXpress", "htmlwidget"))
+    expect_s3_class(pPlot , c("canvasXpress", "htmlwidget"))
     expect_warning(pPlot <- profilePlot(contrastDF, footnote = "notes", plotType = "ggplot", footnoteSize = c(123, 456)),
                    regexp = msg)
     expect_s3_class(pPlot , c("gg", "ggplot"))
     expect_warning(pPlot <- profilePlot(contrastDF, footnote = "notes", footnoteSize = c("123", "456")),
                    regexp = msg)
-    #expect_s3_class(pPlot , c("canvasXpress", "htmlwidget"))
+    expect_s3_class(pPlot , c("canvasXpress", "htmlwidget"))
     expect_warning(pPlot <- profilePlot(contrastDF, footnote = "notes", plotType = "ggplot", footnoteSize = c("123", "456")),
+                   regexp = msg)
+    expect_s3_class(pPlot , c("gg", "ggplot"))
+    expect_warning(pPlot <- profilePlot(contrastDF, footnote = "notes", footnoteSize = -1),
+                   regexp = msg)
+    expect_s3_class(pPlot , c("canvasXpress", "htmlwidget"))
+    expect_warning(pPlot <- profilePlot(contrastDF, footnote = "notes", plotType = "ggplot",
+                                        footnoteSize = -1),
                    regexp = msg)
     expect_s3_class(pPlot , c("gg", "ggplot"))
     ## sizeBySignificance
     msg <- "sizeBySignificance must be a singular logical value. Assigning default value FALSE"
     expect_warning(pPlot <- profilePlot(contrastDF, sizeBySignificance = "123"),
                    regexp = msg)
-    #expect_s3_class(pPlot , c("canvasXpress", "htmlwidget"))
+    expect_s3_class(pPlot , c("canvasXpress", "htmlwidget"))
     expect_warning(pPlot <- profilePlot(contrastDF, plotType = "ggplot", sizeBySignificance = "123"),
                    regexp = msg)
     expect_s3_class(pPlot , c("gg", "ggplot"))
     expect_warning(pPlot <- profilePlot(contrastDF, sizeBySignificance = c(TRUE, TRUE)),
                    regexp = msg)
-    #expect_s3_class(pPlot , c("canvasXpress", "htmlwidget"))
+    expect_s3_class(pPlot , c("canvasXpress", "htmlwidget"))
     expect_warning(pPlot <- profilePlot(contrastDF, plotType = "ggplot", sizeBySignificance = c(TRUE, TRUE)),
                    regexp = msg)
     expect_s3_class(pPlot , c("gg", "ggplot"))
     expect_warning(pPlot <- profilePlot(contrastDF, sizeBySignificance = NULL),
                    regexp = msg)
-    #expect_s3_class(pPlot , c("canvasXpress", "htmlwidget"))
+    expect_s3_class(pPlot , c("canvasXpress", "htmlwidget"))
     expect_warning(pPlot <- profilePlot(contrastDF, plotType = "ggplot", sizeBySignificance = NULL),
                    regexp = msg)
+    expect_s3_class(pPlot , c("gg", "ggplot"))
     ## lineFitType
     msg <- "lineFitType must be one of 'glm', 'lm', 'loess', 'gam' or NULL to disable. Assigning default value 'loess'."
     expect_warning(pPlot <- profilePlot(contrastDF, lineFitType = 123),
@@ -514,13 +534,13 @@ test_that("profilePlot.R: profilePlot()", {
     msg <- "lineFitColor must be a singular value of class character. Assigning default value 'goldenrod1'."
     expect_warning(pPlot <- profilePlot(contrastDF, lineFitColor = 123),
                    regexp = msg)
-    #expect_s3_class(pPlot , c("canvasXpress", "htmlwidget"))
+    expect_s3_class(pPlot , c("canvasXpress", "htmlwidget"))
     expect_warning(pPlot <- profilePlot(contrastDF, plotType = "ggplot", lineFitColor = 123),
                    regexp = msg)
     expect_s3_class(pPlot , c("gg", "ggplot"))
     expect_warning(pPlot <- profilePlot(contrastDF, lineFitColor = c("123", "456")),
                    regexp = msg)
-    #expect_s3_class(pPlot , c("canvasXpress", "htmlwidget"))
+    expect_s3_class(pPlot , c("canvasXpress", "htmlwidget"))
     expect_warning(pPlot <- profilePlot(contrastDF, plotType = "ggplot", lineFitColor = c("123", "456")),
                    regexp = msg)
     expect_s3_class(pPlot , c("gg", "ggplot"))

@@ -212,7 +212,8 @@ profilePlot <- function(contrastDF,
     if (any(is.null(symbolSize),
             !is.numeric(symbolSize),
             length(symbolSize)  != 3,
-            length(unique(symbolSize)) < 2)) {
+            length(unique(symbolSize)) < 2,
+            !all(symbolSize >= 0))) {
         warning("symbolSize must be a vector of 3 integer values, at least 2 of them are different. Assigning default values 10, 4, 10.")
         symbolSize  <-  c(10, 4, 10)
 
@@ -256,7 +257,8 @@ profilePlot <- function(contrastDF,
 
     if (any(is.null(refLineThickness),
             !is.numeric(refLineThickness),
-            length(refLineThickness) != 1)) {
+            length(refLineThickness) != 1,
+            refLineThickness < 0)) {
         warning("refLineThickness must be a singular value of class numeric Assigning default value '1'.")
         refLineThickness <- 1
     }
@@ -280,7 +282,8 @@ profilePlot <- function(contrastDF,
     if (!is.null(footnote) &&
         !is.null(footnoteSize) &&
         any(!is.numeric(footnoteSize),
-            length(footnoteSize) != 1)) {
+            length(footnoteSize) != 1,
+            footnoteSize < 0)) {
         warning("footnoteSize must be a singular value of class numeric. Assigning default value '3'.")
         footnoteSize <- 3
     }
