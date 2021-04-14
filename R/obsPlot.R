@@ -162,11 +162,10 @@ obsPlot <- function(data,
     }
 
     # Create a rownames column
-    data <- cbind(GeneID = rownames(data), data.frame(data, row.names = NULL))
+    data$GeneID = rownames(data);rownames(data) <- NULL
     data <- tidyr::gather(data, key = "Sample", value = "Log2CPM",-GeneID)
     colnames(group) <- "group"
-    group$Sample    <- rownames(group)
-    rownames(group) <- NULL
+    group$Sample    <- rownames(group);rownames(group) <- NULL
     data <- merge(x     = data,
                   y     = group,
                   by    = "Sample",
@@ -199,7 +198,7 @@ obsPlot <- function(data,
     if (facet) {
 
         #Number of charts to plot
-        if (length(unique(data[plotByCol])) > facet_chart_limit) {
+        if (nrow(unique(data[plotByCol])) > facet_chart_limit) {
             message(paste("A large number of charts/facets has/have been requested and may take significant time to generate.  It is suggested that less than",
                           facet_chart_limit,
                           "charts/facets are requested at a time"))
