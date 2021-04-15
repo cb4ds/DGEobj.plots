@@ -10,106 +10,62 @@ obsPlot(
   group,
   boxLayer = TRUE,
   violinLayer = FALSE,
-  pointLayer = TRUE,
-  meanLayer = TRUE,
+  showPoints = TRUE,
+  showMean = TRUE,
   xlab,
   ylab,
   title,
   boxColor = "deepskyblue3",
   boxTransparency = 0.5,
-  boxNotch = FALSE,
-  boxNotchWidth = 0.8,
   violinColor = "goldenrod1",
   violinTransparency = 0.5,
-  pointColor = "dodgerblue4",
-  pointShape = "circle",
-  pointTransparency = 1,
-  pointSize = 2,
-  pointJitter = 0,
-  meanColor = "goldenrod",
-  meanShape = "square",
-  meanTransparency = 0.7,
-  meanSize = 3,
   facet = TRUE,
   facetRow,
-  xAngle = 30,
-  scales = "free_y"
+  labelAngle = 30,
+  axisFree = TRUE
 )
 }
 \arguments{
-\item{data}{A tidy dataframe of intensity data with row and colnames (required)}
+\item{data}{A  dataframe row and colnames (required)}
 
-\item{boxLayer}{Adds a boxplot layer (Default = TRUE)}
+\item{group}{Define the column name to group boxplots by (typically a replicate group column) (required)}
 
-\item{violinLayer}{Adds a violin layer (Default = FALSE)}
+\item{boxLayer}{Adds a boxplot layer (default = TRUE)}
 
-\item{pointLayer}{Adds a point layer (Default = TRUE)}
+\item{violinLayer}{Adds a violin layer (default = FALSE)}
 
-\item{meanLayer}{Adds a mean layer (Default = TRUE)}
+\item{showPoints}{Shows the datapoints on the plot only if boxLayer or violinLayer is enabled. (default = TRUE)}
 
-\item{xlab}{X axis label (defaults to groupCol)}
+\item{showMean}{Show the mean of the points on the plot only if boxLayer is enabled. (default = TRUE)}
 
-\item{ylab}{Y axis label (defaults to valueCol)}
+\item{xlab}{X axis label (defaults to group column name if not specified)}
+
+\item{ylab}{Y axis label (defaults to value column name if not specified)}
 
 \item{title}{Plot title (optional)}
 
-\item{boxColor}{Color for the boxplot layer (Default = "deepskyblue3")}
+\item{boxColor}{Color for the boxplot layer (default = "deepskyblue3")}
 
-\item{boxTransparency}{Transparency for the box layer (Default = 0.5)}
+\item{boxTransparency}{Transparency for the box layer (default = 0.5)}
 
-\item{boxNotch}{Turn on/off confidence interval notches on boxplots (Default = FALSE)}
+\item{violinColor}{Color for the violin layer (default = "yellow")}
 
-\item{boxNotchWidth}{Set the width of box notches (0-1) (Default = 0.8)}
-
-\item{violinColor}{Color for the violin layer (Default = "yellow")}
-
-\item{violinTransparency}{Transparency for the violin layer (Default = 0.5)}
-
-\item{pointColor}{Color for the point layer (Default = "dodgerblue4")}
-
-\item{pointShape}{Shape for the point layer (Default = 21; fillable circle)}
-
-\item{pointTransparency}{Transparency for the box layer (Default = 1)}
-
-\item{pointSize}{Size of the points (Default = 4)}
-
-\item{pointJitter}{Amount to jitter the points (Default = 0) Try 0.2 if you
-have a lot of points.}
-
-\item{meanColor}{Color for the mean layer (Default = "goldenrod1")}
-
-\item{meanShape}{Shape for the mean layer (Default = 21; fillable circle)}
-
-\item{meanTransparency}{Transparency for the mean layer (Default = 0.7)}
-
-\item{meanSize}{Size of the mean points (Default = 3)}
+\item{violinTransparency}{Transparency for the violin layer (default = 0.5)}
 
 \item{facet}{Specifies whether to facet (TRUE) or print individual plots
-(FALSE)  (Default = TRUE)}
+(FALSE)  (default = TRUE)}
 
 \item{facetRow}{Explicitly set the number of rows for the facet plot.
-Default behavior will automatically set the columns. (Default = NULL)}
+Default behavior will automatically set the columns. (default = NULL)}
 
-\item{xAngle}{Angle to set the sample labels on the X axis. (Default =  30; Range = 0-90)}
+\item{labelAngle}{Angle to set the sample labels on the X axis. (default =  30; range = 0-90)}
 
-\item{scales}{Specify same scales or independent scales for each subplot (Default = "free_y";
-Allowed values: "fixed", "free_x", "free_y", "free")}
+\item{axisFree}{Specify same scale or independent scales for each subplot (Default = TRUE;
+Allowed values: TRUE and FALSE)}
 
-\item{plotByCol}{Define the column name to separate plots (typically a gene ID column) (required)}
+\item{boxFill}{Fill Color for the boxplot layer (default = "deepskyblue3")}
 
-\item{groupCol}{Define the column name to group boxplots by (typically a replicate group column) (required)}
-
-\item{valueCol}{Define the column of values for plotting (typically a log intensity measure) (required)}
-
-\item{groupOrder}{Define the order for the groups in each plot.  Should
-contain values in unique(data$group) listed in the order that you want the
-groups to appear in the plot. (optional; default = unique(data[groupCol]))}
-
-\item{boxFill}{Fill Color for the boxplot layer (Default = "deepskyblue3")}
-
-\item{violinFill}{Fill Color for the violin (Default = "yellow")}
-
-\item{pointFill}{Fill color for the point layer (Default = "dodgerblue4")}
+\item{violinFill}{Fill Color for the violin (default = "yellow")}
 }
 \value{
 Plot of type canvasXpress or ggplot. If Facet = TRUE (default) returns a faceted object. If
@@ -118,15 +74,17 @@ Plot of type canvasXpress or ggplot. If Facet = TRUE (default) returns a faceted
 }
 \description{
 Provides a summary plot (box/violin/points) for each observation (gene), showing data for each
-experiment group. The plot can optionally include one or more of the
-following layers: boxplot, violin plot, individual points, and/or mean of all
-points.  The layers are built up in the order listed with user settable
-transparency, colors etc.  By default, the boxplot, point, and mean layers are
-active. Also, by default, the plots are faceted.  Faceting the plot can be turned
-off to return a list of individual ggplot graphics for each gene.
+experiment group. The plot can optionally include either one or both of the boxplot and violinplot layer
+can additionally choose to display points and/or mean of all the points on the ploit.  The boxLayer and the
+violin layer can be customized to have the desired transparency, colors etc. By default, the violinLayer is
+not displayed and only the boxplot, points and the mean on the plots can be see.
 }
 \details{
-Input is a tidy dataframe of intensity data.
+Also, by default, the plots are faceted.  Faceting the plot can be turned off to return a list of individual
+plots for each gene.
+
+Input is a dataframe or matrix of intensity values with geneID row names and sample name column names,
+e.g. from log2cpm. Group must also be specified as the plots are grouped by this attribute.
 }
 \examples{
 \dontrun{
@@ -135,42 +93,26 @@ Input is a tidy dataframe of intensity data.
   x <- matrix(rnorm(2400, mean = 10), ncol = length(groups))
   colnames(x) <- paste("sample", 1:ncol(x), sep = "")
   rownames(x) <- paste("gene", 1:nrow(x), sep="")
-  # Reformat into tidy dataframe
-  tidyInt <- tidyIntensity(x)
 
  # Or get data from a DGEobj with RNA-Seq data
  log2cpm <- convertCounts(dgeObj$counts, unit = "cpm", log = TRUE, normalize = "tmm")
- tidyInt <- tidyIntensity(log2cpm,
-                          rowidColname = "GeneID",
-                          keyColname = "Sample",
-                          valueColname = "Log2CPM",
-                          group = dgeObj$design$ReplicateGroup)
+ design <- getItem(t_obj1,"design")
+ replicategroup <- design[,"ReplicateGroup",drop = FALSE]
 
   # Faceted boxplot
-  obsPlot(tidyInt,
-           plotByCol = "GeneID",
-           groupCol = "group",
-           valueCol ="Log2CPM",
-           pointJitter = 0.1,
-           facetRow = 2)
+  obsPlot(log2cpm,
+          group = replicategroup)
 
   # Faceted violin plot
-  obsPlot(tidyInt,
-           plotByCol = "GeneID",
+  obsPlot(log2cpm,
            violinLayer = TRUE,
            boxLayer = FALSE,
-           groupCol="group",
-           valueCol = "Log2CPM",
-           pointJitter = 0.1,
-           facetRow = 2)
+           group = replicategroup)
 
-  # Return a list of ggplots for each individual gene
-  myplots <- obsPlot(tidyInt,
-                      plotByCol="GeneID",
-                      groupCol = "group",
-                      valueCol ="Log2CPM",
-                      pointJitter = 0.1,
-                      facet = FALSE)
+  # Return a list of plot for each individual gene
+  myplots <- obsPlot(log2cpm,
+                     group = replicategroup
+                     facet = FALSE)
   # Plot one from the list
   myplots[[2]]
 }

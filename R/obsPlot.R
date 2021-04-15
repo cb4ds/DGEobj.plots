@@ -1,55 +1,39 @@
 #' Function obsPlot
 #'
 #' Provides a summary plot (box/violin/points) for each observation (gene), showing data for each
-#' experiment group. The plot can optionally include one or more of the
-#' following layers: boxplot, violin plot, individual points, and/or mean of all
-#' points.  The layers are built up in the order listed with user settable
-#' transparency, colors etc.  By default, the boxplot, point, and mean layers are
-#' active. Also, by default, the plots are faceted.  Faceting the plot can be turned
-#' off to return a list of individual ggplot graphics for each gene.
+#' experiment group. The plot can optionally include either one or both of the boxplot and violinplot layer
+#' can additionally choose to display points and/or mean of all the points on the ploit.  The boxLayer and the
+#' violin layer can be customized to have the desired transparency, colors etc. By default, the violinLayer is
+#' not displayed and only the boxplot, points and the mean on the plots can be see.
 #'
-#' Input is a tidy dataframe of intensity data.
+#' Also, by default, the plots are faceted.  Faceting the plot can be turned off to return a list of individual
+#' plots for each gene.
 #'
-#' @param data A tidy dataframe of intensity data with row and colnames (required)
-#' @param plotByCol Define the column name to separate plots (typically a gene ID column) (required)
-#' @param groupCol Define the column name to group boxplots by (typically a replicate group column) (required)
-#' @param valueCol Define the column of values for plotting (typically a log intensity measure) (required)
-#' @param groupOrder Define the order for the groups in each plot.  Should
-#'   contain values in unique(data$group) listed in the order that you want the
-#'   groups to appear in the plot. (optional; default = unique(data[groupCol]))
-#' @param boxLayer Adds a boxplot layer (Default = TRUE)
-#' @param violinLayer Adds a violin layer (Default = FALSE)
-#' @param pointLayer Adds a point layer (Default = TRUE)
-#' @param meanLayer Adds a mean layer (Default = TRUE)
-#' @param xlab X axis label (defaults to groupCol)
-#' @param ylab Y axis label (defaults to valueCol)
+#' Input is a dataframe or matrix of intensity values with geneID row names and sample name column names,
+#' e.g. from log2cpm. Group must also be specified as the plots are grouped by this attribute.
+#'
+#' @param data A  dataframe row and colnames (required)
+#' @param group Define the column name to group boxplots by (typically a replicate group column) (required)
+#' @param boxLayer Adds a boxplot layer (default = TRUE)
+#' @param violinLayer Adds a violin layer (default = FALSE)
+#' @param showPoints Shows the datapoints on the plot only if boxLayer or violinLayer is enabled. (default = TRUE)
+#' @param showMean Show the mean of the points on the plot only if boxLayer is enabled. (default = TRUE)
+#' @param xlab X axis label (defaults to group column name if not specified)
+#' @param ylab Y axis label (defaults to value column name if not specified)
 #' @param title Plot title (optional)
-#' @param boxColor Color for the boxplot layer (Default = "deepskyblue3")
-#' @param boxFill Fill Color for the boxplot layer (Default = "deepskyblue3")
-#' @param boxTransparency Transparency for the box layer (Default = 0.5)
-#' @param violinColor Color for the violin layer (Default = "yellow")
-#' @param violinFill Fill Color for the violin (Default = "yellow")
-#' @param violinTransparency Transparency for the violin layer (Default = 0.5)
-#' @param pointColor Color for the point layer (Default = "dodgerblue4")
-#' @param pointFill Fill color for the point layer (Default = "dodgerblue4")
-#' @param pointShape Shape for the point layer (Default = 21; fillable circle)
-#' @param pointTransparency Transparency for the box layer (Default = 1)
-#' @param boxNotch Turn on/off confidence interval notches on boxplots (Default = FALSE)
-#' @param boxNotchWidth Set the width of box notches (0-1) (Default = 0.8)
-#' @param pointSize Size of the points (Default = 4)
-#' @param pointJitter Amount to jitter the points (Default = 0) Try 0.2 if you
-#'   have a lot of points.
-#' @param meanColor Color for the mean layer (Default = "goldenrod1")
-#' @param meanShape Shape for the mean layer (Default = 21; fillable circle)
-#' @param meanTransparency Transparency for the mean layer (Default = 0.7)
-#' @param meanSize Size of the mean points (Default = 3)
+#' @param boxColor Color for the boxplot layer (default = "deepskyblue3")
+#' @param boxFill Fill Color for the boxplot layer (default = "deepskyblue3")
+#' @param boxTransparency Transparency for the box layer (default = 0.5)
+#' @param violinColor Color for the violin layer (default = "yellow")
+#' @param violinFill Fill Color for the violin (default = "yellow")
+#' @param violinTransparency Transparency for the violin layer (default = 0.5)
 #' @param facet Specifies whether to facet (TRUE) or print individual plots
-#'   (FALSE)  (Default = TRUE)
+#'   (FALSE)  (default = TRUE)
 #' @param facetRow Explicitly set the number of rows for the facet plot.
-#'   Default behavior will automatically set the columns. (Default = NULL)
-#' @param xAngle Angle to set the sample labels on the X axis. (Default =  30; Range = 0-90)
-#' @param scales Specify same scales or independent scales for each subplot (Default = "free_y";
-#'   Allowed values: "fixed", "free_x", "free_y", "free")
+#'   Default behavior will automatically set the columns. (default = NULL)
+#' @param labelAngle Angle to set the sample labels on the X axis. (default =  30; range = 0-90)
+#' @param axisFree Specify same scale or independent scales for each subplot (Default = TRUE;
+#'   Allowed values: TRUE and FALSE)
 #'
 #' @return Plot of type canvasXpress or ggplot. If Facet = TRUE (default) returns a faceted object. If
 #'   facet = FALSE, returns a list of objects indexed
@@ -62,42 +46,27 @@
 #'   x <- matrix(rnorm(2400, mean = 10), ncol = length(groups))
 #'   colnames(x) <- paste("sample", 1:ncol(x), sep = "")
 #'   rownames(x) <- paste("gene", 1:nrow(x), sep="")
-#'   # Reformat into tidy dataframe
-#'   tidyInt <- tidyIntensity(x)
+
 #'
 #'  # Or get data from a DGEobj with RNA-Seq data
 #'  log2cpm <- convertCounts(dgeObj$counts, unit = "cpm", log = TRUE, normalize = "tmm")
-#'  tidyInt <- tidyIntensity(log2cpm,
-#'                           rowidColname = "GeneID",
-#'                           keyColname = "Sample",
-#'                           valueColname = "Log2CPM",
-#'                           group = dgeObj$design$ReplicateGroup)
+#'  design <- getItem(t_obj1,"design")
+#'  replicategroup <- design[,"ReplicateGroup",drop = FALSE]
 #'
 #'   # Faceted boxplot
-#'   obsPlot(tidyInt,
-#'            plotByCol = "GeneID",
-#'            groupCol = "group",
-#'            valueCol ="Log2CPM",
-#'            pointJitter = 0.1,
-#'            facetRow = 2)
+#'   obsPlot(log2cpm,
+#'           group = replicategroup)
 #'
 #'   # Faceted violin plot
-#'   obsPlot(tidyInt,
-#'            plotByCol = "GeneID",
+#'   obsPlot(log2cpm,
 #'            violinLayer = TRUE,
 #'            boxLayer = FALSE,
-#'            groupCol="group",
-#'            valueCol = "Log2CPM",
-#'            pointJitter = 0.1,
-#'            facetRow = 2)
+#'            group = replicategroup)
 #'
-#'   # Return a list of ggplots for each individual gene
-#'   myplots <- obsPlot(tidyInt,
-#'                       plotByCol="GeneID",
-#'                       groupCol = "group",
-#'                       valueCol ="Log2CPM",
-#'                       pointJitter = 0.1,
-#'                       facet = FALSE)
+#'   # Return a list of plot for each individual gene
+#'   myplots <- obsPlot(log2cpm,
+#'                      group = replicategroup
+#'                      facet = FALSE)
 #'   # Plot one from the list
 #'   myplots[[2]]
 #' }
@@ -112,33 +81,21 @@
 obsPlot <- function(data,
                     plotType    = "canvasXpress",
                     group,
-                    #groupOrder = unique(as.character(data[,groupCol, drop = TRUE])),
                     boxLayer    = TRUE,
                     violinLayer = FALSE,
-                    pointLayer  = TRUE,
-                    meanLayer   = TRUE,
+                    showPoints  = TRUE,
+                    showMean   = TRUE,
                     xlab,
                     ylab,
                     title,
                     boxColor    = "deepskyblue3",
                     boxTransparency = 0.5,
-                    boxNotch    = FALSE,
-                    boxNotchWidth = 0.8,
                     violinColor = "goldenrod1",
                     violinTransparency = 0.5,
-                    pointColor  = "dodgerblue4",
-                    pointShape  = "circle",
-                    pointTransparency = 1,
-                    pointSize   = 2,
-                    pointJitter = 0,
-                    meanColor   = "goldenrod",
-                    meanShape   = "square",
-                    meanTransparency = 0.7,
-                    meanSize    = 3,
                     facet       = TRUE,
                     facetRow,
-                    xAngle      = 30,
-                    scales      = "free_y") {
+                    labelAngle      = 30,
+                    axisFree      = TRUE) {
     assertthat::assert_that(!missing(data),!is.null(data),
                             any(c("data.frame", "matrix") %in% class(data)),
                             msg = "data must be specified and should be of class 'data.frame' or 'matrix.'")
@@ -163,7 +120,7 @@ obsPlot <- function(data,
 
     # Create a rownames column
     data$GeneID = rownames(data);rownames(data) <- NULL
-    data <- tidyr::gather(data, key = "Sample", value = "Log2CPM",-GeneID)
+    data <- tidyr::gather(data, key = "Sample", value = "value",-GeneID)
     colnames(group) <- "group"
     group$Sample    <- rownames(group);rownames(group) <- NULL
     data <- merge(x     = data,
@@ -171,17 +128,12 @@ obsPlot <- function(data,
                   by    = "Sample",
                   all.x = TRUE,
                   sort  = FALSE)
-    data <- data[, c("GeneID", "Sample", "Log2CPM", "group")]
+    data <- data[, c("GeneID", "Sample", "value", "group")]
 
-    # to be removed
-    # a <- unique(data$GeneID)
-    # tidyInt_sub <-
-    #     data %>% filter(., GeneID %in% a[1:6]) %>% as.data.frame()
-    # data <- tidyInt_sub
     plotByCol <-  "GeneID"
-    valueCol <- "Log2CPM"
+    valueCol <- "value"
     groupCol <-  "group"
-    ############
+
 
     #input validations
     plotType = tolower(plotType)
@@ -199,7 +151,7 @@ obsPlot <- function(data,
 
         #Number of charts to plot
         if (nrow(unique(data[plotByCol])) > facet_chart_limit) {
-            message(paste("A large number of charts/facets has/have been requested and may take significant time to generate.  It is suggested that less than",
+            warning(paste("A large number of charts/facets has/have been requested and may take significant time to generate.  It is suggested that less than",
                           facet_chart_limit,
                           "charts/facets are requested at a time"))
         }
@@ -249,12 +201,12 @@ obsPlot <- function(data,
         ylab <- valueCol
     }
 
-    if (!missing(xAngle) &&
-        any(!is.numeric(xAngle),
-            length(xAngle) != 1,
-            xAngle <= 0)) {
-        warning("xAngle must be a single numeric value greater than 0. Assigning default value 30.")
-        xAngle <- 30
+    if (!missing(labelAngle) &&
+        any(!is.numeric(labelAngle),
+            length(labelAngle) != 1,
+            labelAngle <= 0)) {
+        warning("labelAngle must be a single numeric value greater than 0. Assigning default value 30.")
+        labelAngle <- 30
     }
 
     #boxplot Validations
@@ -284,13 +236,6 @@ obsPlot <- function(data,
                 boxTransparency > 1)) {
             warning("boxTransparency must be a singular numeric value and must be between 0 and 1. Assigning default value 0.5.")
             boxTransparency <- 0.5
-        }
-
-        if (any(is.null(boxNotch),
-                length(boxNotch) != 1,
-                !is.logical(boxNotch))) {
-            warning("boxNotch must be a single logical value. Assigning default value 'FALSE'.")
-            boxNotch <- FALSE
         }
     }
 
@@ -324,125 +269,37 @@ obsPlot <- function(data,
     }
 
     #Mean layer validations
-    if (any(is.null(meanLayer),
-            length(meanLayer) != 1,
-            !is.logical(meanLayer))) {
-        warning("meanLayer must be a singular logical value. Assigning default value TRUE.")
-        meanLayer <- TRUE
-    }
-
-    if (meanLayer) {
-        if (any(is.null(meanColor),
-                length(meanColor) != 1,
-                !is.character(meanColor))) {
-            warning("meanColor must be of class character and must specify the name of the color or the rgb value. Assigning default value 'goldenrod1'.")
-            meanColor <- "goldenrod1"
-        } else if (.rgbaConversion(meanColor) == "invalid value") {
-            warning("meanColor specified is not valid. Assigning default value 'goldenrod1'.")
-            meanColor <- "goldenrod1"
-        }
-
-        if (any(is.null(meanTransparency),
-                !is.numeric(meanTransparency),
-                length(meanTransparency) != 1,
-                meanTransparency <= 0,
-                meanTransparency > 1)) {
-            warning("meanTransparency must be a singular numeric value and must be between 0 and 1. Assigning default value 0.7.")
-            meanTransparency <- 0.7
-        }
-
-        if (plotType == "canvasxpress" &&
-            any(is.null(meanShape),
-                length(meanShape) != 1,
-                !.is_valid_symbolShapes_cxplot(meanShape))) {
-            warning("meanShape specified is not valid. Assigning default value 'square'.")
-            meanShape <- "square"
-        }
-
-        if (plotType == "ggplot" &&
-            any(is.null(meanShape),
-                length(meanShape) != 1,
-                !.is_valid_symbolShapes_ggplot(meanShape))) {
-            warning("meanShape specified is not valid. Assigning default value '22'.")
-            meanShape <- 22
-        }
-
-        if (any(is.null(meanSize),
-                length(meanSize) != 1,
-                !is.numeric(meanSize))) {
-            warning("meanSize must be a singular numeric value. Assigning default value 3.")
-            meanSize <- 3
-        }
+    if (boxLayer &&
+        any(is.null(showMean),
+            length(showMean) != 1,
+            !is.logical(showMean))) {
+        warning("showMean must be a singular logical value. Assigning default value TRUE.")
+        showMean <- TRUE
     }
 
     #point validations
-    if (any(is.null(pointLayer),
-            length(pointLayer) != 1,
-            !is.logical(pointLayer))) {
-        warning("pointLayer must be a singular logical value. Assigning default value TRUE.")
-        pointLayer <- TRUE
-
+    if ((boxLayer || violinLayer) &&
+        any(is.null(showPoints),
+            length(showPoints) != 1,
+            !is.logical(showPoints))) {
+        warning("showPoints must be a singular logical value. Assigning default value TRUE.")
+        showPoints <- TRUE
     }
 
-    if (pointLayer) {
-        if (any(is.null(pointColor),
-                length(pointColor) != 1,
-                !is.character(pointColor))) {
-            warning("pointColor must be of class character and must specify the name of the color or the rgb value. Assigning default value 'dodgerblue4'.")
-            pointColor <- "dodgerblue4"
-        } else if (.rgbaConversion(pointColor) == "invalid value") {
-            warning("pointColor specified is not valid. Assigning default value 'dodgerblue4'.")
-            pointColor <- "dodgerblue4"
-        }
-
-        if (any(is.null(pointTransparency),
-                !is.numeric(pointTransparency),
-                length(pointTransparency) != 1,
-                pointTransparency <= 0,
-                pointTransparency > 1)) {
-            warning("pointTransparency must be a singular numeric value and must be between 0 and 1. Assigning default value 1.")
-            pointTransparency <- 1
-        }
-
-        if (plotType == "canvasxpress" &&
-            any(is.null(pointShape),
-                length(pointShape) != 1,
-                !.is_valid_symbolShapes_cxplot(pointShape))) {
-            warning("pointShape specified is not valid. Assigning default value 'circle'.")
-            pointShape <- "circle"
-        }
-
-        if (plotType == "ggplot" &&
-            any(is.null(pointShape),
-                length(pointShape) != 1,
-                !.is_valid_symbolShapes_ggplot(pointShape))) {
-            warning("pointShape specified is not valid. Assigning default value 'circle'.")
-            pointShape <- "circle"
-        }
-
-        if (any(is.null(pointSize),
-                length(pointSize) != 1,
-                !is.numeric(pointSize),
-                pointSize <= 0)) {
-            warning("pointSize must be a singular numeric value. Assigning default value 2.")
-            pointSize <- 2
-        }
-
-        if (any(is.null(pointJitter),
-                length(pointJitter) != 1,
-                !is.numeric(pointJitter),
-                pointJitter < 0)) {
-            warning("pointJitter must be a singular numeric value. Assigning default value 0.")
-            pointJitter <- 0
-        }
+    #axisFree
+    if (any(is.null(axisFree),
+            length(axisFree) != 1,
+            !is.logical(axisFree))) {
+        warning("axisFree must be a singular logical value. Assigning default value TRUE.")
+        axisFree <- TRUE
     }
 
     obsPlot <- NULL
     if (plotType == "canvasxpress") {
         if (facet == TRUE) {
             numcol   <- ((data[[plotByCol]] %>% unique %>% length) / numrow) %>% ceiling
-            cx_data  <- data %>% select(Log2CPM) %>% t() %>% as.data.frame()
-            smp_data <- data %>% select(-Log2CPM)
+            cx_data  <- data %>% select(!!rlang::sym(valueCol)) %>% t() %>% as.data.frame()
+            smp_data <- data %>% select(-!!rlang::sym(valueCol))
             rownames(smp_data) <- colnames(cx_data)
             obsPlot  <- canvasXpress(data = cx_data,
                                     smpAnnot = smp_data,
@@ -451,23 +308,19 @@ obsPlot <- function(data,
                                     groupingFactors = groupCol,
                                     boxplotColor = boxColor,
                                     boxplotDataPointTransparency = boxTransparency,
-                                    dataPointSize = pointSize * 7,
-                                    shapes = pointShape,
-                                    boxplotMean = meanLayer,
-                                    boxplotMeanColor = meanColor,
+                                    boxplotMean = showMean,
                                     boxplotWhiskersType = "single",
-                                    boxplotNotched = boxNotch,
                                     showViolinBoxplot = violinLayer,
                                     showBoxplotIfViolin = boxLayer,
                                     violinColor = violinColor,
                                     violinTransparency = violinTransparency,
-                                    smpLabelRotate = xAngle,
+                                    smpLabelRotate = labelAngle,
                                     smpLabelScaleFontFactor = 1,
                                     smpTitle = xlab,
                                     smpTitleFontStyle = "bold",
                                     smpTitleScaleFontFactor = 1,
-                                    layoutAdjust = TRUE,
-                                    showBoxplotOriginalData = pointLayer,
+                                    layoutAdjust = axisFree,
+                                    showBoxplotOriginalData = showPoints,
                                     theme = "CanvasXpress",
                                     xAxisTitle = ylab,
                                     xAxis2Show = TRUE,
@@ -482,11 +335,11 @@ obsPlot <- function(data,
                 data_subset <- data %>%
                     filter(!!rlang::sym(plotByCol) == x)
                 cx_data <- data_subset %>%
-                    select(Log2CPM) %>%
+                    select(!!rlang::sym(valueCol)) %>%
                     t() %>%
                     as.data.frame()
                 smp_data <- data_subset %>%
-                    select(-Log2CPM)
+                    select(-!!rlang::sym(valueCol))
                 rownames(smp_data) <- colnames(cx_data)
                 title <- x
 
@@ -497,27 +350,23 @@ obsPlot <- function(data,
                              groupingFactors = groupCol,
                              boxplotColor = boxColor,
                              boxplotDataPointTransparency = boxTransparency,
-                             boxplotMean = meanLayer,
-                             boxplotNotched = boxNotch,
-                             dataPointSize = pointSize * 7,
-                             shapes = pointShape,
-                             boxplotMeanColor = meanColor,
+                             boxplotMean = showMean,
                              boxplotWhiskersType = "single",
                              showViolinBoxplot = violinLayer,
                              showBoxplotIfViolin = boxLayer,
                              violinColor = violinColor,
                              violinTransparency = violinTransparency,
-                             smpLabelRotate = xAngle,
+                             smpLabelRotate = labelAngle,
                              smpLabelScaleFontFactor = 1,
                              smpTitle = xlab,
                              smpTitleFontStyle = "bold",
                              smpTitleScaleFontFactor = 1,
-                             layoutAdjust = TRUE,
-                             showBoxplotOriginalData = pointLayer,
+                             layoutAdjust = axisFree,
+                             showBoxplotOriginalData = showPoints,
                              theme = "CanvasXpress",
-                             xAxisTitle = "Log2CPM",
+                             xAxisTitle = ylab,
                              title = title,
-                             xAxis2Show = ylab,
+                             xAxis2Show = TRUE,
                              showLegend = FALSE)
             })
         }
@@ -528,8 +377,6 @@ obsPlot <- function(data,
                     alpha = boxTransparency,
                     color = boxColor,
                     fill  = boxColor,
-                    notch = boxNotch,
-                    notchwidth = boxNotchWidth,
                     outlier.shape = outlier.shape,
                     outlier.size  = outlier.size
                 )
@@ -541,32 +388,24 @@ obsPlot <- function(data,
                                                  fill  = violinColor)
             }
 
-            if (pointLayer == TRUE) {
-                if (pointJitter > 0) {
+            if (showPoints == TRUE) {
                     obsPlot <-
-                        obsPlot + geom_point(position = position_jitter(width = pointJitter),
-                                             alpha    = pointTransparency,
-                                             color    = pointColor,
-                                             fill     = pointColor,
-                                             size     = pointSize,
-                                             shape    = pointShape)
-                } else {
-                    obsPlot <- obsPlot + geom_point(alpha = pointTransparency,
-                                                    color = pointColor,
-                                                    fill  = pointColor,
-                                                    size  = pointSize,
-                                                    shape = pointShape)
-                }
+                        obsPlot + geom_point(position = position_jitter(width = 0.1),
+                                             alpha    = 0.5,
+                                             color    = "grey30",
+                                             fill     = "dodgerblue4",
+                                             size     = 2,
+                                             shape    = "circle")
             }
 
-            if (meanLayer == TRUE) {
+            if (showMean == TRUE) {
                 obsPlot <- obsPlot + stat_summary(fun   = mean,
                                                   geom  = "point",
-                                                  shape = meanShape,
-                                                  size  = meanSize,
-                                                  color = meanColor,
-                                                  fill  = meanColor,
-                                                  alpha = meanTransparency)
+                                                  shape = "square",
+                                                  size  = 3,
+                                                  color = "goldenrod1",
+                                                  fill  = "red2",
+                                                  alpha = 0.7)
             }
 
             return(obsPlot)
@@ -575,9 +414,15 @@ obsPlot <- function(data,
         # Reduce box outliers to a dot if geom_points turned on
         outlier.size  <- 1.5
         outlier.shape <- 19
-        if (pointLayer) {
+        if (showPoints) {
             outlier.size  <- 1
             outlier.shape <- "."
+        }
+
+        if (axisFree) {
+            axisFree <- "free"
+        } else {
+            axisFree <- "fixed"
         }
 
         # Plot code here
@@ -585,7 +430,7 @@ obsPlot <- function(data,
             obsPlot <- ggplot2::ggplot(data, aes_string(x = groupCol, y = valueCol))
             obsPlot <- .addGeoms(obsPlot)
             facetFormula <- stringr::str_c("~", plotByCol, sep = " ")
-            obsPlot <- obsPlot + ggplot2::facet_wrap(facetFormula, nrow = numrow, scales = scales)
+            obsPlot <- obsPlot + ggplot2::facet_wrap(facetFormula, nrow = numrow, scales = axisFree)
             obsPlot <- obsPlot + ggplot2::xlab(xlab)
             obsPlot <- obsPlot + ggplot2::ylab(ylab)
             if (!missing(title)) {
@@ -593,8 +438,8 @@ obsPlot <- function(data,
             }
 
             # Rotate xaxis group labels
-            if (xAngle > 0) {
-                obsPlot <- obsPlot + theme(axis.text.x = element_text(angle = xAngle, hjust = 1))
+            if (labelAngle > 0) {
+                obsPlot <- obsPlot + theme(axis.text.x = element_text(angle = labelAngle, hjust = 1))
             }
         } else {
             plotlist <- list()
@@ -608,8 +453,8 @@ obsPlot <- function(data,
                 aplot <- .addGeoms(aplot)
 
                 # Rotate xaxis group labels
-                if (xAngle > 0) {
-                    aplot <- aplot + theme(axis.text.x = element_text(angle = xAngle, hjust = 1))
+                if (labelAngle > 0) {
+                    aplot <- aplot + theme(axis.text.x = element_text(angle = labelAngle, hjust = 1))
                 }
                 plotlist[[obs]] <- aplot
             }
