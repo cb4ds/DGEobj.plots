@@ -100,8 +100,6 @@ inside the figure. NULL disables the legend. Default = "right"}
 
 \item{footnoteColor}{Applies to footnote. (Default = "black")}
 
-\item{baseFontSize}{The smallest size font in the figure in points. Default = 12.}
-
 \item{footnoteJust}{Value 0-1. 0 is left justified, 1 is right justified, 0.5 is centered. (Default = 1)}
 }
 \value{
