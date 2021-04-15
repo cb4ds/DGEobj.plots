@@ -19,6 +19,7 @@ test_that("profilePlot.R: profilePlot()", {
     gene_data <- t_obj1$geneData %>%
         dplyr::select(rgd_symbol)
     contrastDF <- merge(contrastDF, gene_data, by = 0, all = TRUE)
+    rownames(contrastDF) <- contrastDF$Row.names
     profile_plot <- profilePlot(contrastDF, title = "BDL_vs_Sham", geneSymCol = "rgd_symbol")
     expect_s3_class(profile_plot, c("canvasXpress", "htmlwidget"))
     profile_plot <- profilePlot(contrastDF, title = "BDL_vs_Sham", plotType = "ggplot",

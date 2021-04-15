@@ -355,8 +355,9 @@ profilePlot <- function(contrastDF,
                                                   if (o.y != null &&
                                                       o.y.data != null &&
                                                       o.y.smps != null) {
-                                                      info = '<b>' + o.y.smps[0]  + '</b>' + ': ' + o.y.data[0][0] + '<br/>' +
-                                                           '<b>' + o.y.smps[1]  + '</b>' + ': ' + o.y.data[0][1] ;
+                                                      info = '<b>' + o.y.vars[0]  + '</b>' + '<br/>' +
+                                                             '<b>' + o.y.smps[0]  + '</b>' + ': ' + o.y.data[0][0] + '<br/>' +
+                                                             '<b>' + o.y.smps[1]  + '</b>' + ': ' + o.y.data[0][1] ;
                                                       if (o.z != null && o.z['rgd_symbol'] != null) {
                                                         info  = info + '<br/>' +
                                                               '<b> Symbol</b>' + ': ' + o.z['rgd_symbol'] ;
