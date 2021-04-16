@@ -370,6 +370,8 @@ ggplotMDS <- function(DGEdata,
     if (plotType == "canvasxpress") {
         colors   <- lapply(colors, rgbaConversion)
 
+
+
         reflineColor <- lapply(reflineColor, .rgbaConversion)
         decorations  <- list()
         hlineIntercept_list <- list()
@@ -429,33 +431,46 @@ ggplotMDS <- function(DGEdata,
 
         shapes <- .get_valid_symbolShapes_ggplot()[1:8]
 
-        if (is.null(shapeCol)) {
-            shapeCol_var <- NULL
+
+        if (!is.null(shapeCol)) {
+            shapeCol_data <- !!rlang::sym(shapeCol)
         } else {
-            shapeCol_var <- !!rlang::Sym(shapeCol)
+            shapeCol_data <- NULL
         }
 
-        mdsplot <- ggplot(plot_data, aes(x = x, y = y, color = !!rlang::sym(colorCol), shape = shapeCol_var, size = sizeCol)) +
-            geom_point(shape = symShape, size = symSize, alpha = transparency)+
+        if (!is.null(colorCol)) {
+            colorCol_data <- get(colorCol)
+        } else {
+            colorCol_data <- NULL
+        }
+
+        if (!is.null(sizeCol)) {
+            sizeCol_data <- !!rlang::sym(sizeCol)
+        } else {
+            sizeCol_data <- NULL
+        }
+
+        mdsplot <- ggplot(plot_data, aes(x = x, y = y, color = colorCol , shape = shapeCol, size = sizeCol)) +
+            geom_point(shape = symShape, size = symSize, alpha = transparency) +
                     scale_shape_manual(values = shapes)
 
 
-
-if (!byShape && !bySize) {
-    mdsplot <- ggplot(plot_data, aes(x = x, y = y, color = ColorCode)) +
-        geom_point(shape = symShape, size = symSize, alpha = transparency)
-} else if (byShape && !bySize) {
-    mdsplot <- ggplot(plot_data, aes(x = x, y = y, color = colorCol, shape = shapeCol)) +
-        geom_point(size = symSize, alpha = transparency) +
-        scale_shape_manual(values = shapes)
-} else if (!byShape && bySize) {
-    mdsplot <- ggplot(plot_data, aes(x = x, y = y, color = ColorCode, size = sizeCol)) +
-        geom_point(shape = symShape, alpha = transparency)
-} else if (byShape && bySize) {
-    mdsplot <- ggplot(plot_data, aes(x = x, y = y, color = ColorCode, shape = shapeCol, size = sizeCol)) +
-        geom_point(alpha = transparency) #+
-        scale_shape_manual(values = shapes)
-}
+#
+# if (!byShape && !bySize) {
+#     mdsplot <- ggplot(plot_data, aes(x = x, y = y, color = ColorCode)) +
+#         geom_point(shape = symShape, size = symSize, alpha = transparency)
+# } else if (byShape && !bySize) {
+#     mdsplot <- ggplot(plot_data, aes(x = x, y = y, color = colorCol, shape = shapeCol)) +
+#         geom_point(size = symSize, alpha = transparency) +
+#         scale_shape_manual(values = shapes)
+# } else if (!byShape && bySize) {
+#     mdsplot <- ggplot(plot_data, aes(x = x, y = y, color = ColorCode, size = sizeCol)) +
+#         geom_point(shape = symShape, alpha = transparency)
+# } else if (byShape && bySize) {
+#     mdsplot <- ggplot(plot_data, aes(x = x, y = y, color = ColorCode, shape = shapeCol, size = sizeCol)) +
+#         geom_point(alpha = transparency) #+
+#         scale_shape_manual(values = shapes)
+# }
 
         if (!is.null(labels)) {
                 mdsplot <- mdsplot +
