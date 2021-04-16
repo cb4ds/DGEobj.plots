@@ -64,13 +64,15 @@
 #' @importFrom assertthat assert_that
 #' @importFrom limma plotMDS
 #' @importFrom stats as.dist
+#' @importFrom tibble rownames_to_column
+#' @importFrom dplyr rename left_join select
 #'
 #' @export
 ggplotMDS <- function(DGEdata,
                       plotType = "canvasXpress",
                       colorBy,
-                      shapeBy,
-                      sizeBy,
+                      shapeBy = NULL,
+                      sizeBy = NULL,
                       top = Inf,
                       labels,
                       labelSize = 3,
@@ -87,24 +89,41 @@ ggplotMDS <- function(DGEdata,
 
     assertthat::assert_that(!missing(DGEdata),
                             !is.null(DGEdata),
-                            class(DGEdata)[1] %in% c("DGEobj", "DGEList", "matrix", "data.frame"),
-                            msg = "DGEdata must be specified and must be of class 'DGEList', 'DGEobj', 'matrix' or 'Dataframe'.")
+                            class(DGEdata)[1] %in% c("DGEobj"),
+                            msg = "DGEdata must be specified and must be of class 'DGEobj'.")
     assertthat::assert_that(!is.null(plotType),
                             tolower(plotType) %in% c("canvasxpress", "ggplot"),
                             msg = "Plot type must be either canvasXpress or ggplot.")
-    assertthat::assert_that(!missing(colorBy),
-                            nrow(colorBy) == ncol(DGEdata),
-                            msg = "colorBy must be specified and should be the length of the number of columns in DGEdata.")
 
     plotType = tolower(plotType)
+    design <- getItem(DGEdata,"design")
+    design_columns <- tolower(colnames(design))
+
+    if (!missing(colorBy)) {
+        if (!is.null(colorBy) &&
+            !(tolower(colorBy) %in% design_columns)) {
+            warning("colorBy must be specified and should be a column in the design attribute of DGEdata. Assigning replicate groups as default value.")
+            colorBy <- "ReplicateGroup"
+        }
+    } else {
+        warning("colorBy attribute is missing. Assigning replicate groups as default value.")
+        colorBy <- "ReplicateGroup"
+    }
+
     if (!missing(shapeBy)) {
-        assertthat::assert_that(length(shapeBy) == ncol(DGEdata),
-                                msg = "shapeBy should be the length of the number of columns in DGEdata.")
+        if (!is.null(shapeBy) &&
+            !(tolower(shapeBy) %in% design_columns)) {
+            warning("shapeBy should be a column in the design attribute of DGEdata. Assigning replicate groups as default value.")
+            shapeBy <- "ReplicateGroup"
+        }
     }
 
     if (!missing(sizeBy)) {
-        assertthat::assert_that(length(sizeBy) == ncol(DGEdata),
-                                msg = "sizeBy should be the length of the number of columns in DGEdata.")
+        if (!is.null(sizeBy) &&
+            !(tolower(sizeBy) %in% design_columns)) {
+            warning("sizeBy should be a column in the design attribute of DGEdata. Assigning replicate groups as default value.")
+            sizeBy <- "ReplicateGroup"
+        }
     }
 
     if (any(is.null(top), length(top) != 1, !is.numeric(top))) {
@@ -124,8 +143,8 @@ ggplotMDS <- function(DGEdata,
     if (!missing(labels)) {
         if (is.null(labels)) {
             addLabels <- FALSE
-        } else if (!length(labels) == ncol(DGEdata)) {
-            warning("Number of labels does not match the number of columns in DGEdata. Assigning default values.")
+        } else if (!(tolower(labels) %in% design_columns)) {
+            warning("labels should be a column name in design object. Assigning replicate groups as default value.")
             addDefaultLabel <- TRUE
         }
     } else {
@@ -138,7 +157,7 @@ ggplotMDS <- function(DGEdata,
         if ("DGEobj" %in% class(DGEdata)) {
             design <- DGEobj::getItem(DGEdata, "design")
             if (exists("design") && (with(design, exists("ReplicateGroup")))) {
-                    labels <- design$ReplicateGroup
+                    labels <- "ReplicateGroup"
             }
         }
     }
@@ -217,8 +236,9 @@ ggplotMDS <- function(DGEdata,
         }
     }
 
+
     if (plotType == "canvasxpress") {
-        if (missing(shapeBy)) {
+        if (missing(shapeBy) || is.null(shapeBy)) {
             if (!missing(symShape) && any(length(symShape) != 1, !.is_valid_symbolShapes_cxplot(symShape))) {
                 warning("symShape must be a singular value of class 'character'. Assigning default value 'circle'.")
                 symShape <- "circle"
@@ -239,7 +259,7 @@ ggplotMDS <- function(DGEdata,
 
         #add valid shapes
 
-        if (missing(shapeBy) &&
+        if ((missing(shapeBy) || is.null(shapeBy)) &&
             !missing(symShape) &&
             any(is.null(symShape),
                 length(symShape) != 1,
@@ -270,49 +290,85 @@ ggplotMDS <- function(DGEdata,
                           plot = FALSE)
 
     # Pull the plotting data together
+
     plot_data <- merge(mds.data$x, mds.data$y, by = "row.names")
-    rownames(plot_data) <- plot_data$Row.names;plot_data$Row.names <- NULL
+    plot_data <- rename(plot_data,sampleID = Row.names)
 
-    plot_data <- merge(plot_data, colorBy, by = "row.names")
-    rownames(plot_data) <- plot_data$Row.names;plot_data$Row.names <- NULL
-    colnames(plot_data) <- c('x','y','ColorCode')
+    byColor <- FALSE
 
-    #plot_data <- data.frame(x = mds.data$x, y = mds.data$y, ColorCode = colorBy)
+    if (!is.null(colorBy)) {
+        colorby_data <- design %>%
+            dplyr::select(!!colorBy) %>%
+            rename(ColorCode = !!colorBy) %>%
+            tibble::rownames_to_column("sampleID")
+
+        plot_data <- plot_data %>%
+            left_join(colorby_data, by = "sampleID")
+
+        byColor <- TRUE
+    }
 
     if (addLabels) {
-        plot_data$Labels <- labels
+        labels_data <- design %>%
+            dplyr::select(!!labels) %>%
+            rename(Labels = !!labels) %>%
+            tibble::rownames_to_column("sampleID")
+
+        plot_data <- plot_data %>%
+            left_join(labels_data, by = "sampleID")
     }
 
     byShape <- FALSE
     bySize  <- FALSE
-    if (!missing(shapeBy)) {
-        plot_data$Shape <- shapeBy
+    if (!missing(shapeBy) && !is.null(shapeBy)) {
+        shapeby_data <- design %>%
+            dplyr::select(!!shapeBy) %>%
+            rename(Shape = !!shapeBy) %>%
+            tibble::rownames_to_column("sampleID")
+
+        plot_data <- plot_data %>%
+            left_join(shapeby_data, by = "sampleID")
+
         byShape <- TRUE
     }
-    if (!missing(sizeBy)) {
-        plot_data$Size <- sizeBy
+
+    if (!missing(sizeBy) && !is.null(sizeBy)) {
+        sizeby_data <- design %>%
+            dplyr::select(!!sizeBy) %>%
+            rename(Size = !!sizeBy) %>%
+            tibble::rownames_to_column("sampleID")
+
+        plot_data <- plot_data %>%
+            left_join(sizeby_data, by = "sampleID")
+
         bySize <- TRUE
     }
-
+    rownames(plot_data) <- plot_data$sampleID;plot_data$sampleID <- NULL
     xylab <- list(paste(mds.data$axislabel, mds.data$dim.plot[[1]], sep = " "),
                   paste(mds.data$axislabel, mds.data$dim.plot[[2]], sep = " "))
     citation <- paste("top ", mds.data$top, " genes : gene.selection = ",
                     mds.data$gene.selection, sep = "")
 
+    colorCol <- NULL
+    shapeCol <- NULL
+    sizeCol  <- NULL
+
+    if (byColor) {
+        colorCol <- "ColorCode"
+    }
+
+    if (byShape) {
+        shapeCol <- "Shape"
+    }
+
+    if (bySize) {
+        sizeCol <- "Size"
+    }
+
+
     # PlotType
     if (plotType == "canvasxpress") {
         colors   <- lapply(colors, rgbaConversion)
-        colorCol <- "ColorCode"
-        shapeCol <- FALSE
-        sizeCol  <- FALSE
-
-        if (byShape == TRUE) {
-            shapeCol <- "Shape"
-        }
-
-        if (bySize == TRUE) {
-            sizeCol = "Size"
-        }
 
         reflineColor <- lapply(reflineColor, .rgbaConversion)
         decorations  <- list()
@@ -373,21 +429,33 @@ ggplotMDS <- function(DGEdata,
 
         shapes <- .get_valid_symbolShapes_ggplot()[1:8]
 
-        if (!byShape && !bySize) {
-            mdsplot <- ggplot(plot_data, aes(x = x, y = y, color = ColorCode)) +
-                geom_point(shape = symShape, size = symSize, alpha = transparency)
-        } else if (byShape && !bySize) {
-            mdsplot <- ggplot(plot_data, aes(x = x, y = y, color = ColorCode, shape = Shape)) +
-                geom_point(size = symSize, alpha = transparency) +
-                scale_shape_manual(values = shapes)
-        } else if (!byShape && bySize) {
-            mdsplot <- ggplot(plot_data, aes(x = x, y = y, color = ColorCode, size = Size)) +
-                geom_point(shape = symShape, alpha = transparency)
-        } else if (byShape && bySize) {
-            mdsplot <- ggplot(plot_data, aes(x = x, y = y, color = ColorCode, shape = Shape, size = Size)) +
-                geom_point(alpha = transparency) #+
-                scale_shape_manual(values = shapes)
+        if (is.null(shapeCol)) {
+            shapeCol_var <- NULL
+        } else {
+            shapeCol_var <- !!rlang::Sym(shapeCol)
         }
+
+        mdsplot <- ggplot(plot_data, aes(x = x, y = y, color = !!rlang::sym(colorCol), shape = shapeCol_var, size = sizeCol)) +
+            geom_point(shape = symShape, size = symSize, alpha = transparency)+
+                    scale_shape_manual(values = shapes)
+
+
+
+if (!byShape && !bySize) {
+    mdsplot <- ggplot(plot_data, aes(x = x, y = y, color = ColorCode)) +
+        geom_point(shape = symShape, size = symSize, alpha = transparency)
+} else if (byShape && !bySize) {
+    mdsplot <- ggplot(plot_data, aes(x = x, y = y, color = colorCol, shape = shapeCol)) +
+        geom_point(size = symSize, alpha = transparency) +
+        scale_shape_manual(values = shapes)
+} else if (!byShape && bySize) {
+    mdsplot <- ggplot(plot_data, aes(x = x, y = y, color = ColorCode, size = sizeCol)) +
+        geom_point(shape = symShape, alpha = transparency)
+} else if (byShape && bySize) {
+    mdsplot <- ggplot(plot_data, aes(x = x, y = y, color = ColorCode, shape = shapeCol, size = sizeCol)) +
+        geom_point(alpha = transparency) #+
+        scale_shape_manual(values = shapes)
+}
 
         if (!is.null(labels)) {
                 mdsplot <- mdsplot +
