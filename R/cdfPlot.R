@@ -52,7 +52,7 @@
 #'        This will have no effect on other symbols.
 #'        Default = c("red3", "grey25", "deepskyblue4")
 #'        Note: Colors cannot be duplicated.
-#' @param alpha Controls the transparency of the plotted points (0-1; Default =
+#' @param transparency Controls the transparency of the plotted points (0-1; Default =
 #'   0.5)
 #' @param referenceLine Color for an horizontal line drawn at the p-threshold
 #'   (Default = NULL; NULL disables, set to desired color to enable)
@@ -94,8 +94,7 @@ cdfPlot <- function(contrastDF,
                     symbolSize = c(2, 1),
                     symbolShape = c(20, 20),
                     symbolColor = c("red3", "deepskyblue4"),
-                    symbolFill = c("red3", "deepskyblue4"),
-                    alpha = 1,
+                    transparency = 0.7,
                     referenceLine = NULL,
                     refLineThickness = 3,
                     legendPosition = "right",
@@ -109,18 +108,182 @@ cdfPlot <- function(contrastDF,
                     footnoteColor = "black",
                     footnoteJust = 1) {
 
-    assertthat::assert_that(pvalCol %in% colnames(contrastDF),
-                            msg = "Specified pvalCol not found in the supplied dataframe (contrastDF).")
-    assertthat::assert_that(plotType %in% c("canvasXpress", "ggplot"),
-                            msg = "Plot type must be either canvasXpress or ggplot.")
+    assertthat::assert_that(!missing(contrastDF),
+                            !is.null(contrastDF),
+                            "data.frame" %in% class(contrastDF),
+                            nrow(contrastDF) > 0,
+                            msg = "contrastDF must be specified as dataframe with a p-value column.")
 
-    if (!missing(symbolSize) || !missing(symbolShape) || !missing(symbolColor) || !missing(symbolFill)) {
-        assertthat::assert_that(!length(symbolSize) == 2,
-                                !length(symbolShape) == 2,
-                                !length(symbolColor) == 2,
-                                !length(symbolFill) == 2,
-                                msg = "All specified symbol arguments must be of length 2, including symbolSize, symbolShape, symbolColor, and symbolFill.")
+    assertthat::assert_that(is.null(plotType),
+                            is.character(plotType),
+                            length(plotType) == 1,
+                            lower(plotType) %in% c("canvasxpress", "ggplot"),
+                            msg = "plotType must be either canvasXpress or ggplot.")
+
+    assertthat::assert_that(!is.null(pvalCol),
+                            pvalCol %in% colnames(contrastDF),
+                            msg = "pvalCol column not found in contrastDF.")
+
+    if (any(is.null(pthreshold),
+            !is.numeric(pthreshold),
+            length(pthreshold) != 1)) {
+        warning("pthreshold must be a singular numeric value. Assigning default value 0.01")
+        pthreshold <- 0.01
     }
+
+    if (!is.null(title) &&
+        !all(is.character(title), length(title) == 1)) {
+        warning("title must be a singular value of class character. Assigning default value 'NULL'.")
+        title <- NULL
+    }
+
+    if (!is.null(insetTitle) &&
+        !all(is.character(insetTitle), length(insetTitle) == 1)) {
+        warning("insetTitle must be a singular value of class character. Assigning default value 'NULL'.")
+        insetTitle <- NULL
+    }
+
+    if (!is.null(xlab) &&
+        !all(is.character(xlab), length(xlab) == 1)) {
+        warning("xlab must be a singular value of class character. Assigning default value 'NULL'.")
+        xlab <- NULL
+    }
+
+    if (!is.null(ylab) &&
+        !all(is.character(ylab), length(ylab) == 1)) {
+        warning("ylab must be a singular value of class character. Assigning default value 'NULL'.")
+        ylab <- NULL
+    }
+
+    if (any(is.null(symbolSize),
+            !is.numeric(symbolSize),
+            length(symbolSize)  != 2,
+            !all(symbolSize >= 0))) {
+        warning("symbolSize must be a vector of 3 integer values, at least 2 of them are different. Assigning default values 10, 4, 10.")
+        symbolSize  <-  c(10, 4, 10)
+
+    }
+
+    if (any(is.null(symbolShape),
+            !is.character(symbolShape),
+            length(symbolShape)  != 2,
+            plotType == "canvasxpress" && !is.null(symbolShape) && length(.validate_cx_shapes(symbolShape)) != 2,
+            plotType == "ggplot" && !is.null(symbolShape) && length(.validate_gg_shapes(symbolShape)) != 2)) {
+        warning("symbolShape must be a vector of 2 charcter values. Assigning default values 'circle'.")
+        symbolShape  <- c("circle", "circle")
+
+    }
+
+    if (any(is.null(symbolColor),
+            !is.character(symbolColor),
+            length(symbolColor)  != 2,
+            length(.validate_colors(symbolColor)) != 2)) {
+        warning("symbolColor must be a vector of 2 character values. Assigning default values 'red3', 'deepskyblue4'.")
+        symbolColor <- c("red3", "deepskyblue4")
+    }
+
+    if (any(is.null(transparency),
+            !is.numeric(transparency),
+            length(transparency) != 1,
+            transparency <= 0,
+            transparency > 1)) {
+        warning("transparency must be a singular value of class numeric and must be between 0 and 1. Assigning default value '0.7'.")
+        transparency <- 0.7
+    }
+
+    if (!is.null(referenceLine) &&
+        !all(is.character(referenceLine), length(referenceLine) == 1)) {
+        warning("referenceLine must be a singular value of class character or 'NULL' to disable. Assigning default value 'darkgoldenrod1'.")
+        referenceLine <- "darkgoldenrod1"
+    } else if (.rgbaConversion(referenceLine) == "invalid value") {
+        warning("Color specified is not valid. Assigning default value 'darkgoldenrod1'.")
+        referenceLine <- "darkgoldenrod1"
+    }
+
+    if (any(is.null(refLineThickness),
+            !is.numeric(refLineThickness),
+            length(refLineThickness) != 1,
+            refLineThickness < 0)) {
+        warning("refLineThickness must be a singular value of class numeric Assigning default value '1'.")
+        refLineThickness <- 1
+    }
+
+    if (!is.null(legendPosition) &&
+        !all(is.character(legendPosition),
+             length(legendPosition) == 1,
+             legendPosition %in% c("top", "bottom", "left", "right", "ne", "se", "nw", "sw"))) {
+        warning("legendPosition must be one value from 'top', 'bottom', 'left', 'right', 'ne', 'se', 'nw', 'sw' or 'NULL' to disable. Assigning default value 'right'.")
+        legendPosition <- "right"
+    }
+
+    if (!is.null(viewportX) &&
+        any(!is.numeric(viewportX),
+            length(viewportX) != 1)) {
+        warning("viewportX must be a singular value of class numeric and must be greater than 0. Assigning default value '0.15'.")
+        viewportX <- 0.15
+    }
+
+    if (!is.null(viewportY) &&
+       any(!is.numeric(viewportY),
+           length(viewportY) != 1)) {
+        warning("viewportY must be a singular value of class numeric and must be greater than 0. Assigning default value '0.15'.")
+        viewportY <- 3
+    }
+
+    if (!is.null(viewportWidth) &&
+       any(!is.numeric(viewportWidth),
+           length(viewportWidth) != 1,
+           viewportWidth < 0)) {
+        warning("viewportWidth must be a singular value of class numeric. Assigning default value '0.15'.")
+        viewportWidth <- 3
+    }
+
+    if (any(is.null(pvalMax),
+            !is.numeric(pvalMax),
+            length(pvalMax) != 1)) {
+        warning("pvalMax must be a singular numeric value. Assigning default value 0.1")
+        pvalMax <- 0.1
+    }
+
+    if (any(is.null(printPlot),
+            !is.logical(printPlot),
+            length(printPlot) != 1)) {
+        warning("printPlot must be a singular logical value. Assigning default value TRUE")
+        printPlot <- TRUE
+    }
+
+
+    if (missing(footnote)) {
+        footnote <- NULL
+    } else if (!is.null(footnote) &&
+               !all(is.character(footnote), length(footnote) == 1)) {
+        warning("footnote must be a singular value of class character or 'NULL' to disable. Assigning default value 'NULL'.")
+        footnote <- NULL
+    }
+
+    if (!is.null(footnote) &&
+        !is.null(footnoteSize) &&
+        any(!is.numeric(footnoteSize),
+            length(footnoteSize) != 1,
+            footnoteSize < 0)) {
+        warning("footnoteSize must be a singular value of class numeric. Assigning default value '3'.")
+        footnoteSize <- 3
+    }
+
+    if (!is.null(footnote) &&
+        !is.null(footnoteColor) &&
+        any(!is.character(footnoteColor),
+            length(footnoteColor) != 1)) {
+        warning("footnoteColor must be a singular value of class character. Assigning default value 'black'.")
+        footnoteColor <- "black"
+    } else if (.rgbaConversion(footnoteColor) == "invalid value") {
+        warning("Color specified is not valid. Assigning default value 'black'.")
+        footnoteColor <- "black"
+    }
+
+
+
+
 
     groupNames <- c("Significant", "Not Significant")
     # Storing column names in x and y variable
@@ -188,7 +351,7 @@ cdfPlot <- function(contrastDF,
 
         decorations <- list()
         if (!is.null(referenceLine)) {
-            referenceLine <- rgbaConversion(referenceLine, alpha = alpha)
+            referenceLine <- rgbaConversion(referenceLine, alpha = transparency)
             decorations <- getCxPlotDecorations(decorations = decorations,
                                                 color = referenceLine,
                                                 width = refLineThickness,
@@ -206,7 +369,7 @@ cdfPlot <- function(contrastDF,
                                               decorations       = decorations,
                                               graphType         = "Scatter2D",
                                               colorBy           = "Group",
-                                              colors            = symbolFill,
+                                              colors            = symbolColor,
                                               title             = title,
                                               xAxisTitle        = xlab,
                                               yAxisTitle        = ylab,
@@ -219,7 +382,7 @@ cdfPlot <- function(contrastDF,
                                                varAnnot         = var.annot.subset,
                                                graphType        = "Scatter2D",
                                                colorBy          = "Group",
-                                               colors           = symbolFill,
+                                               colors           = symbolColor,
                                                title            = insetTitle,
                                                xAxisTitle       = xlab,
                                                yAxisTitle       = ylab,
@@ -229,13 +392,11 @@ cdfPlot <- function(contrastDF,
         names(symbolShape) <- groupNames
         names(symbolSize)  <- groupNames
         names(symbolColor) <- groupNames
-        names(symbolFill)  <- groupNames
 
         ssc <- data.frame(group = groupNames,
                           symbolShape = symbolShape,
                           symbolSize = symbolSize,
                           symbolColor = symbolColor,
-                          symbolFill = symbolFill,
                           stringsAsFactors = FALSE)
 
         contrastDF <- contrastDF %>%
@@ -248,8 +409,8 @@ cdfPlot <- function(contrastDF,
             scale_shape_manual(name = "Group", guide = "legend", labels = ssc$group, values = ssc$symbolShape) +
             scale_size_manual(name = "Group", guide = "legend", labels = ssc$group, values = ssc$symbolSize) +
             scale_color_manual(name = "Group", guide = "legend", labels = ssc$group, values = ssc$symbolColor) +
-            scale_fill_manual(name = "Group", guide = "legend", labels = ssc$group, values = ssc$symbolFill) +
-            geom_point(alpha = alpha)
+            scale_fill_manual(name = "Group", guide = "legend", labels = ssc$group, values = ssc$symbolColor) +
+            geom_point(alpha = transparency)
 
         # Optional Decorations
         if (!is.null(referenceLine)) {
@@ -287,11 +448,11 @@ cdfPlot <- function(contrastDF,
             scale_color_manual(name = "Group", guide = "none", labels = ssc$group,
                                values = ssc$symbolColor) +
             scale_fill_manual(name = "Group", guide = "none", labels = ssc$group,
-                              values = ssc$symbolFill) +
+                              values = ssc$symbolColor) +
             geom_rect(xmin = 0, xmax = subsetRows,
                       ymin = 0, ymax = max(contrastDFsubset[[y]]), color = "lightblue",
                       fill = "lightblue", alpha = 0.2) +
-            geom_point(alpha = alpha)
+            geom_point(alpha = transparency)
 
         # Add Labels and title
         cdfInset <- cdfInset +
