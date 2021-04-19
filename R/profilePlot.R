@@ -305,7 +305,6 @@ profilePlot <- function(contrastDF,
     # Now make the columnames suitable for use with aes_string
     colnames(contrastDF)[colnames(contrastDF) %in% logIntCol] <- xlabel
     colnames(contrastDF)[colnames(contrastDF) %in% logRatioCol] <- ylabel
-
     if (sizeBySignificance) {
         contrastDF <- contrastDF %>%
             dplyr::mutate(negLog10P = -log10(!!sym(pvalCol)))
@@ -324,7 +323,6 @@ profilePlot <- function(contrastDF,
         colors  <- symbolColor[c(3,1,2)]
         shapes  <- symbolShape[c(3,1,2)]
         decorations <- list()
-
         if (!is.null(referenceLine)) {
             referenceLine <- .rgbaConversion(referenceLine, alpha = transparency)
             decorations   <- .getCxPlotDecorations(decorations = decorations,
@@ -332,7 +330,6 @@ profilePlot <- function(contrastDF,
                                                 width = refLineThickness,
                                                 y     = 0)
         }
-
         if (!is.null(foldChangeLines)) {
             decorations <- .getCxPlotDecorations(decorations = decorations,
                                                 color       = colors[2],
@@ -343,7 +340,6 @@ profilePlot <- function(contrastDF,
                                                 width       = refLineThickness,
                                                 y           = -1 * foldChangeLines)
         }
-
         events <- htmlwidgets::JS("{ 'mousemove' : function(o, e, t) {
                                                 if (o != null && o != false) {
                                                   if (o.y != null &&
@@ -424,7 +420,6 @@ profilePlot <- function(contrastDF,
         names(symbolShape) <-  groupNames
         names(symbolSize)  <-  groupNames
         names(symbolColor) <-  groupNames
-
         ssc  <-  data.frame(group = factor(groupNames, levels = groupNames),
                             symbolShape = symbolShape,
                             symbolSize = symbolSize,
@@ -445,11 +440,10 @@ profilePlot <- function(contrastDF,
             scale_fill_manual(name = "Group", guide = "legend", labels = ssc$group,
                               values = ssc$symbolColor) +
             geom_point(alpha = transparency)
-
         # Optional Decorations
         if (sizeBySignificance) {
-            profilePlot <- profilePlot + aes(size = negLog10P) +
-                scale_size_continuous()
+            suppressMessages(profilePlot <- profilePlot + aes(size = negLog10P) +
+                                 scale_size_continuous())
         }
 
         if (!is.null(referenceLine)) {
@@ -473,14 +467,18 @@ profilePlot <- function(contrastDF,
         }
 
         if (!is.null(lineFitType)) {
-            profilePlot <- profilePlot +
-                geom_smooth(aes(group = NULL, shape = NULL, size = NULL, color = NULL, fill = NULL),
-                            method = tolower(lineFitType),
-                            size = refLineThickness,
-                            color = lineFitColor,
-                            alpha = transparency,
-                            se = FALSE,
-                            show.legend = FALSE)
+            suppressMessages(profilePlot <- profilePlot +
+                                 geom_smooth(aes(group = NULL,
+                                                 shape = NULL,
+                                                 size = NULL,
+                                                 color = NULL,
+                                                 fill = NULL),
+                                             method = tolower(lineFitType),
+                                             size = refLineThickness,
+                                             color = lineFitColor,
+                                             alpha = transparency,
+                                             se = FALSE,
+                                             show.legend = FALSE))
         }
 
         # Add genesym labels to increased, decreased genes
@@ -511,12 +509,11 @@ profilePlot <- function(contrastDF,
 
         # Footnote
         if (!missing(footnote)) {
-            profilePlot <- addFootnote(profilePlot,
-                                       footnoteText = footnote,
-                                       footnoteSize = footnoteSize,
-                                       footnoteColor = "black")
+            suppressMessages(profilePlot <- addFootnote(profilePlot,
+                                                        footnoteText = footnote,
+                                                        footnoteSize = footnoteSize,
+                                                        footnoteColor = "black"))
         }
-
-        setLegendPosition(profilePlot, legendPosition)
+        suppressMessages(print(setLegendPosition(profilePlot, legendPosition)))
     }
 }
