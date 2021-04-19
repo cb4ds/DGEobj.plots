@@ -154,16 +154,3 @@ rgbaConversion <- function(color, alpha = 0.5){
     rgbaStr <- paste0("rgba(", rgbaVal, ")")
     return(rgbaStr)
 }
-
-cxSupportedLineFit <- function(linefit) {
-    if (!(linefit %in% c("lm", "loess"))) {
-        if (linefit == "glm") {
-            linefit <- "lm"
-        } else if (linefit == "gam") {
-            linefit <- "loess"
-        }
-        warning("Model type is not supported for canvasXpress charts and ", linefit," is being used")
-    }
-
-    return(linefit)
-}

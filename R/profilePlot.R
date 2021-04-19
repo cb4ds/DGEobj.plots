@@ -382,7 +382,7 @@ profilePlot <- function(contrastDF,
         showLoessFit <- FALSE
         afterRender  <- NULL
         if (!is.null(lineFitType)) {
-            lineFitType  <- cxSupportedLineFit(lineFitType)
+            lineFitType  <- .cxSupportedLineFit(lineFitType)
             lineFitColor <- .rgbaConversion(lineFitColor, alpha = transparency)
 
             if (lineFitType == "lm") {
