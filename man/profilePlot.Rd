@@ -120,12 +120,6 @@ data. The points are color coded using the significance measure (i.e p-value)
 supplied by the user. By default, the P.Value field is used
 with a threshold of 0.01 to color code the points.
 
-The profilePlot has also been implemented
-with a scalable theme that makes it easy to scale font sizes larger
-or smaller for PPT or knitr output.  Add baseFont(n),
-where n equals the base font size (12 works well for knitr, 18 or 24 works well
-for PPT).  e.g. myPlot + theme_grey(18).
-
 \strong{Data Structure for the input dataframe:}
 
 The defaults are set for the contrasts on the DGEobj object (ie in BDL_vs_SHAM).
