@@ -87,12 +87,12 @@ cdfPlot <- function(contrastDF,
                     plotType = "canvasXpress",
                     pvalCol = "P.Value",
                     pThreshold = 0.01,
-                    xlab = NULL,
-                    ylab = NULL,
+                    xlab,
+                    ylab,
                     title = NULL,
                     insetTitle = NULL,
                     symbolSize = c(2, 1),
-                    symbolShape = c(20, 20),
+                    symbolShape = c("circle", "circle"),
                     symbolColor = c("red3", "deepskyblue4"),
                     transparency = 0.7,
                     referenceLine = NULL,
@@ -114,21 +114,22 @@ cdfPlot <- function(contrastDF,
                             nrow(contrastDF) > 0,
                             msg = "contrastDF must be specified as dataframe with a p-value column.")
 
-    assertthat::assert_that(is.null(plotType),
+    assertthat::assert_that(!is.null(plotType),
                             is.character(plotType),
                             length(plotType) == 1,
-                            lower(plotType) %in% c("canvasxpress", "ggplot"),
+                            tolower(plotType) %in% c("canvasxpress", "ggplot"),
                             msg = "plotType must be either canvasXpress or ggplot.")
 
     assertthat::assert_that(!is.null(pvalCol),
                             pvalCol %in% colnames(contrastDF),
                             msg = "pvalCol column not found in contrastDF.")
 
-    if (any(is.null(pthreshold),
-            !is.numeric(pthreshold),
-            length(pthreshold) != 1)) {
+    plotType <- tolower(plotType)
+    if (any(is.null(pThreshold),
+            !is.numeric(pThreshold),
+            length(pThreshold) != 1)) {
         warning("pthreshold must be a singular numeric value. Assigning default value 0.01")
-        pthreshold <- 0.01
+        pThreshold <- 0.01
     }
 
     if (!is.null(title) &&
@@ -143,16 +144,24 @@ cdfPlot <- function(contrastDF,
         insetTitle <- NULL
     }
 
-    if (!is.null(xlab) &&
-        !all(is.character(xlab), length(xlab) == 1)) {
-        warning("xlab must be a singular value of class character. Assigning default value 'NULL'.")
-        xlab <- NULL
+    if (missing(xlab)) {
+        xlab <- 'Rank'
+    } else {
+        if (!is.null(xlab) &&
+             !all(is.character(xlab), length(xlab) == 1)) {
+            warning("xlab must be a singular value of class character. Assigning default value 'Rank' as the label.")
+            xlab <- 'Rank'
+        }
     }
 
-    if (!is.null(ylab) &&
-        !all(is.character(ylab), length(ylab) == 1)) {
-        warning("ylab must be a singular value of class character. Assigning default value 'NULL'.")
-        ylab <- NULL
+    if (missing(ylab)) {
+        ylab <- pvalCol
+    } else {
+        if (!is.null(ylab) &&
+            !all(is.character(ylab), length(ylab) == 1)) {
+            warning("ylab must be a singular value of class character. Assigning default value pvalCol as the lavel")
+            ylab <- pvalCol
+        }
     }
 
     if (any(is.null(symbolSize),
@@ -282,21 +291,18 @@ cdfPlot <- function(contrastDF,
     }
 
 
-
-
-
     groupNames <- c("Significant", "Not Significant")
     # Storing column names in x and y variable
     x <- "Rank"
     y <- pvalCol
 
-    if (is.null(xlab)) {
-        xlab <- x
-    }
-
-    if (is.null(ylab)) {
-        ylab <- y
-    }
+    # if (is.null(xlab)) {
+    #     xlab <- x
+    # }
+    #
+    # if (is.null(ylab)) {
+    #     ylab <- y
+    # }
 
     if (is.null(title)) {
         title = ""
@@ -309,62 +315,86 @@ cdfPlot <- function(contrastDF,
     # Combo PLOT: full data inset, most significant data in main plot
     # Rank by p-value
     contrastDF <- contrastDF %>%
-        dplyr::arrange(!!sym(y))
+        dplyr::arrange(!!sym(pvalCol))
     contrastDF$Rank <- c(1:nrow(contrastDF))
 
-    # Let's plot the p-value subsets
-    Sig <- contrastDF[[y]] <= pThreshold
-    NotSig <- contrastDF[[y]] > pThreshold
+    # # Let's plot the p-value subsets
+    #contrastDF_1 <- contrastDF
+    # Sig <- contrastDF_1[[pvalCol]] <= pThreshold
+    # NotSig <- contrastDF_1[[pvalCol]] > pThreshold
+    #
+    # # Create group factor column in contrastDF
+    # contrastDF_1$group <- NA
+    # contrastD_1F$group[Sig] <- "Significant"
+    # contrastDF_1$group[NotSig] <- "Not Significant"
 
-    # Create group factor column in contrastDF
     contrastDF$group <- NA
-    contrastDF$group[Sig] <- "Significant"
-    contrastDF$group[NotSig] <- "Not Significant"
-
-    contrastDF$group <- contrastDF$group %>%
-        factor(levels = groupNames)
-
-    # Set an order field to force plotting of 'not significant' first
     contrastDF$order <- NA
-    contrastDF$order[NotSig] <- 1
-    contrastDF$order[Sig] <- 2
+    contrastDF <- contrastDF %>%
+        dplyr::mutate(group = dplyr::case_when(!!rlang::sym(pvalCol) <= pThreshold ~ "Significant",
+                                               !!rlang::sym(pvalCol) > pThreshold ~ "Not Significant"),
+                      group = factor(group,
+                                     levels = c("Significant", "Not Significant")),
+                      order = dplyr::case_when(group == "Not Significant" ~ 1,
+                                               group == "Significant" ~ 2))
+
+    # contrastDF$group <- contrastDF$group %>%
+    #     factor(levels = groupNames)
+    #
+    # contrastDF <-
+    #
+    # # Set an order field to force plotting of 'not significant' first
+    # contrastDF$order <- NA
+    # contrastDF$order[NotSig] <- 1
+    # contrastDF$order[Sig] <- 2
 
     # Rows to include in the zoomed in plot
-    subsetRows <- sum(contrastDF[[y]] <= pvalMax)
-    contrastDFsubset <- contrastDF[1:subsetRows,]
+    # subsetRows <- sum(contrastDF[[y]] <= pvalMax)
+    # contrastDFsubset <- contrastDF[1:subsetRows,]
 
-    if (plotType == "canvasXpress") {
+    contrastDF_subset <- contrastDF %>% filter(!!rlang::sym(pvalCol) <= pvalMax)
+    cdfMain <- NULL
+    cdfInset <- NULL
+
+    if (plotType == "canvasxpress") {
         ## Create the canvasXpress cx.data and var.annot
         # Main plot
-        cx.data <- data.frame(a = contrastDF[colnames(contrastDF) == x],
-                              b = contrastDF[colnames(contrastDF) == y])
+        # cx.data <- data.frame(a = contrastDF[colnames(contrastDF) == x],
+        #                       b = contrastDF[colnames(contrastDF) == y])
+
+        cx.data <- contrastDF %>% dplyr::select(!!x,!!y)
         colnames(cx.data) <- c(x, y)
-        var.annot <- data.frame(Group = contrastDF$group)
-        rownames(var.annot) <- rownames(cx.data)
+        #var.annot <- data.frame(Group = contrastDF$group)
+        var.annot <- contrastDF %>% dplyr::select(group)
+
+        #rownames(var.annot) <- rownames(cx.data)
 
         # Inset plot
-        cx.data.subset <- data.frame(a = contrastDFsubset[colnames(contrastDFsubset) == x],
-                                     b = contrastDFsubset[colnames(contrastDFsubset) == y])
+        # cx.data.subset <- data.frame(a = contrastDFsubset[colnames(contrastDFsubset) == x],
+        #                              b = contrastDFsubset[colnames(contrastDFsubset) == y])
+        cx.data.subset <- contrastDF_subset %>% dplyr::select(!!x,!!y)
         colnames(cx.data.subset) <- c(x, y)
-        var.annot.subset <- data.frame(Group = contrastDFsubset$group)
-        rownames(var.annot.subset) <- rownames(cx.data.subset)
+        #var.annot.subset <- data.frame(Group = contrastDFsubset$group)
+        #rownames(var.annot.subset) <- rownames(cx.data.subset)
+
+        var.annot.subset <- contrastDF_subset %>% dplyr::select(group)
 
         decorations <- list()
         if (!is.null(referenceLine)) {
-            referenceLine <- rgbaConversion(referenceLine, alpha = transparency)
-            decorations <- getCxPlotDecorations(decorations = decorations,
+            referenceLine <- .rgbaConversion(referenceLine, alpha = transparency)
+            decorations <- .getCxPlotDecorations(decorations = decorations,
                                                 color = referenceLine,
                                                 width = refLineThickness,
                                                 y     = pThreshold)
         }
 
         # Footnote
-        if (missing(footnote)) {
-            footnote <- NULL
-        }
+        # if (missing(footnote)) {
+        #     footnote <- NULL
+        # }
         maxY <- pThreshold + pThreshold*0.2
 
-        cdfMain <- canvasXpress::canvasXpress(data              = cx.data,
+        cdfInset <- canvasXpress::canvasXpress(data              = cx.data,
                                               varAnnot          = var.annot,
                                               decorations       = decorations,
                                               graphType         = "Scatter2D",
@@ -376,9 +406,10 @@ cdfPlot <- function(contrastDF,
                                               citation          = footnote,
                                               citationFontSize  = footnoteSize,
                                               citationColor     = footnoteColor,
-                                              setMaxY           = maxY)
+                                              setMaxY           = maxY,
+                                              lazyLoad = TRUE)
 
-        cdfInset <- canvasXpress::canvasXpress(data             = cx.data.subset,
+        cdfMain <- canvasXpress::canvasXpress(data             = cx.data.subset,
                                                varAnnot         = var.annot.subset,
                                                graphType        = "Scatter2D",
                                                colorBy          = "Group",
@@ -386,14 +417,15 @@ cdfPlot <- function(contrastDF,
                                                title            = insetTitle,
                                                xAxisTitle       = xlab,
                                                yAxisTitle       = ylab,
-                                               setMaxY          = max(contrastDFsubset[[y]]))
+                                               setMaxY          = max(contrastDF_subset[[y]]),
+                                               lazyLoad = TRUE)
         cdfPlot <- list("main" = cdfMain, "inset" = cdfInset)
     } else {
         names(symbolShape) <- groupNames
         names(symbolSize)  <- groupNames
         names(symbolColor) <- groupNames
 
-        ssc <- data.frame(group = groupNames,
+        ssc <- data.frame(group = factor(groupNames, levels = groupNames),
                           symbolShape = symbolShape,
                           symbolSize = symbolSize,
                           symbolColor = symbolColor,
@@ -403,7 +435,7 @@ cdfPlot <- function(contrastDF,
             dplyr::left_join(ssc)
 
         # Plot subset percent of the data for the main plot
-        cdfMain <- ggplot(contrastDFsubset, aes_string(x = x, y = y)) +
+        cdfMain <- ggplot(contrastDF_subset, aes_string(x = x, y = y)) +
             aes(shape = group, size = group, color = group, fill = group, order = order) +
             # Scale lines tell it to use the actual values, not treat them as factors
             scale_shape_manual(name = "Group", guide = "legend", labels = ssc$group, values = ssc$symbolShape) +
@@ -449,8 +481,8 @@ cdfPlot <- function(contrastDF,
                                values = ssc$symbolColor) +
             scale_fill_manual(name = "Group", guide = "none", labels = ssc$group,
                               values = ssc$symbolColor) +
-            geom_rect(xmin = 0, xmax = subsetRows,
-                      ymin = 0, ymax = max(contrastDFsubset[[y]]), color = "lightblue",
+            geom_rect(xmin = 0, xmax = nrow(contrastDF),
+                      ymin = 0, ymax = max(contrastDF[[y]]), color = "lightblue",
                       fill = "lightblue", alpha = 0.2) +
             geom_point(alpha = transparency)
 
@@ -459,6 +491,7 @@ cdfPlot <- function(contrastDF,
             xlab(xlab) +
             ylab(ylab) +
             ggtitle(insetTitle)
+    }
 
         # A viewport taking up a fraction of the plot area (upper left)
         vp <- grid::viewport(width  = viewportWidth,
@@ -473,6 +506,6 @@ cdfPlot <- function(contrastDF,
         }
 
         cdfPlot <- list(main = cdfMain, inset = cdfInset, viewport = vp)
-    }
+
     return(cdfPlot)
 }

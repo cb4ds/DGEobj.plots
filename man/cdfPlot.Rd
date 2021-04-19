@@ -9,15 +9,14 @@ cdfPlot(
   plotType = "canvasXpress",
   pvalCol = "P.Value",
   pThreshold = 0.01,
-  xlab = NULL,
-  ylab = NULL,
+  xlab,
+  ylab,
   title = NULL,
   insetTitle = NULL,
   symbolSize = c(2, 1),
-  symbolShape = c(20, 20),
+  symbolShape = c("circle", "circle"),
   symbolColor = c("red3", "deepskyblue4"),
-  symbolFill = c("red3", "deepskyblue4"),
-  alpha = 1,
+  transparency = 0.7,
   referenceLine = NULL,
   refLineThickness = 3,
   legendPosition = "right",
@@ -62,12 +61,7 @@ See \url{http://www.cookbook-r.com/Graphs/Shapes_and_line_types}}
 See \url{http://research.stowers-institute.org/efg/R/Color/Chart}
 Note: Colors cannot be duplicated.}
 
-\item{symbolFill}{Set the fill color for the symbols. Note only symbols 21-25 are fillable.
-This will have no effect on other symbols.
-Default = c("red3", "grey25", "deepskyblue4")
-Note: Colors cannot be duplicated.}
-
-\item{alpha}{Controls the transparency of the plotted points (0-1; Default =
+\item{transparency}{Controls the transparency of the plotted points (0-1; Default =
 0.5)}
 
 \item{referenceLine}{Color for an horizontal line drawn at the p-threshold
@@ -95,6 +89,11 @@ Note: Colors cannot be duplicated.}
 \item{footnoteColor}{Applies to footnote. (Default = "black")}
 
 \item{footnoteJust}{Value 0 - 1. 0 is left justified, 1 is right justified, 0.5 is centered. (Default = 1)}
+
+\item{symbolFill}{Set the fill color for the symbols. Note only symbols 21-25 are fillable.
+This will have no effect on other symbols.
+Default = c("red3", "grey25", "deepskyblue4")
+Note: Colors cannot be duplicated.}
 }
 \value{
 A list containing main plot, inset plot for both plotType. For plotType ='ggplot' list contains viewport, The plot can be
