@@ -364,19 +364,22 @@ profilePlot <- function(contrastDF,
             var.annot <- contrastDF %>%
                 dplyr::select(group, negLog10P)
             sizeBy <- "negLog10P"
+            showSizeLegend <- TRUE
         } else if (!missing(geneSymCol) && !sizeBySignificance) {
             var.annot <- contrastDF %>%
                 dplyr::select(c(group,geneSymCol))
             sizeBy <- "group"
-
+            showSizeLegend <- FALSE
         } else if (!missing(geneSymCol) && sizeBySignificance) {
             var.annot <- contrastDF %>%
                 dplyr::select(group, geneSymCol, negLog10P)
             sizeBy <- "negLog10P"
+            showSizeLegend <- TRUE
         } else {
             var.annot <- contrastDF %>%
                 dplyr::select(group)
             sizeBy  <- "group"
+            showSizeLegend <- FALSE
         }
 
         showLoessFit <- FALSE
@@ -391,54 +394,31 @@ profilePlot <- function(contrastDF,
                 showLoessFit <- TRUE
             }
         }
-
+        cx_params <- list(data             = cx.data,
+                          varAnnot         = var.annot,
+                          decorations      = decorations,
+                          graphType        = "Scatter2D",
+                          colorBy          = "group",
+                          colors           = colors,
+                          shapes           = shapes,
+                          legendPosition   = legendPosition,
+                          showDecorations  = TRUE,
+                          showLoessFit     = showLoessFit,
+                          fitLineColor     = lineFitColor,
+                          sizeByShowLegend = showSizeLegend,
+                          title            = title,
+                          xAxisTitle       = xlab,
+                          yAxisTitle       = ylab,
+                          sizeBy           = sizeBy,
+                          citation         = footnote,
+                          citationFontSize = footnoteSize,
+                          citationColor    = footnoteColor,
+                          events           = events,
+                          afterRender      = afterRender)
         if (sizeBy == "group") {
-            canvasXpress::canvasXpress(data             = cx.data,
-                                       varAnnot         = var.annot,
-                                       decorations      = decorations,
-                                       graphType        = "Scatter2D",
-                                       colorBy          = "group",
-                                       colors           = colors,
-                                       shapes           = shapes,
-                                       legendPosition   = legendPosition,
-                                       showDecorations  = TRUE,
-                                       showLoessFit     = showLoessFit,
-                                       fitLineColor     = lineFitColor,
-                                       sizes            = sizes,
-                                       sizeByShowLegend = FALSE,
-                                       title            = title,
-                                       xAxisTitle       = xlab,
-                                       yAxisTitle       = ylab,
-                                       sizeBy           = sizeBy,
-                                       citation         = footnote,
-                                       citationFontSize = footnoteSize,
-                                       citationColor    = footnoteColor,
-                                       events           = events,
-                                       afterRender      = afterRender)
-        } else {
-            canvasXpress::canvasXpress(data             = cx.data,
-                                       varAnnot         = var.annot,
-                                       decorations      = decorations,
-                                       graphType        = "Scatter2D",
-                                       colorBy          = "group",
-                                       colors           = colors,
-                                       shapes           = shapes,
-                                       legendPosition   = legendPosition,
-                                       showDecorations  = TRUE,
-                                       showLoessFit     = showLoessFit,
-                                       fitLineColor     = lineFitColor,
-                                       sizeByShowLegend = TRUE,
-                                       title            = title,
-                                       xAxisTitle       = xlab,
-                                       yAxisTitle       = ylab,
-                                       sizeBy           = sizeBy,
-                                       citation         = footnote,
-                                       citationFontSize = footnoteSize,
-                                       citationColor    = footnoteColor,
-                                       events           = events,
-                                       afterRender      = afterRender)
+            cx_params <- c(cx_params, list(sizes = sizes))
         }
-
+        do.call(canvasXpress::canvasXpress, cx_params)
     } else {
         groupNames <- c("Increased", "No Change", "Decreased")
         names(symbolShape) <-  groupNames
