@@ -20,6 +20,7 @@ test_that("profilePlot.R: profilePlot()", {
         dplyr::select(rgd_symbol)
     contrastDF <- merge(contrastDF, gene_data, by = 0, all = TRUE)
     rownames(contrastDF) <- contrastDF$Row.names
+    contrastDF$Row.names <- NULL
     profile_plot <- profilePlot(contrastDF, title = "BDL_vs_Sham", geneSymCol = "rgd_symbol")
     expect_s3_class(profile_plot, c("canvasXpress", "htmlwidget"))
     profile_plot <- profilePlot(contrastDF, title = "BDL_vs_Sham", plotType = "ggplot",
@@ -52,12 +53,13 @@ test_that("profilePlot.R: profilePlot()", {
     expect_s3_class(profile_plot, c("canvasXpress", "htmlwidget"))
     profile_plot <- profilePlot(contrastDF, title = "Sora_vs_BDL", plotType = "ggplot", symbolSize = c(4, 1, 4))
     expect_s3_class(profile_plot, c("gg", "ggplot"))
-
     # testing gene symbols
     contrastDF <- t_obj1$BDL_vs_Sham
     gene_data <- t_obj1$geneData %>%
         dplyr::select(rgd_symbol)
     contrastDF <- merge(contrastDF, gene_data, by = 0, all = TRUE)
+    rownames(contrastDF) <- contrastDF$Row.names
+    contrastDF$Row.names <- NULL
     sym_labels <- contrastDF[sample(nrow(contrastDF), 10), ]$rgd_symbol
     profile_plot <- profilePlot(contrastDF         = contrastDF,
                                 title              = "BDL_vs_Sham with Symbols",
@@ -74,8 +76,6 @@ test_that("profilePlot.R: profilePlot()", {
                                 geneSymLabels      = sym_labels,
                                 footnote           = "This is footnote")
     expect_s3_class(profile_plot, c("gg","ggplot"))
-
-
     # testing asserts
     ## contrastDF
     msg <- "contrastDF must be specified as dataframe with LogIntensity and LogRatio columns and optionally a p-value"
