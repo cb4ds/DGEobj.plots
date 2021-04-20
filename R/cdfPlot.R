@@ -128,7 +128,7 @@ cdfPlot <- function(contrastDF,
     if (any(is.null(pThreshold),
             !is.numeric(pThreshold),
             length(pThreshold) != 1)) {
-        warning("pthreshold must be a singular numeric value. Assigning default value 0.01")
+        warning("pthreshold must be a singular numeric value. Assigning default value 0.01.")
         pThreshold <- 0.01
     }
 
@@ -168,8 +168,8 @@ cdfPlot <- function(contrastDF,
             !is.numeric(symbolSize),
             length(symbolSize)  != 2,
             !all(symbolSize >= 0))) {
-        warning("symbolSize must be a vector of 3 integer values, at least 2 of them are different. Assigning default values 10, 4, 10.")
-        symbolSize  <-  c(10, 4, 10)
+        warning("symbolSize must be a vector of 2 integer values. Assigning default values 2,1.")
+        symbolSize  <-  c(2,1)
 
     }
 
@@ -202,11 +202,11 @@ cdfPlot <- function(contrastDF,
 
     if (!is.null(referenceLine) &&
         !all(is.character(referenceLine), length(referenceLine) == 1)) {
-        warning("referenceLine must be a singular value of class character or 'NULL' to disable. Assigning default value 'darkgoldenrod1'.")
-        referenceLine <- "darkgoldenrod1"
+        warning("referenceLine must be a singular value of class character or 'NULL' to disable. Assigning default value NULL.")
+        referenceLine <- NULL
     } else if (.rgbaConversion(referenceLine) == "invalid value") {
-        warning("Color specified is not valid. Assigning default value 'darkgoldenrod1'.")
-        referenceLine <- "darkgoldenrod1"
+        warning("Color specified is not valid. Assigning default value NULL.")
+        referenceLine <- NULL
     }
 
     if (any(is.null(refLineThickness),
@@ -392,13 +392,14 @@ cdfPlot <- function(contrastDF,
         # if (missing(footnote)) {
         #     footnote <- NULL
         # }
-        maxY <- pThreshold + pThreshold*0.2
+        max.value <- max(pThreshold,max(contrastDF_subset[[y]]))
+        maxY <- max.value + max.value*0.1
 
-        cdfInset <- canvasXpress::canvasXpress(data              = cx.data,
-                                              varAnnot          = var.annot,
+        cdfMain <- canvasXpress::canvasXpress(data              = cx.data.subset,
+                                              varAnnot          = var.annot.subset,
                                               decorations       = decorations,
                                               graphType         = "Scatter2D",
-                                              colorBy           = "Group",
+                                              colorBy           = "group",
                                               colors            = symbolColor,
                                               title             = title,
                                               xAxisTitle        = xlab,
@@ -409,15 +410,15 @@ cdfPlot <- function(contrastDF,
                                               setMaxY           = maxY,
                                               lazyLoad = TRUE)
 
-        cdfMain <- canvasXpress::canvasXpress(data             = cx.data.subset,
-                                               varAnnot         = var.annot.subset,
+        cdfInset <- canvasXpress::canvasXpress(data             = cx.data,
+                                               varAnnot         = var.annot,
                                                graphType        = "Scatter2D",
-                                               colorBy          = "Group",
+                                               colorBy          = "group",
                                                colors           = symbolColor,
                                                title            = insetTitle,
                                                xAxisTitle       = xlab,
                                                yAxisTitle       = ylab,
-                                               setMaxY          = max(contrastDF_subset[[y]]),
+                                               setMaxY          = max(contrastDF[[y]]),
                                                lazyLoad = TRUE)
         cdfPlot <- list("main" = cdfMain, "inset" = cdfInset)
     } else {
@@ -436,7 +437,7 @@ cdfPlot <- function(contrastDF,
 
         # Plot subset percent of the data for the main plot
         cdfMain <- ggplot(contrastDF_subset, aes_string(x = x, y = y)) +
-            aes(shape = group, size = group, color = group, fill = group, order = order) +
+            aes(shape = group, size = group, color = group, fill = group) +
             # Scale lines tell it to use the actual values, not treat them as factors
             scale_shape_manual(name = "Group", guide = "legend", labels = ssc$group, values = ssc$symbolShape) +
             scale_size_manual(name = "Group", guide = "legend", labels = ssc$group, values = ssc$symbolSize) +
@@ -470,8 +471,7 @@ cdfPlot <- function(contrastDF,
         # Set up the inset plot with All Data
         cdfInset <- ggplot(contrastDF, aes_string(x = x, y = y)) +
             aes(shape = group, size = group,
-                color = group, fill = group,
-                order = order) +
+                color = group, fill = group) +
             # Scale lines tell it to use the actual values, not treat them as factors
             scale_shape_manual(name = "Group", guide = "none", labels = ssc$group,
                                values = ssc$symbolShape) +
