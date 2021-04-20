@@ -430,29 +430,32 @@ ggplotMDS <- function(DGEdata,
     } else {
 
         shapes <- .get_valid_symbolShapes_ggplot()[1:8]
+        symColor <- "blue"
+        mdsplot <- ggplot(plot_data, aes(x = x, y = y))
+        geom_point_params <- list()
 
-
-        if (!is.null(shapeCol)) {
-            shapeCol_data <- !!rlang::sym(shapeCol)
+        if (byColor) {
+            mdsplot <- mdsplot + aes(color = ColorCode)
         } else {
-            shapeCol_data <- NULL
+            geom_point_params[['color']] = symColor
         }
 
-        if (!is.null(colorCol)) {
-            colorCol_data <- get(colorCol)
+        if (byShape) {
+            mdsplot <- mdsplot + aes(shape = Shape) +  scale_shape_manual(values = shapes)
         } else {
-            colorCol_data <- NULL
+            geom_point_params[['shape']] = symShape
         }
 
-        if (!is.null(sizeCol)) {
-            sizeCol_data <- !!rlang::sym(sizeCol)
+        if (bySize) {
+            mdsplot <- mdsplot + aes(size = Size)
         } else {
-            sizeCol_data <- NULL
+            geom_point_params[['size']] = symSize
         }
 
-        mdsplot <- ggplot(plot_data, aes(x = x, y = y, color = colorCol , shape = shapeCol, size = sizeCol)) +
-            geom_point(shape = symShape, size = symSize, alpha = transparency) +
-                    scale_shape_manual(values = shapes)
+        mdsplot <- mdsplot + layer(geom = "point",
+                                   stat = "identity",
+                                   position = "identity",
+                                   params = geom_point_params)
 
 
 #
