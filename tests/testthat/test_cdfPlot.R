@@ -1,62 +1,57 @@
-context("DGEobj.plots - tests for cdfPlot.R functions")
+context('DGEobj.plots - tests for cdfPlot.R functions')
 
 
-test_that("cdfPlot.R: cdfPlot()", {
-    skip_if(!("ReplicateGroupDesign_fit" %in% names(t_obj1)))
+test_that('cdfPlot.R: cdfPlot()', {
+    skip_if(!('ReplicateGroupDesign_fit' %in% names(t_obj1)))
 
     top_table <- topTable(t_obj1$ReplicateGroupDesign_fit, number = 100)
 
     # testing plot with default values.
-    plot <- cdfPlot(top_table, referenceLine = "blue")
-    expect_type(plot, "list")
-    expect_s3_class(plot$main, c("canvasXpress", "htmlwidget"))
-    expect_s3_class(plot$inset, c("canvasXpress", "htmlwidget"))
+    plot <- cdfPlot(top_table, referenceLine = 'blue')
+    expect_type(plot, 'list')
+    expect_s3_class(plot$main, c('canvasXpress', 'htmlwidget'))
+    expect_s3_class(plot$inset, c('canvasXpress', 'htmlwidget'))
 
-    plot <- cdfPlot(top_table, plotType = "ggplot", referenceLine = "blue")
-    expect_s3_class(plot$main, c("gg", "ggplot"))
-    expect_s3_class(plot$inset, c("gg", "ggplot"))
-    expect_s3_class(plot$viewport, "viewport")
+    plot <- cdfPlot(top_table, plotType = 'ggplot', referenceLine = 'blue')
+    expect_s3_class(plot$main, c('gg', 'ggplot'))
+    expect_s3_class(plot$inset, c('gg', 'ggplot'))
+    expect_s3_class(plot$viewport, 'viewport')
 
     # testing plot with customized aesthetics.
     plot_with_aes <- cdfPlot(top_table,
-                             insetTitle    = "Sub plot title",
-                             xlab          = "xaxis-title",
-                             ylab          = "yaxis-title",
-                             title         = "MyPlot",
-                             referenceLine = "blue",
-                             footnote      = "this is footnote of the plot")
+                             insetTitle    = 'Sub plot title',
+                             xlab          = 'xaxis-title',
+                             ylab          = 'yaxis-title',
+                             title         = 'MyPlot',
+                             referenceLine = 'blue',
+                             footnote      = 'this is footnote of the plot',
+                             footnoteColor = 'red')
 
-    expect_type(plot_with_aes, "list")
-    expect_s3_class(plot_with_aes$main, c("canvasXpress", "htmlwidget"))
-    expect_s3_class(plot_with_aes$inset, c("canvasXpress", "htmlwidget"))
+    expect_type(plot_with_aes, 'list')
+    expect_s3_class(plot_with_aes$main, c('canvasXpress', 'htmlwidget'))
+    expect_s3_class(plot_with_aes$inset, c('canvasXpress', 'htmlwidget'))
 
     #check aesthetic parameters for cxplot
 
     plot_with_aes <- cdfPlot(top_table,
-                             plotType      = "ggplot",
-                             insetTitle    = "Sub plot title",
-                             xlab          = "xaxis-title",
-                             ylab          = "yaxis-title",
-                             title         = "MyPlot",
-                             referenceLine = "blue",
-                             footnote      = "this is footnote of the plot")
+                             plotType      = 'ggplot',
+                             insetTitle    = 'Sub plot title',
+                             xlab          = 'xaxis-title',
+                             ylab          = 'yaxis-title',
+                             title         = 'MyPlot',
+                             referenceLine = 'blue',
+                             footnote      = 'this is footnote of the plot',
+                             footnoteSize  = 10,
+                             footnoteColor = 'red')
 
-    expect_s3_class(plot_with_aes$main, c("gg", "ggplot"))
-    expect_s3_class(plot_with_aes$inset, c("gg", "ggplot"))
-    expect_s3_class(plot_with_aes$viewport, "viewport")
+    expect_s3_class(plot_with_aes$main, c('gg', 'ggplot'))
+    expect_s3_class(plot_with_aes$inset, c('gg', 'ggplot'))
+    expect_s3_class(plot_with_aes$viewport, 'viewport')
 
-    expect_setequal(unlist(plot_with_aes$main$labels[c("title", "y", "x")]), c("MyPlot", "yaxis-title", "xaxis-title"))
-    expect_setequal(plot_with_aes$inset$labels$title, "Sub plot title")
-    expect_equal(plot_with_aes$main$layers[[2]]$geom_params$colour, "blue")
-    expect_equal(plot_with_aes$main$layers[[3]]$geom_params$label, "this is footnote of the plot")
-
-    expect_error({cdfPlot(top_table, pvalCol = "p.value")},
-                 regexp = "Specified pvalCol not found in the supplied dataframe (contrastDF).",
-                 fixed = TRUE)
-    expect_error({cdfPlot(top_table, symbolShape = 20)},
-                 regexp = "All specified symbol arguments must be of length 2, including symbolSize, symbolShape, symbolColor, and symbolFill.")
-    expect_error({cdfPlot(top_table, plotType = "cx")},
-                 regexp = "Plot type must be either canvasXpress or ggplot.")
+    expect_setequal(unlist(plot_with_aes$main$labels[c('title', 'y', 'x')]), c('MyPlot', 'yaxis-title', 'xaxis-title'))
+    expect_setequal(plot_with_aes$inset$labels$title, 'Sub plot title')
+    expect_equal(plot_with_aes$main$layers[[2]]$geom_params$colour, 'blue')
+    expect_equal(plot_with_aes$main$layers[[3]]$geom_params$label, 'this is footnote of the plot')
 
     #contrastDF
     msg <- 'contrastDF must be specified as dataframe with a p-value column.'
@@ -71,7 +66,7 @@ test_that("cdfPlot.R: cdfPlot()", {
 
     #plotType
     msg <- 'plotType must be either canvasXpress or ggplot.'
-    expect_error({cdfPlot(top_table, plotType = "cx")},
+    expect_error({cdfPlot(top_table, plotType = 'cx')},
                  regexp = msg)
     expect_error({cdfPlot(top_table, plotType = NULL)},
                  regexp = msg)
@@ -82,31 +77,31 @@ test_that("cdfPlot.R: cdfPlot()", {
 
     #pvalCol
     msg <- 'pvalCol column not found in contrastDF.'
-    expect_error({cdfPlot(top_table, pvalCol = "notacolumn")},
+    expect_error({cdfPlot(top_table, pvalCol = 'notacolumn')},
                  regexp = msg)
     expect_error({cdfPlot(top_table, pvalCol = NULL)},
                  regexp = msg)
 
     #pThreshold
     msg <- 'pthreshold must be a singular numeric value. Assigning default value 0.01.'
-    expect_warning({cdfPlot(top_table, pThreshold = "notavalue")},
+    expect_warning({cdfPlot(top_table, pThreshold = 'notavalue')},
                  regexp = msg)
     expect_warning({cdfPlot(top_table, pThreshold = NULL)},
                  regexp = msg)
     expect_warning({cdfPlot(top_table, pThreshold = c(1,2))},
                  regexp = msg)
-    expect_warning({cdfPlot(top_table, pThreshold = "notavalue")},
+    expect_warning({cdfPlot(top_table, pThreshold = 'notavalue')},
                  regexp = msg)
 
     #title
-    msg <- "title must be a singular value of class character. Assigning default value 'NULL'."
+    msg <- 'title must be a singular value of class character. Assigning default value NULL.'
     expect_warning({cdfPlot(top_table, title = c('title','title'))},
                    regexp = msg)
     expect_warning({cdfPlot(top_table, title = 1)},
                    regexp = msg)
 
     #insetTitle
-    msg <- "insetTitle must be a singular value of class character. Assigning default value 'NULL'."
+    msg <- 'insetTitle must be a singular value of class character. Assigning default value NULL.'
     expect_warning({cdfPlot(top_table, insetTitle = c('title','title'))},
                    regexp = msg)
     expect_warning({cdfPlot(top_table, insetTitle = 1)},
@@ -120,14 +115,14 @@ test_that("cdfPlot.R: cdfPlot()", {
                    regexp = msg)
 
     #ylab
-    msg <- "ylab must be a singular value of class character. Assigning default value 'Rank' as the label."
-    expect_warning({cdfPlot(top_table, xlab = c('ylab','ylab'))},
+    msg <- "ylab must be a singular value of class character. Assigning default value 'pvalCol' as the label."
+    expect_warning({cdfPlot(top_table, ylab = c('ylab','ylab'))},
                    regexp = msg)
-    expect_warning({cdfPlot(top_table, xlab = 1)},
+    expect_warning({cdfPlot(top_table, ylab = 1)},
                    regexp = msg)
 
     #symbolSize
-    msg <- 'symbolSize must be a vector of 3 integer values, at least 2 of them are different. Assigning default values 10, 4, 10.'
+    msg <- 'symbolSize must be a vector of 2 integer values. Assigning default values 2,1.'
     expect_warning({cdfPlot(top_table, symbolSize = 'notavalidvalue')},
                    regexp = msg)
     expect_warning({cdfPlot(top_table, symbolSize = 1)},
@@ -160,36 +155,36 @@ test_that("cdfPlot.R: cdfPlot()", {
                    regexp = msg)
 
     #transparency
-    msg <- "transparency must be a singular value of class numeric and must be between 0 and 1. Assigning default value '0.7'."
+    msg <- 'transparency must be a singular value of class numeric and must be between 0 and 1. Assigning default value 0.7.'
     expect_warning({cdfPlot(top_table, transparency = NULL)},
                    regexp = msg)
     expect_warning({cdfPlot(top_table, transparency = c(1,2))},
                    regexp = msg)
     expect_warning({cdfPlot(top_table, transparency = -1)},
                    regexp = msg)
-    expect_warning({cdfPlot(top_table, transparency = "notavalidvalue")},
+    expect_warning({cdfPlot(top_table, transparency = 'notavalidvalue')},
                    regexp = msg)
     expect_warning({cdfPlot(top_table, transparency = 2)},
                    regexp = msg)
 
     #referenceLine
-    msg <- "referenceLine must be a singular value of class character or 'NULL' to disable. Assigning default value NULL."
-    expect_warning({cdfPlot(top_table, referenceLine = c("blue", "blue"))},
+    msg <- 'referenceLine must be a singular value of class character or NULL to disable. Assigning default value NULL.'
+    expect_warning({cdfPlot(top_table, referenceLine = c('blue', 'blue'))},
                    regexp = msg)
     expect_warning({cdfPlot(top_table, referenceLine = 1)},
                    regexp = msg)
-    expect_warning({cdfPlot(top_table, referenceLine = "notavalidvalue")},
-                   regexp = "Color specified is not valid. Assigning default value NULL.")
+    expect_warning({cdfPlot(top_table, referenceLine = 'notavalidvalue')},
+                   regexp = 'Color specified is not valid. Assigning default value NULL.')
 
     #refLineThickness
-    msg <- "refLineThickness must be a singular value of class numeric Assigning default value '1'."
+    msg <- 'refLineThickness must be a singular value of class numeric Assigning default value 1.'
     expect_warning({cdfPlot(top_table, refLineThickness = c(1,2))},
                    regexp = msg)
     expect_warning({cdfPlot(top_table, refLineThickness = -1)},
                    regexp = msg)
     expect_warning({cdfPlot(top_table, refLineThickness = NULL)},
                    regexp = msg)
-    expect_warning({cdfPlot(top_table, refLineThickness = "notavalidvalue")},
+    expect_warning({cdfPlot(top_table, refLineThickness = 'notavalidvalue')},
                    regexp = msg)
 
     #legendPosition
@@ -198,39 +193,80 @@ test_that("cdfPlot.R: cdfPlot()", {
                    regexp = msg)
     expect_warning({cdfPlot(top_table, legendPosition = 1)},
                    regexp = msg)
-    expect_warning({cdfPlot(top_table, legendPosition = "notavalidvalue")},
+    expect_warning({cdfPlot(top_table, legendPosition = 'notavalidvalue')},
                    regexp = msg)
 
     #viewportX
-    msg <- "viewportX must be a singular value of class numeric and must be greater than 0. Assigning default value '0.15'."
+    msg <- 'viewportX must be a singular value of class numeric and must be greater than 0. Assigning default value 0.15.'
     expect_warning({cdfPlot(top_table, viewportX = c(1,2))},
                    regexp = msg)
-    expect_warning({cdfPlot(top_table, viewportX = "notavalidvalue")},
+    expect_warning({cdfPlot(top_table, viewportX = 'notavalidvalue')},
                    regexp = msg)
-    #expect_warning({cdfPlot(top_table, viewportX = NULL)},
-                   #regexp = msg)
+    expect_warning({cdfPlot(top_table, viewportX = NULL)},
+                    regexp = msg)
 
-    #
+    #viewportY
+    msg <- 'viewportY must be a singular value of class numeric and must be greater than 0. Assigning default value 0.85.'
+    expect_warning({cdfPlot(top_table, viewportY = c(1,2))},
+                   regexp = msg)
+    expect_warning({cdfPlot(top_table, viewportY = 'notavalidvalue')},
+                   regexp = msg)
+    expect_warning({cdfPlot(top_table, viewportY = NULL)},
+                   regexp = msg)
 
+    #viewportWidth
+    msg <- 'viewportWidth must be a singular value of class numeric. Assigning default value 0.35.'
+    expect_warning({cdfPlot(top_table, viewportWidth = c(1,2))},
+                   regexp = msg)
+    expect_warning({cdfPlot(top_table, viewportWidth = 'notavalidvalue')},
+                   regexp = msg)
+    expect_warning({cdfPlot(top_table, viewportWidth = NULL)},
+                   regexp = msg)
+    expect_warning({cdfPlot(top_table, viewportWidth = -2)},
+                   regexp = msg)
 
+    #pvalMax
+    msg <- 'pvalMax must be a singular numeric value. Assigning default value 0.1.'
+    expect_warning({cdfPlot(top_table, pvalMax = c(1,2))},
+                   regexp = msg)
+    expect_warning({cdfPlot(top_table, pvalMax = NULL)},
+                   regexp = msg)
+    expect_warning({cdfPlot(top_table, pvalMax = 'notavalidvalue')},
+                   regexp = msg)
 
+    #printPlot
+    msg <- 'printPlot must be a singular logical value. Assigning default value TRUE.'
+    expect_warning({cdfPlot(top_table, printPlot = 'notavalidvalue')},
+                   regexp = msg)
+    expect_warning({cdfPlot(top_table, printPlot = c(TRUE,TRUE))},
+                   regexp = msg)
+    expect_warning({cdfPlot(top_table, printPlot = NULL)},
+                   regexp = msg)
 
+    #footnote
+    msg <- 'footnote must be a singular value of class character or NULL to disable. Assigning default value NULL.'
+    expect_warning({cdfPlot(top_table, footnote = 1)},
+                   regexp = msg)
+    expect_warning({cdfPlot(top_table, footnote = c('footnote','footnote'))},
+                   regexp = msg)
 
+    #footnoteSize
+    msg <- 'footnoteSize must be a singular value of class numeric. Assigning default value 3.'
+    expect_warning({cdfPlot(top_table, footnote = 'valid footnote', footnoteSize = c(1,2))},
+                   regexp = msg)
+    expect_warning({cdfPlot(top_table, footnote = 'valid footnote', footnoteSize = NULL)},
+                   regexp = msg)
+    expect_warning({cdfPlot(top_table, footnote = 'valid footnote', footnoteSize = 'notavalidvalue')},
+                   regexp = msg)
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+    #footnoteColor
+    msg <- "footnoteColor must be a singular value of class character. Assigning default value 'black'."
+    expect_warning({cdfPlot(top_table, footnote = 'valid footnote', footnoteColor = c('red','blue'))},
+                   regexp = msg)
+    expect_warning({cdfPlot(top_table, footnote = 'valid footnote', footnoteColor = 1)},
+                   regexp = msg)
+    expect_warning({cdfPlot(top_table, footnote = 'valid footnote', footnoteColor = NULL)},
+                   regexp = msg)
+    expect_warning({cdfPlot(top_table, footnote = 'valid footnote', footnoteColor = 'notavalidvalue')},
+                   regexp = "Color specified is not valid. Assigning default value 'black'.")
 })
