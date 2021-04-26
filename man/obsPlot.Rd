@@ -5,9 +5,9 @@
 \title{Function obsPlot}
 \usage{
 obsPlot(
-  data,
+  DGEdata,
   plotType = "canvasXpress",
-  group,
+  group = "replicategroup",
   boxLayer = TRUE,
   violinLayer = FALSE,
   showPoints = TRUE,
@@ -26,8 +26,6 @@ obsPlot(
 )
 }
 \arguments{
-\item{data}{A  dataframe row and colnames (required)}
-
 \item{group}{Define the column name to group boxplots by (typically a replicate group column) (required)}
 
 \item{boxLayer}{Adds a boxplot layer (default = TRUE)}
@@ -44,11 +42,11 @@ obsPlot(
 
 \item{title}{Plot title (optional)}
 
-\item{boxColor}{Color for the boxplot layer (default = "deepskyblue3")}
+\item{boxColor}{Color for the boxplot layer (default = 'deepskyblue3')}
 
 \item{boxTransparency}{Transparency for the box layer (default = 0.5)}
 
-\item{violinColor}{Color for the violin layer (default = "yellow")}
+\item{violinColor}{Color for the violin layer (default = 'yellow')}
 
 \item{violinTransparency}{Transparency for the violin layer (default = 0.5)}
 
@@ -56,16 +54,14 @@ obsPlot(
 (FALSE)  (default = TRUE)}
 
 \item{facetRow}{Explicitly set the number of rows for the facet plot.
-Default behavior will automatically set the columns. (default = NULL)}
+Default behavior will automatically set the columns.}
 
 \item{labelAngle}{Angle to set the sample labels on the X axis. (default =  30; range = 0-90)}
 
-\item{axisFree}{Specify same scale or independent scales for each subplot (Default = TRUE;
+\item{axisFree}{Specify same scale or independent scales for each subplot (default = TRUE;
 Allowed values: TRUE and FALSE)}
 
-\item{boxFill}{Fill Color for the boxplot layer (default = "deepskyblue3")}
-
-\item{violinFill}{Fill Color for the violin (default = "yellow")}
+\item{data}{A  DGEObject. The countsMatrix in the DGEObject is extracted to plot the data.}
 }
 \value{
 Plot of type canvasXpress or ggplot. If Facet = TRUE (default) returns a faceted object. If
@@ -75,7 +71,7 @@ Plot of type canvasXpress or ggplot. If Facet = TRUE (default) returns a faceted
 \description{
 Provides a summary plot (box/violin/points) for each observation (gene), showing data for each
 experiment group. The plot can optionally include either one or both of the boxplot and violinplot layer
-can additionally choose to display points and/or mean of all the points on the ploit.  The boxLayer and the
+can additionally choose to display points and/or mean of all the points on the plot.  The boxLayer and the
 violin layer can be customized to have the desired transparency, colors etc. By default, the violinLayer is
 not displayed and only the boxplot, points and the mean on the plots can be see.
 }
@@ -88,30 +84,20 @@ e.g. from log2cpm. Group must also be specified as the plots are grouped by this
 }
 \examples{
 \dontrun{
-  # Simulate some data with row and colnames
-  groups <- paste("group", factor(rep(1:4, each = 100)), sep = "")
-  x <- matrix(rnorm(2400, mean = 10), ncol = length(groups))
-  colnames(x) <- paste("sample", 1:ncol(x), sep = "")
-  rownames(x) <- paste("gene", 1:nrow(x), sep="")
-
- # Or get data from a DGEobj with RNA-Seq data
- log2cpm <- convertCounts(dgeObj$counts, unit = "cpm", log = TRUE, normalize = "tmm")
- design <- getItem(t_obj1,"design")
- replicategroup <- design[,"ReplicateGroup",drop = FALSE]
 
   # Faceted boxplot
-  obsPlot(log2cpm,
-          group = replicategroup)
+  obsPlot(DGEobj,
+          group = 'replicategroup')
 
   # Faceted violin plot
-  obsPlot(log2cpm,
+  obsPlot(DGEobj,
            violinLayer = TRUE,
            boxLayer = FALSE,
-           group = replicategroup)
+           group = 'replicategroup')
 
   # Return a list of plot for each individual gene
-  myplots <- obsPlot(log2cpm,
-                     group = replicategroup
+  myplots <- obsPlot(DGEobj,
+                     group = 'replicategroup'
                      facet = FALSE)
   # Plot one from the list
   myplots[[2]]
