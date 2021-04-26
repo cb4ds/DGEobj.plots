@@ -61,7 +61,7 @@ Default behavior will automatically set the columns.}
 \item{axisFree}{Specify same scale or independent scales for each subplot (default = TRUE;
 Allowed values: TRUE and FALSE)}
 
-\item{data}{A  DGEObject. The countsMatrix in the DGEObject is extracted to plot the data.}
+\item{data}{A  DGEObject. The countsMatrix in the DGEObject is extracted to plot the data. (required)}
 }
 \value{
 Plot of type canvasXpress or ggplot. If Facet = TRUE (default) returns a faceted object. If

@@ -454,7 +454,6 @@ obsPlot <- function(DGEdata,
             }
         } else {
             plotlist <- list()
-
             for (obs in unique(data[[plotByCol]])) {
                 dat   <- data[data[[plotByCol]] == obs, ]
                 aplot <- ggplot(dat, aes_string(x = groupCol, y = valueCol)) +
