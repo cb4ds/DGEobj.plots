@@ -436,61 +436,6 @@ test_that("profilePlot.R: profilePlot()", {
     #expect_s3_class(pPlot , c("canvasXpress", "htmlwidget"))
     expect_warning(pPlot <- profilePlot(contrastDF, plotType = "ggplot", footnote = c(123, 456)),
                    regexp = msg)
-    ## footnoteColor
-    msg <- "footnoteColor must be a singular value of class character. Assigning default value 'black'."
-    expect_warning(pPlot <- profilePlot(contrastDF, footnote = "notes", footnoteColor = 123),
-                   regexp = msg)
-    #expect_s3_class(pPlot , c("canvasXpress", "htmlwidget"))
-    expect_warning(pPlot <- profilePlot(contrastDF, footnote = "notes", plotType = "ggplot", footnoteColor = 123),
-                   regexp = msg)
-    expect_s3_class(pPlot , c("gg", "ggplot"))
-    expect_warning(pPlot <- profilePlot(contrastDF, footnote = "notes", footnoteColor = c("123", "456")),
-                   regexp = msg)
-    #expect_s3_class(pPlot , c("canvasXpress", "htmlwidget"))
-    expect_warning(pPlot <- profilePlot(contrastDF, footnote = "notes", plotType = "ggplot", footnoteColor = c("123", "456")),
-                   regexp = msg)
-    expect_s3_class(pPlot , c("gg", "ggplot"))
-    expect_warning(pPlot <- profilePlot(contrastDF, footnote = "notes", footnoteColor = c(123, 456)),
-                   regexp = msg)
-    #expect_s3_class(pPlot , c("canvasXpress", "htmlwidget"))
-    expect_warning(pPlot <- profilePlot(contrastDF, footnote = "notes", plotType = "ggplot", footnoteColor = c(123, 456)),
-                   regexp = msg)
-    expect_s3_class(pPlot , c("gg", "ggplot"))
-    msg <- "Color specified is not valid. Assigning default value 'black'."
-    expect_warning(pPlot <- profilePlot(contrastDF, footnote = "notes", footnoteColor = "abc"),
-                   regexp = msg)
-    #expect_s3_class(pPlot , c("canvasXpress", "htmlwidget"))
-    expect_warning(pPlot <- profilePlot(contrastDF, footnote = "notes", plotType = "ggplot",
-                                        footnoteColor = "abc"),
-                   regexp = msg)
-    expect_s3_class(pPlot , c("gg", "ggplot"))
-    ## footnoteSize
-    msg <- "footnoteSize must be a singular value of class numeric. Assigning default value '3'."
-    expect_warning(pPlot <- profilePlot(contrastDF, footnote = "notes", footnoteSize = "123"),
-                   regexp = msg)
-    expect_s3_class(pPlot , c("canvasXpress", "htmlwidget"))
-    expect_warning(pPlot <- profilePlot(contrastDF, footnote = "notes", plotType = "ggplot", footnoteSize = "123"),
-                   regexp = msg)
-    expect_s3_class(pPlot , c("gg", "ggplot"))
-    expect_warning(pPlot <- profilePlot(contrastDF, footnote = "notes", footnoteSize = c(123, 456)),
-                   regexp = msg)
-    expect_s3_class(pPlot , c("canvasXpress", "htmlwidget"))
-    expect_warning(pPlot <- profilePlot(contrastDF, footnote = "notes", plotType = "ggplot", footnoteSize = c(123, 456)),
-                   regexp = msg)
-    expect_s3_class(pPlot , c("gg", "ggplot"))
-    expect_warning(pPlot <- profilePlot(contrastDF, footnote = "notes", footnoteSize = c("123", "456")),
-                   regexp = msg)
-    expect_s3_class(pPlot , c("canvasXpress", "htmlwidget"))
-    expect_warning(pPlot <- profilePlot(contrastDF, footnote = "notes", plotType = "ggplot", footnoteSize = c("123", "456")),
-                   regexp = msg)
-    expect_s3_class(pPlot , c("gg", "ggplot"))
-    expect_warning(pPlot <- profilePlot(contrastDF, footnote = "notes", footnoteSize = -1),
-                   regexp = msg)
-    expect_s3_class(pPlot , c("canvasXpress", "htmlwidget"))
-    expect_warning(pPlot <- profilePlot(contrastDF, footnote = "notes", plotType = "ggplot",
-                                        footnoteSize = -1),
-                   regexp = msg)
-    expect_s3_class(pPlot , c("gg", "ggplot"))
     ## sizeBySignificance
     msg <- "sizeBySignificance must be a singular logical value. Assigning default value FALSE"
     expect_warning(pPlot <- profilePlot(contrastDF, sizeBySignificance = "123"),

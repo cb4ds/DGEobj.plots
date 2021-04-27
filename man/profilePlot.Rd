@@ -27,9 +27,7 @@ profilePlot(
   lineFitType = "loess",
   lineFitColor = "goldenrod1",
   legendPosition = "right",
-  footnote,
-  footnoteSize = 3,
-  footnoteColor = "black"
+  footnote
 )
 }
 \arguments{
@@ -95,12 +93,6 @@ top/bottom/left/right place the legend outside the figure.  ne/se/nw/sw place th
 inside the figure. NULL disables the legend. Default = "right"}
 
 \item{footnote}{Optional string placed right justified at bottom of plot.}
-
-\item{footnoteSize}{Applies to footnote. (Default = 3)}
-
-\item{footnoteColor}{Applies to footnote. (Default = "black")}
-
-\item{footnoteJust}{Value 0-1. 0 is left justified, 1 is right justified, 0.5 is centered. (Default = 1)}
 }
 \value{
 canvasxpress or ggplot object based on plotType selection

@@ -70,9 +70,6 @@
 #'        top/bottom/left/right place the legend outside the figure.  ne/se/nw/sw place the figure
 #'        inside the figure. NULL disables the legend. Default = "right"
 #' @param footnote Optional string placed right justified at bottom of plot.
-#' @param footnoteSize Applies to footnote. (Default = 3)
-#' @param footnoteColor Applies to footnote. (Default = "black")
-#' @param footnoteJust Value 0-1. 0 is left justified, 1 is right justified, 0.5 is centered. (Default = 1)
 #'
 #' @return canvasxpress or ggplot object based on plotType selection
 #'
@@ -122,9 +119,7 @@ profilePlot <- function(contrastDF,
                         lineFitType = "loess",
                         lineFitColor = "goldenrod1",
                         legendPosition = "right",
-                        footnote,
-                        footnoteSize = 3,
-                        footnoteColor = "black") {
+                        footnote) {
     ##### Asserts
     assertthat::assert_that(!missing(contrastDF),
                             !is.null(contrastDF),
@@ -272,26 +267,6 @@ profilePlot <- function(contrastDF,
         footnote <- NULL
     }
 
-    if (!is.null(footnote) &&
-        !is.null(footnoteSize) &&
-        any(!is.numeric(footnoteSize),
-            length(footnoteSize) != 1,
-            footnoteSize < 0)) {
-        warning("footnoteSize must be a singular value of class numeric. Assigning default value '3'.")
-        footnoteSize <- 3
-    }
-
-    if (!is.null(footnote) &&
-        !is.null(footnoteColor) &&
-        any(!is.character(footnoteColor),
-            length(footnoteColor) != 1)) {
-        warning("footnoteColor must be a singular value of class character. Assigning default value 'black'.")
-        footnoteColor <- "black"
-    } else if (.rgbaConversion(footnoteColor) == "invalid value") {
-        warning("Color specified is not valid. Assigning default value 'black'.")
-        footnoteColor <- "black"
-    }
-
     if (any(is.null(sizeBySignificance),
             !is.logical(sizeBySignificance),
             length(sizeBySignificance) != 1)) {
@@ -407,8 +382,6 @@ profilePlot <- function(contrastDF,
                           yAxisTitle       = ylab,
                           sizeBy           = sizeBy,
                           citation         = footnote,
-                          citationFontSize = footnoteSize,
-                          citationColor    = footnoteColor,
                           events           = events,
                           afterRender      = afterRender)
         if (sizeBy == "group") {
@@ -513,7 +486,7 @@ profilePlot <- function(contrastDF,
         if (!missing(footnote)) {
             profilePlot <- addFootnote(profilePlot,
                                        footnoteText = footnote,
-                                       footnoteSize = footnoteSize,
+                                       footnoteSize = 3,
                                        footnoteColor = "black")
         }
         setLegendPosition(profilePlot, legendPosition)
