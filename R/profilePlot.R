@@ -285,10 +285,10 @@ profilePlot <- function(contrastDF,
             dplyr::mutate(negLog10P = -log10(!!sym(pvalCol)))
     }
     contrastDF <- contrastDF %>%
-        dplyr::mutate(group = dplyr::case_when(!!sym(pvalCol) > pthreshold ~ "No Change",
+        dplyr::mutate(Group = dplyr::case_when(!!sym(pvalCol) > pthreshold ~ "No Change",
                                                !!sym(logRatioCol) > 0 ~ "Increased",
                                                TRUE ~"Decreased"),
-                      group = factor(group,
+                      Group = factor(Group,
                                      levels = c("Increased", "No Change", "Decreased")))
     if (plotType == "canvasxpress") {
         symbolColor <- sapply(symbolColor, .rgbaConversion, alpha = transparency, USE.NAMES = FALSE)
@@ -333,23 +333,23 @@ profilePlot <- function(contrastDF,
                                                 }; }}")
         if (missing(geneSymCol) && sizeBySignificance) {
             var.annot <- contrastDF %>%
-                dplyr::select(group, negLog10P)
+                dplyr::select(Group, negLog10P)
             sizeBy <- "negLog10P"
             showSizeLegend <- TRUE
         } else if (!missing(geneSymCol) && !sizeBySignificance) {
             var.annot <- contrastDF %>%
-                dplyr::select(c(group,geneSymCol))
-            sizeBy <- "group"
+                dplyr::select(c(Group,geneSymCol))
+            sizeBy <- "Group"
             showSizeLegend <- FALSE
         } else if (!missing(geneSymCol) && sizeBySignificance) {
             var.annot <- contrastDF %>%
-                dplyr::select(group, geneSymCol, negLog10P)
+                dplyr::select(Group, geneSymCol, negLog10P)
             sizeBy <- "negLog10P"
             showSizeLegend <- TRUE
         } else {
             var.annot <- contrastDF %>%
-                dplyr::select(group)
-            sizeBy  <- "group"
+                dplyr::select(Group)
+            sizeBy  <- "Group"
             showSizeLegend <- FALSE
         }
 
@@ -369,7 +369,7 @@ profilePlot <- function(contrastDF,
                           varAnnot         = var.annot,
                           decorations      = decorations,
                           graphType        = "Scatter2D",
-                          colorBy          = "group",
+                          colorBy          = "Group",
                           colors           = colors,
                           shapes           = shapes,
                           legendPosition   = legendPosition,
@@ -384,7 +384,7 @@ profilePlot <- function(contrastDF,
                           citation         = footnote,
                           events           = events,
                           afterRender      = afterRender)
-        if (sizeBy == "group") {
+        if (sizeBy == "Group") {
             cx_params <- c(cx_params, list(sizes = sizes))
         }
         do.call(canvasXpress::canvasXpress, cx_params)
@@ -399,9 +399,9 @@ profilePlot <- function(contrastDF,
                             symbolColor = symbolColor,
                             stringsAsFactors = FALSE)
         profilePlot <- ggplot(contrastDF, aes_string(x = xlabel, y = ylabel)) +
-            aes(shape = group,
-                color = group,
-                fill = group) +
+            aes(shape = Group,
+                color = Group,
+                fill = Group) +
             # Scale lines tell it to use the actual values, not treat them as factors
             scale_shape_manual(name = "Group", guide = "legend", labels = ssc$group,
                                values = ssc$symbolShape) +
@@ -415,7 +415,7 @@ profilePlot <- function(contrastDF,
             profilePlot <- profilePlot + aes(size = negLog10P) +
                                  scale_size_continuous()
         } else {
-            profilePlot <- profilePlot + aes(size = group) +
+            profilePlot <- profilePlot + aes(size = Group) +
                 scale_size_manual(name = "Group", guide = "legend", labels = ssc$group,
                                   values = ssc$symbolSize)
         }
