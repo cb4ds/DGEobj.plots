@@ -427,14 +427,11 @@ profilePlot <- function(contrastDF,
                             stringsAsFactors = FALSE)
         profilePlot <- ggplot(contrastDF, aes_string(x = xlabel, y = ylabel)) +
             aes(shape = group,
-                size = group,
                 color = group,
                 fill = group) +
             # Scale lines tell it to use the actual values, not treat them as factors
             scale_shape_manual(name = "Group", guide = "legend", labels = ssc$group,
                                values = ssc$symbolShape) +
-            scale_size_manual(name = "Group", guide = "legend", labels = ssc$group,
-                              values = ssc$symbolSize) +
             scale_color_manual(name = "Group", guide = "legend", labels = ssc$group,
                                values = ssc$symbolColor) +
             scale_fill_manual(name = "Group", guide = "legend", labels = ssc$group,
@@ -442,8 +439,12 @@ profilePlot <- function(contrastDF,
             geom_point(alpha = transparency)
         # Optional Decorations
         if (sizeBySignificance) {
-            suppressMessages(profilePlot <- profilePlot + aes(size = negLog10P) +
-                                 scale_size_continuous())
+            profilePlot <- profilePlot + aes(size = negLog10P) +
+                                 scale_size_continuous()
+        } else {
+            profilePlot <- profilePlot + aes(size = group) +
+                scale_size_manual(name = "Group", guide = "legend", labels = ssc$group,
+                                  values = ssc$symbolSize)
         }
 
         if (!is.null(referenceLine)) {
@@ -467,18 +468,19 @@ profilePlot <- function(contrastDF,
         }
 
         if (!is.null(lineFitType)) {
-            suppressMessages(profilePlot <- profilePlot +
-                                 geom_smooth(aes(group = NULL,
-                                                 shape = NULL,
-                                                 size = NULL,
-                                                 color = NULL,
-                                                 fill = NULL),
-                                             method = tolower(lineFitType),
-                                             size = refLineThickness,
-                                             color = lineFitColor,
-                                             alpha = transparency,
-                                             se = FALSE,
-                                             show.legend = FALSE))
+            profilePlot <- profilePlot +
+                geom_smooth(formula = 'y ~ x',
+                            aes(group = NULL,
+                                shape = NULL,
+                                size = NULL,
+                                color = NULL,
+                                fill = NULL),
+                            method = tolower(lineFitType),
+                            size = refLineThickness,
+                            color = lineFitColor,
+                            alpha = transparency,
+                            se = FALSE,
+                            show.legend = FALSE)
         }
 
         # Add genesym labels to increased, decreased genes
@@ -509,11 +511,11 @@ profilePlot <- function(contrastDF,
 
         # Footnote
         if (!missing(footnote)) {
-            suppressMessages(profilePlot <- addFootnote(profilePlot,
-                                                        footnoteText = footnote,
-                                                        footnoteSize = footnoteSize,
-                                                        footnoteColor = "black"))
+            profilePlot <- addFootnote(profilePlot,
+                                       footnoteText = footnote,
+                                       footnoteSize = footnoteSize,
+                                       footnoteColor = "black")
         }
-        suppressMessages(print(setLegendPosition(profilePlot, legendPosition)))
+        setLegendPosition(profilePlot, legendPosition)
     }
 }
