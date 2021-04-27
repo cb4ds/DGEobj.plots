@@ -19,16 +19,11 @@ cdfPlot(
   transparency = 0.7,
   referenceLine = NULL,
   refLineThickness = 3,
-  legendPosition = "right",
   viewportX = 0.15,
   viewportY = 0.85,
   viewportWidth = 0.35,
   pvalMax = 0.1,
-  printPlot = TRUE,
-  footnote,
-  footnoteSize = 3,
-  footnoteColor = "black",
-  footnoteJust = 1
+  footnote
 )
 }
 \arguments{
@@ -63,8 +58,6 @@ See \url{http://research.stowers-institute.org/efg/R/Color/Chart}}
 
 \item{refLineThickness}{Set thickness of the reference line (default = 1)}
 
-\item{legendPosition}{(default = 'right')}
-
 \item{viewportX}{(default = 0.15)}
 
 \item{viewportY}{(default = 0.85)}
@@ -73,14 +66,7 @@ See \url{http://research.stowers-institute.org/efg/R/Color/Chart}}
 
 \item{pvalMax}{Limit the range of the main plot (default = 0.10)}
 
-\item{printPlot}{Specify printing the combined plot to the console/knitr
-(default = TRUE)}
-
 \item{footnote}{Optional string placed right justified at bottom of plot.}
-
-\item{footnoteSize}{Applies to footnote. (default = 3)}
-
-\item{footnoteColor}{Applies to footnote. (default = 'black')}
 }
 \value{
 A list containing main plot, inset plot for both plotType. For plotType ='ggplot' list contains viewport, The plot can be
@@ -101,9 +87,6 @@ pvalMax argument) are shown in a full size plot. An inset figure shows the
 whole p-value scale. Points below 0.01 are a different color by default
 (threshold set by pThreshold argument; shape/color attributes customizable
 through other arguments).
-
-The output can be controlled using printPlot = TRUE, which outputs the compound plot
-to the console/knitr.
 
 \strong{Data Structure for the input dataframe:}
 

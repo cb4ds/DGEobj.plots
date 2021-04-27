@@ -14,9 +14,6 @@
 #' (threshold set by pThreshold argument; shape/color attributes customizable
 #' through other arguments).
 #'
-#' The output can be controlled using printPlot = TRUE, which outputs the compound plot
-#' to the console/knitr.
-#'
 #' \strong{Data Structure for the input dataframe:}
 #'
 #' The defaults are set for dataframes produced by topTable.  The column
@@ -47,15 +44,10 @@
 #' @param referenceLine Color for an horizontal line drawn at the p-threshold
 #'   (default = NULL; NULL disables, set to desired color to enable)
 #' @param refLineThickness Set thickness of the reference line (default = 1)
-#' @param legendPosition (default = 'right')
 #' @param viewportX (default = 0.15)
 #' @param viewportY (default = 0.85)
 #' @param viewportWidth (default = 0.35)
-#' @param printPlot Specify printing the combined plot to the console/knitr
-#'   (default = TRUE)
 #' @param footnote Optional string placed right justified at bottom of plot.
-#' @param footnoteSize Applies to footnote. (default = 3)
-#' @param footnoteColor Applies to footnote. (default = 'black')
 #'
 #' @return A list containing main plot, inset plot for both plotType. For plotType ='ggplot' list contains viewport, The plot can be
 #'    reconstructed with print(cdfPlot$main); print(inset, vp = cdfPlot$viewport)
@@ -66,8 +58,7 @@
 #'    cdfPlot(contrastDF, title = 'My CDF Plot')
 #' }
 #' @import ggplot2 magrittr
-#' @importFrom grid viewport
-#' @importFrom dplyr arrange left_join
+#' @importFrom dplyr arrange mutate case_when select
 #' @importFrom assertthat assert_that
 #' @importFrom canvasXpress canvasXpress
 #'
@@ -86,16 +77,11 @@ cdfPlot <- function(contrastDF,
                     transparency   = 0.7,
                     referenceLine  = NULL,
                     refLineThickness = 3,
-                    legendPosition = 'right',
                     viewportX      = 0.15,
                     viewportY      = 0.85,
                     viewportWidth  = 0.35,
                     pvalMax        = 0.10,
-                    printPlot      = TRUE,
-                    footnote,
-                    footnoteSize   = 3,
-                    footnoteColor  = 'black',
-                    footnoteJust   = 1) {
+                    footnote) {
 
     assertthat::assert_that(!missing(contrastDF),
                             !is.null(contrastDF),
@@ -163,7 +149,6 @@ cdfPlot <- function(contrastDF,
             !all(symbolSize >= 0))) {
         warning('symbolSize must be a vector of 2 integer values. Assigning default values 2,1.')
         symbolSize  <-  c(2,1)
-
     }
 
     if (any(is.null(symbolShape),
@@ -173,7 +158,6 @@ cdfPlot <- function(contrastDF,
             plotType == 'ggplot' && !is.null(symbolShape) && length(.validate_gg_shapes(symbolShape)) != 2)) {
         warning("symbolShape must be a vector of 2 charcter values. Assigning default values 'circle'.")
         symbolShape  <- c('circle', 'circle')
-
     }
 
     if (any(is.null(symbolColor),
@@ -211,14 +195,6 @@ cdfPlot <- function(contrastDF,
         refLineThickness <- 1
     }
 
-    if (!is.null(legendPosition) &&
-        !all(is.character(legendPosition),
-             length(legendPosition) == 1,
-             legendPosition %in% c('top', 'bottom', 'left', 'right', 'ne', 'se', 'nw', 'sw'))) {
-        warning("legendPosition must be one value from 'top', 'bottom', 'left', 'right', 'ne', 'se', 'nw', 'sw' or 'NULL' to disable. Assigning default value 'right'.")
-        legendPosition <- 'right'
-    }
-
     if (any(is.null(viewportX),
             !is.numeric(viewportX),
             length(viewportX) != 1)) {
@@ -248,13 +224,6 @@ cdfPlot <- function(contrastDF,
         pvalMax <- 0.1
     }
 
-    if (any(is.null(printPlot),
-            !is.logical(printPlot),
-            length(printPlot) != 1)) {
-        warning('printPlot must be a singular logical value. Assigning default value TRUE.')
-        printPlot <- TRUE
-    }
-
     if (missing(footnote)) {
         footnote <- NULL
     } else if (!is.null(footnote) &&
@@ -264,27 +233,9 @@ cdfPlot <- function(contrastDF,
         footnote <- NULL
     }
 
-    if (!is.null(footnote) &&
-        any(is.null(footnoteSize),
-            !is.numeric(footnoteSize),
-            length(footnoteSize) != 1,
-            footnoteSize < 0)) {
-        warning('footnoteSize must be a singular value of class numeric. Assigning default value 3.')
-        footnoteSize <- 3
-    }
 
-    if (!is.null(footnote) &&
-        any(is.null(footnoteColor),
-            !is.character(footnoteColor),
-            length(footnoteColor) != 1)) {
-        warning("footnoteColor must be a singular value of class character. Assigning default value 'black'.")
-        footnoteColor <- 'black'
-    } else if (.rgbaConversion(footnoteColor) == 'invalid value') {
-        warning("Color specified is not valid. Assigning default value 'black'.")
-        footnoteColor <- 'black'
-    }
 
-    groupNames <- c('Significant', 'Not Significant')
+    groupNames <- c('Not Significant', 'Significant')
     # Storing column names in x and y variable
     x <- 'Rank'
     y <- pvalCol
@@ -344,52 +295,48 @@ cdfPlot <- function(contrastDF,
         max.value <- max(pThreshold,max(contrastDF_subset[[y]]))
         maxY <- max.value + max.value*0.1
 
-        cdfMain <- canvasXpress::canvasXpress(data              = cx.data.subset,
-                                              varAnnot          = var.annot.subset,
-                                              decorations       = decorations,
-                                              graphType         = 'Scatter2D',
-                                              colorBy           = 'group',
-                                              colors            = symbolColor,
-                                              title             = title,
-                                              xAxisTitle        = xlab,
-                                              yAxisTitle        = ylab,
-                                              citation          = footnote,
-                                              citationFontSize  = footnoteSize,
-                                              citationColor     = footnoteColor,
-                                              setMaxY           = maxY)
+        cdfMain <- canvasXpress::canvasXpress(data        = cx.data.subset,
+                                              varAnnot    = var.annot.subset,
+                                              decorations = decorations,
+                                              graphType   = 'Scatter2D',
+                                              colorBy     = 'group',
+                                              colors      = symbolColor,
+                                              shapeBy     = 'group',
+                                              shapes      = symbolShape,
+                                              sizeBy      = 'group',
+                                              sizes       = symbolSize,
+                                              title       = title,
+                                              xAxisTitle  = xlab,
+                                              yAxisTitle  = ylab,
+                                              citation    = footnote,
+                                              setMaxY     = maxY)
 
-        cdfInset <- canvasXpress::canvasXpress(data             = cx.data,
-                                               varAnnot         = var.annot,
-                                               graphType        = 'Scatter2D',
-                                               colorBy          = 'group',
-                                               colors           = symbolColor,
-                                               title            = insetTitle,
-                                               xAxisTitle       = xlab,
-                                               yAxisTitle       = ylab,
-                                               setMaxY          = max(contrastDF[[y]]))
+        cdfInset <- canvasXpress::canvasXpress(data       = cx.data,
+                                               varAnnot   = var.annot,
+                                               graphType  = 'Scatter2D',
+                                               colorBy    = 'group',
+                                               colors     = symbolColor,
+                                               shapeBy    = 'group',
+                                               shapes     = symbolShape,
+                                               sizeBy     = 'group',
+                                               sizes      = symbolSize,
+                                               title      = insetTitle,
+                                               xAxisTitle = xlab,
+                                               yAxisTitle = ylab,
+                                               setMaxY    = max(contrastDF[[y]]))
         cdfPlot <- list('main' = cdfMain, 'inset' = cdfInset)
     } else {
         names(symbolShape) <- groupNames
         names(symbolSize)  <- groupNames
         names(symbolColor) <- groupNames
 
-        ssc <- data.frame(group = factor(groupNames, levels = groupNames),
-                          symbolShape = symbolShape,
-                          symbolSize = symbolSize,
-                          symbolColor = symbolColor,
-                          stringsAsFactors = FALSE)
-
-        contrastDF <- contrastDF %>%
-            dplyr::left_join(ssc)
-
         # Plot subset percent of the data for the main plot
         cdfMain <- ggplot(contrastDF_subset, aes_string(x = x, y = y)) +
             aes(shape = group, size = group, color = group, fill = group) +
             # Scale lines tell it to use the actual values, not treat them as factors
-            scale_shape_manual(name = 'Group', guide = 'legend', labels = ssc$group, values = ssc$symbolShape) +
-            scale_size_manual(name = 'Group', guide = 'legend', labels = ssc$group, values = ssc$symbolSize) +
-            scale_color_manual(name = 'Group', guide = 'legend', labels = ssc$group, values = ssc$symbolColor) +
-            scale_fill_manual(name = 'Group', guide = 'legend', labels = ssc$group, values = ssc$symbolColor) +
+            scale_shape_manual(name = 'Shape', values = symbolShape) +
+            scale_size_manual(name = 'Size', values =  symbolSize) +
+            scale_color_manual(name = 'Color', values = symbolColor,  aesthetics = c("colour", "fill")) +
             geom_point(alpha = transparency)
 
         # Optional Decorations
@@ -405,54 +352,65 @@ cdfPlot <- function(contrastDF,
             ylab(ylab) +
             ggtitle(title)
 
-        cdfMain <- setLegendPosition(cdfMain, legendPosition)
-
         if (!missing(footnote)) {
             cdfMain <- addFootnote(cdfMain,
                                    footnoteText = footnote,
-                                   footnoteSize = footnoteSize,
-                                   footnoteColor = footnoteColor,
-                                   footnoteJust = footnoteJust)
+                                   footnoteSize = 3,
+                                   footnoteColor = 'black',
+                                   footnoteJust = 1)
         }
 
         # Set up the inset plot with All Data
         cdfInset <- ggplot(contrastDF, aes_string(x = x, y = y)) +
-            aes(shape = group, size = group,
-                color = group, fill = group) +
+            aes(shape = group, size = group, color = group, fill = group) +
             # Scale lines tell it to use the actual values, not treat them as factors
-            scale_shape_manual(name = 'Group', guide = 'none', labels = ssc$group,
-                               values = ssc$symbolShape) +
-            scale_size_manual(name = 'Group', guide = 'none', labels = ssc$group,
-                              values = ssc$symbolSize) +
-            scale_color_manual(name = 'Group', guide = 'none', labels = ssc$group,
-                               values = ssc$symbolColor) +
-            scale_fill_manual(name = 'Group', guide = 'none', labels = ssc$group,
-                              values = ssc$symbolColor) +
+            scale_shape_manual(values = symbolShape) +
+            scale_size_manual( values = symbolSize) +
+            scale_color_manual(values = symbolColor, aesthetics = c("colour", "fill")) +
             geom_rect(xmin = 0, xmax = nrow(contrastDF),
                       ymin = 0, ymax = max(contrastDF[[y]]), color = 'lightblue',
                       fill = 'lightblue', alpha = 0.2) +
             geom_point(alpha = transparency)
+
+        #remove the legends for the inset plot
+        cdfInset <- cdfInset + theme(legend.position = 'none')
+
+
 
         # Add Labels and title
         cdfInset <- cdfInset +
             xlab(xlab) +
             ylab(ylab) +
             ggtitle(insetTitle)
+
+        plot_limits <- get_plot_limits(cdfMain, viewportX, viewportY, viewportWidth)
+        vp_plot <- cdfMain +
+            annotation_custom(grob =  ggplotGrob(cdfInset),
+                              ymin = plot_limits[['ymin']],
+                              ymax = plot_limits[['ymax']],
+                              xmin = plot_limits[['xmin']],
+                              xmax = plot_limits[['xmax']])
+
+        cdfPlot <- list(main = cdfMain, inset = cdfInset, combined = vp_plot)
     }
 
-        # A viewport taking up a fraction of the plot area (upper left)
-        vp <- grid::viewport(width  = viewportWidth,
-                             height = viewportWidth,
-                             x      = viewportX,
-                             y      = viewportY,
-                             just   = c('left', 'top'))
-
-        if (printPlot) {
-            print(cdfMain)
-            print(cdfInset, vp = vp)
-        }
-
-        cdfPlot <- list(main = cdfMain, inset = cdfInset, viewport = vp)
-
     return(cdfPlot)
+}
+
+get_plot_limits <- function(main_plot, viewportX, viewportY, viewportWidth) {
+    main_plot_build <- ggplot_build(main_plot)
+    xrange <- main_plot_build$layout$panel_params[[1]]$x.range
+    yrange <- main_plot_build$layout$panel_params[[1]]$y.range
+
+    x_range_val <- xrange[[2]] - xrange[[1]]
+    xmin <- xrange[[1]] + (0.02 * x_range_val)
+    xmax <- xmin + (viewportWidth * x_range_val)
+
+    y_range_val <- yrange[[2]] - yrange[[1]]
+    ymin <- yrange[[2]] - (0.02 * y_range_val)
+    ymax <- ymin - (viewportWidth * y_range_val)
+    return(list('xmin' = xmin,
+                 'xmax' = xmax,
+                 'ymin' = ymin,
+                 'ymax' = ymax))
 }
