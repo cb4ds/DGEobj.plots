@@ -42,11 +42,11 @@ obsPlot(
 
 \item{title}{Plot title (optional)}
 
-\item{boxColor}{Color for the boxplot layer (default = 'deepskyblue3')}
+\item{boxColor}{Color for the boxplot layer (default = "deepskyblue3")}
 
 \item{boxTransparency}{Transparency for the box layer (default = 0.5)}
 
-\item{violinColor}{Color for the violin layer (default = 'yellow')}
+\item{violinColor}{Color for the violin layer (default = "yellow")}
 
 \item{violinTransparency}{Transparency for the violin layer (default = 0.5)}
 
@@ -87,17 +87,17 @@ e.g. from log2cpm. Group must also be specified as the plots are grouped by this
 
   # Faceted boxplot
   obsPlot(DGEobj,
-          group = 'replicategroup')
+          group = "replicategroup")
 
   # Faceted violin plot
   obsPlot(DGEobj,
            violinLayer = TRUE,
            boxLayer = FALSE,
-           group = 'replicategroup')
+           group = "replicategroup")
 
   # Return a list of plot for each individual gene
   myplots <- obsPlot(DGEobj,
-                     group = 'replicategroup'
+                     group = "replicategroup"
                      facet = FALSE)
   # Plot one from the list
   myplots[[2]]
