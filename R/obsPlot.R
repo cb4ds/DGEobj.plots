@@ -4,7 +4,7 @@
 #' experiment group. The plot can optionally include either one or both of the boxplot and violinplot layer
 #' can additionally choose to display points and/or mean of all the points on the plot.  The boxLayer and the
 #' violin layer can be customized to have the desired transparency, colors etc. By default, the violinLayer is
-#' not displayed and only the boxplot, points and the mean on the plots can be see.
+#' not displayed and only the boxplot, points and the mean on the plots can be seen.
 #'
 #' Also, by default, the plots are faceted.  Faceting the plot can be turned off to return a list of individual
 #' plots for each gene.
@@ -13,6 +13,8 @@
 #' e.g. from log2cpm. Group must also be specified as the plots are grouped by this attribute.
 #'
 #' @param data A  DGEObject. The countsMatrix in the DGEObject is extracted to plot the data. (required)
+#' @param plotType Can be canvasXpress or ggplot (default = canvasXpress)
+#' @param designTable Name of the design table in the DGEObj from which the grouping column will be extracted. (default = design)
 #' @param group Define the column name to group boxplots by (typically a replicate group column) (required)
 #' @param boxLayer Adds a boxplot layer (default = TRUE)
 #' @param violinLayer Adds a violin layer (default = FALSE)
@@ -42,16 +44,19 @@
 #'
 #'   # Faceted boxplot
 #'   obsPlot(DGEobj,
+#'           designTable = "design",
 #'           group = "replicategroup")
 #'
 #'   # Faceted violin plot
 #'   obsPlot(DGEobj,
 #'            violinLayer = TRUE,
 #'            boxLayer = FALSE,
+#'            designTable = "design",
 #'            group = "replicategroup")
 #'
 #'   # Return a list of plot for each individual gene
 #'   myplots <- obsPlot(DGEobj,
+#'                      designTable = "design",
 #'                      group = "replicategroup"
 #'                      facet = FALSE)
 #'   # Plot one from the list
@@ -67,6 +72,7 @@
 #' @export
 obsPlot <- function(DGEdata,
                     plotType    = "canvasXpress",
+                    designTable = "design",
                     group       = "replicategroup",
                     boxLayer    = TRUE,
                     violinLayer = FALSE,
@@ -89,15 +95,23 @@ obsPlot <- function(DGEdata,
                             msg = "DGEdata must be specified and should be of class DGEobj")
     assertthat::assert_that("counts" %in% names(DGEdata),
                             msg = "counts matrix must be available in DGEdata to plot the data.")
-    assertthat::assert_that("design" %in% names(DGEdata),
-                            msg = "DGEdata needs to have a design item.")
     assertthat::assert_that(!is.null(plotType),
                             tolower(plotType) %in% c("canvasxpress", "ggplot"),
                             msg = "plotType must be either canvasXpress or ggplot.")
 
     data   <- convertCounts(DGEdata$counts, unit = "cpm") %>%
         as.data.frame()
-    design            <- DGEobj::getItem(DGEdata, "design")
+    if (any(is.null(designTable),
+            !is.character(designTable),
+            !(designTable %in% names(DGEdata)))) {
+        if ("design" %in% names(DGEdata)) {
+            designTable <- "design"
+            warning("designTable specified is not present in DGEobj. Assigning default value 'design'.")
+        } else {
+            stop("designTable specified is not present in DGEobj.")
+        }
+    }
+    design            <- DGEobj::getItem(DGEdata, designTable)
     colnames(design)  <- tolower(colnames(design))
     group_default     <- NULL
     if (tolower("ReplicateGroup") %in% colnames(design)) {
@@ -106,14 +120,13 @@ obsPlot <- function(DGEdata,
 
     if (any(is.null(group),
             !(tolower(group) %in% colnames(design)))) {
-        warning("group must be specified and should be one of the columns in the design object in DGEdata.")
         if (!is.null(group_default)) {
-            warning(paste("Assigning",
-                          group_default,
-                          "as the default value."))
-            group <- "replicategroup"
+            warning("group must be specified and should be one of the columns in the design object in DGEdata. Assigning ",
+                    group_default,
+                    " as the default value.")
+            group <- group_default
         } else {
-            stop("Unable to find default column 'ReplicateGroup' in the design item. Provide a valid column from the design object in DGEdata")
+            stop("group must be specified and should be one of the columns in the designTable in DGEdata.")
         }
     }
 

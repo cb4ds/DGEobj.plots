@@ -7,6 +7,7 @@
 obsPlot(
   DGEdata,
   plotType = "canvasXpress",
+  designTable = "design",
   group = "replicategroup",
   boxLayer = TRUE,
   violinLayer = FALSE,
@@ -26,6 +27,10 @@ obsPlot(
 )
 }
 \arguments{
+\item{plotType}{Can be canvasXpress or ggplot (default = canvasXpress)}
+
+\item{designTable}{Name of the design table in the DGEObj from which the grouping column will be extracted. (default = design)}
+
 \item{group}{Define the column name to group boxplots by (typically a replicate group column) (required)}
 
 \item{boxLayer}{Adds a boxplot layer (default = TRUE)}
@@ -73,7 +78,7 @@ Provides a summary plot (box/violin/points) for each observation (gene), showing
 experiment group. The plot can optionally include either one or both of the boxplot and violinplot layer
 can additionally choose to display points and/or mean of all the points on the plot.  The boxLayer and the
 violin layer can be customized to have the desired transparency, colors etc. By default, the violinLayer is
-not displayed and only the boxplot, points and the mean on the plots can be see.
+not displayed and only the boxplot, points and the mean on the plots can be seen.
 }
 \details{
 Also, by default, the plots are faceted.  Faceting the plot can be turned off to return a list of individual
@@ -87,16 +92,19 @@ e.g. from log2cpm. Group must also be specified as the plots are grouped by this
 
   # Faceted boxplot
   obsPlot(DGEobj,
+          designTable = "design",
           group = "replicategroup")
 
   # Faceted violin plot
   obsPlot(DGEobj,
            violinLayer = TRUE,
            boxLayer = FALSE,
+           designTable = "design",
            group = "replicategroup")
 
   # Return a list of plot for each individual gene
   myplots <- obsPlot(DGEobj,
+                     designTable = "design",
                      group = "replicategroup"
                      facet = FALSE)
   # Plot one from the list
