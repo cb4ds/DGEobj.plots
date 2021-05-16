@@ -13,7 +13,7 @@ cdfPlot(
   ylab,
   title = NULL,
   insetTitle = NULL,
-  symbolSize = c(2, 1),
+  symbolSize = c(4, 3),
   symbolShape = c("circle", "circle"),
   symbolColor = c("red3", "deepskyblue4"),
   transparency = 0.7,
@@ -31,11 +31,11 @@ cdfPlot(
 
 \item{plotType}{Plot type must be canvasXpress or ggplot (default = canvasXpress).}
 
-\item{pvalCol}{Name of the p-value or FDR column (default = 'P.Value')}
+\item{pvalCol}{Name of the p-value or FDR column (default = "P.Value")}
 
 \item{pThreshold}{Used to color points (default = 0.01)}
 
-\item{xlab}{X axis label (default = 'Rank')}
+\item{xlab}{X axis label (default = "Rank")}
 
 \item{ylab}{Y axis label (default = p-value column name)}
 
@@ -45,10 +45,10 @@ cdfPlot(
 
 \item{symbolSize}{Size of symbols for Significant and Not Significant points (default = c(2,1);}
 
-\item{symbolShape}{Shape of the symbols for uSignificant and Not Significant points (default = c('circle', 'circle')
+\item{symbolShape}{Shape of the symbols for Significant and Not Significant points (default = c("circle", "circle")
 See \url{http://www.cookbook-r.com/Graphs/Shapes_and_line_types}}
 
-\item{symbolColor}{Color of symbols for Significant and Not Significant points (default = c('red3', 'deepskyblue4'))
+\item{symbolColor}{Color of symbols for Significant and Not Significant points (default = c("red3", "deepskyblue4"))
 See \url{http://research.stowers-institute.org/efg/R/Color/Chart}}
 
 \item{transparency}{Controls the transparency of the plotted points. Value ranges between 0 -1 (default = 0.5)}
@@ -69,8 +69,8 @@ See \url{http://research.stowers-institute.org/efg/R/Color/Chart}}
 \item{footnote}{Optional string placed right justified at bottom of plot.}
 }
 \value{
-A list containing main plot, inset plot for both plotType. For plotType ='ggplot' list contains viewport, The plot can be
-   reconstructed with print(cdfPlot$main); print(inset, vp = cdfPlot$viewport)
+A list containing main plot, inset plot for both plotType. For plotType ="ggplot" list contains a combined plot which
+displays the inset plot in a viewport
 }
 \description{
 CDF plots are a good complement to p-value histograms as a way to evaluate
@@ -91,7 +91,7 @@ through other arguments).
 \strong{Data Structure for the input dataframe:}
 
 The defaults are set for dataframes produced by topTable.  The column
-'P.Value' is used by default to accommodate the column names used in topTable
+"P.Value" is used by default to accommodate the column names used in topTable
 dataframes.  Any other dataframe can be used with by explicitly defining the
 p-value column name with the appropriate argument.
 
@@ -103,6 +103,6 @@ this order: Significant, Not Significant.
 \examples{
 \dontrun{
    # Plot to console (contrastDF is a topTable dataframe)
-   cdfPlot(contrastDF, title = 'My CDF Plot')
+   cdfPlot(contrastDF, title = "My CDF Plot")
 }
 }
