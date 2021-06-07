@@ -7,22 +7,22 @@
 obsPlot(
   DGEdata,
   plotType = "canvasXpress",
+  countsMatrix = "counts",
+  convertCounts = NULL,
+  convert_geneLength,
+  convert_log = FALSE,
+  convert_normalize = "none",
+  convert_prior.count = NULL,
   designTable = "design",
   group = "replicategroup",
-  boxLayer = TRUE,
   violinLayer = FALSE,
   showPoints = TRUE,
-  showMean = TRUE,
   xlab,
   ylab,
   title,
   boxColor = "deepskyblue3",
-  boxTransparency = 0.5,
-  violinColor = "goldenrod1",
-  violinTransparency = 0.5,
   facet = TRUE,
   facetRow,
-  labelAngle = 30,
   axisFree = TRUE
 )
 }
@@ -33,13 +33,9 @@ obsPlot(
 
 \item{group}{Define the column name to group boxplots by (typically a replicate group column) (required)}
 
-\item{boxLayer}{Adds a boxplot layer (default = TRUE)}
-
 \item{violinLayer}{Adds a violin layer (default = FALSE)}
 
 \item{showPoints}{Shows the datapoints on the plot only if boxLayer or violinLayer is enabled. (default = TRUE)}
-
-\item{showMean}{Show the mean of the points on the plot only if boxLayer is enabled. (default = TRUE)}
 
 \item{xlab}{X axis label (defaults to group column name if not specified)}
 
@@ -49,24 +45,28 @@ obsPlot(
 
 \item{boxColor}{Color for the boxplot layer (default = "deepskyblue3")}
 
-\item{boxTransparency}{Transparency for the box layer (default = 0.5)}
-
-\item{violinColor}{Color for the violin layer (default = "yellow")}
-
-\item{violinTransparency}{Transparency for the violin layer (default = 0.5)}
-
 \item{facet}{Specifies whether to facet (TRUE) or print individual plots
 (FALSE)  (default = TRUE)}
 
 \item{facetRow}{Explicitly set the number of rows for the facet plot.
 Default behavior will automatically set the columns.}
 
-\item{labelAngle}{Angle to set the sample labels on the X axis. (default =  30; range = 0-90)}
-
 \item{axisFree}{Specify same scale or independent scales for each subplot (default = TRUE;
 Allowed values: TRUE and FALSE)}
 
 \item{data}{A  DGEObject. The countsMatrix in the DGEObject is extracted to plot the data. (required)}
+
+\item{boxLayer}{Adds a boxplot layer (default = TRUE)}
+
+\item{showMean}{Show the mean of the points on the plot only if boxLayer is enabled. (default = TRUE)}
+
+\item{boxTransparency}{Transparency for the box layer (default = 0.5)}
+
+\item{violinColor}{Color for the violin layer (default = "yellow")}
+
+\item{violinTransparency}{Transparency for the violin layer (default = 0.5)}
+
+\item{labelAngle}{Angle to set the sample labels on the X axis. (default =  30; range = 0-90)}
 }
 \value{
 Plot of type canvasXpress or ggplot. If Facet = TRUE (default) returns a faceted object. If

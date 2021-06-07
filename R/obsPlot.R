@@ -72,45 +72,106 @@
 #' @export
 obsPlot <- function(DGEdata,
                     plotType    = "canvasXpress",
+                    countsMatrix = "counts",
+                    convertCounts = NULL,
+                    convert_geneLength,
+                    convert_log = FALSE,
+                    convert_normalize = "none",
+                    convert_prior.count = NULL,
                     designTable = "design",
                     group       = "replicategroup",
-                    boxLayer    = TRUE,
-                    violinLayer = FALSE,
+                    violinLayer  = FALSE,
                     showPoints  = TRUE,
-                    showMean    = TRUE,
                     xlab,
                     ylab,
                     title,
                     boxColor    = "deepskyblue3",
-                    boxTransparency = 0.5,
-                    violinColor = "goldenrod1",
-                    violinTransparency = 0.5,
                     facet       = TRUE,
                     facetRow,
-                    labelAngle  = 30,
                     axisFree    = TRUE) {
     assertthat::assert_that(!missing(DGEdata),
                             !is.null(DGEdata),
                             "DGEobj" %in% class(DGEdata),
                             msg = "DGEdata must be specified and should be of class DGEobj")
-    assertthat::assert_that("counts" %in% names(DGEdata),
+    assertthat::assert_that(!is.null(getType(DGEdata,"counts")),
                             msg = "counts matrix must be available in DGEdata to plot the data.")
-    assertthat::assert_that(!is.null(plotType),
-                            tolower(plotType) %in% c("canvasxpress", "ggplot"),
-                            msg = "plotType must be either canvasXpress or ggplot.")
+    assertthat::assert_that(!is.null(getType(DGEdata,"design")),
+                            msg = "design table must be available in DGEdata to plot the data.")
 
-    data   <- convertCounts(DGEdata$counts, unit = "cpm") %>%
-        as.data.frame()
-    if (any(is.null(designTable),
-            !is.character(designTable),
-            !(designTable %in% names(DGEdata)))) {
-        if ("design" %in% names(DGEdata)) {
-            designTable <- "design"
-            warning("designTable specified is not present in DGEobj. Assigning default value 'design'.")
-        } else {
-            stop("designTable specified is not present in DGEobj.")
+    #convertCounts value validation
+
+
+    #countsMatrix
+    if (any(is.null(countsMatrix),
+            !is.character(countsMatrix),
+            !(countsMatrix %in% names(DGEdata)))) {
+        if ("counts" %in% names(DGEdata)) {
+            countsMatrix <- "counts"
+            warning("countsMatrix specified is not present in DGEobj. Assigning default value of 'counts'.")
+        } else if (!is.null(getType(DGEdata,"counts"))) {
+            countsMatrix <- names(getType(DGEdata,"counts"))
         }
     }
+
+    #convertCounts
+    if (!is.null(convertCounts) &&
+        any(!is.character(convertCounts),
+            length(convertCounts != 1),
+            !(toupper(convertCounts) %in% c("CPM", "FDPKM", "FPK", "TPM")))) {
+        warning("Invalid value specificed for convertCounts. It must be null if counts matrix need not be converted or must be one of CPM, FPKM, FPK, and TPM. Assigning default value 'NULL'")
+        convertCounts <- NULL
+    }
+
+    if (!is.null(convertCounts)) {
+        if (any(length(convert_log) != 1,
+                is.null(convert_log),
+                !is.logical(convert_log))) {
+            warning("Invalid value specified for convert_log. Assigning default value FALSE.")
+            convert_log <- FALSE
+        }
+
+        if (any(length(convert_normalize) != 1,
+                is.null(convert_normalize),
+                !is.character(convert_normalize),
+                !(toupper(convert_normalize) %in% c("TMM", "RLE", "UPPERQUARTILE", "TMMWZP")))) {
+            warning("Invalid value specified for convert_normalize. Must be one of 'TMM', 'RLE', 'upperquartile', 'TMMwzp' or 'none'. Assigning default value 'none'.")
+            convert_normalize <- "none"
+        }
+
+        if (!missing(convert_geneLength)) {
+            assertthat::assert_that(length(convert_geneLength) == nrow(getItem(DGEdata, countsMatrix)),
+                                    msg = "geneLength must be the same length of the number of rows in countsMatrix.")
+        }
+
+        if (any(length(convert_prior.count) != 1,
+                !is.numeric(convert_prior.count))) {
+            warning("Invalid value specified for convert_prior.count Assigning default value NULL.")
+            convert_prior.count <- NULL
+        }
+
+        data <- convertCounts(getItem(DGEdata, countsMatrix),
+                                      unit = convertCounts,
+                                      geneLength = convert_geneLength,
+                                      log = convert_log,
+                                      normalize = convert_normalize,
+                                      prior.count = convert_prior.count) %>%
+            as.data.frame()
+    } else {
+        data <- getItem(DGEdata, countsMatrix) %>%
+            as.data.frame()
+    }
+
+        if (any(is.null(designTable),
+                !is.character(designTable),
+                !(designTable %in% names(DGEdata)))) {
+            if ("design" %in% names(DGEdata)) {
+                designTable <- "design"
+                warning("designTable specified is not present in DGEobj. Assigning default value of type 'design'.")
+            } else if (!is.null(getType(DGEdata,"design"))) {
+                designTable <- names(getType(DGEdata,"design"))
+            }
+        }
+
     design            <- DGEobj::getItem(DGEdata, designTable)
     colnames(design)  <- tolower(colnames(design))
     group_default     <- NULL
@@ -166,29 +227,11 @@ obsPlot <- function(DGEdata,
         }
 
         #facetRow
-        if (missing(facetRow)) {
-            numrow <- data[plotByCol] %>%
-                unique %>%
-                length %>%
-                sqrt %>%
-                ceiling
-        } else if (is.null(facetRow) ||
-                   length(facetRow) != 1 ||
-                   (!is.numeric(facetRow)) ||
-                   facetRow > nrow(unique(data[plotByCol]))) {
-            numrow <- data[plotByCol] %>%
-                unique %>%
-                length %>%
-                sqrt %>%
-                ceiling
-            warning(
-                paste("facetRow needs a singular numeric value lesser than the total number of unique column by which the plot is segregated.",
-                      "Assigning default value."
-                )
-            )
-        } else {
-            numrow <- facetRow
-        }
+        numrow <- data[plotByCol] %>%
+            unique %>%
+            length %>%
+            sqrt %>%
+            ceiling
     }
 
     if (missing(title)) {
@@ -217,20 +260,8 @@ obsPlot <- function(DGEdata,
         ylab <- valueCol
     }
 
-    if (!missing(labelAngle) &&
-        any(!is.numeric(labelAngle),
-            length(labelAngle) != 1,
-            labelAngle <= 0)) {
-        warning("labelAngle must be a single numeric value greater than 0. Assigning default value 30.")
-        labelAngle <- 30
-    }
 
-    if (any(is.null(boxLayer),
-            length(boxLayer) != 1,
-            !is.logical(boxLayer))) {
-        warning("boxLayer must be a single logical value. Assigning default value TRUE.")
-        boxLayer = TRUE
-    }
+    labelAngle <- 30
 
     if (any(is.null(violinLayer),
             length(violinLayer) != 1,
@@ -239,67 +270,35 @@ obsPlot <- function(DGEdata,
         violinLayer <- FALSE
     }
 
-    if (plotType == "canvasxpress" && (!boxLayer) && (!violinLayer)) {
-        warning("Either one of boxLayer and violinLayer must be TRUE. Assigning boxLayer as TRUE.")
-        boxLayer = TRUE
+    #color Validations
+    if (any(is.null(boxColor),
+            length(boxColor) != 1,
+            !is.character(boxColor))) {
+        warning("boxColor must be of class character and must specify the name of the color or the rgb value. Assigning default value 'deepskyblue3'.")
+        boxColor <- "deepskyblue3"
+    } else if (.rgbaConversion(boxColor) == "invalid value") {
+        warning("boxColor specified is not valid. Assigning default value 'deepskyblue3'.")
+        boxColor <- "deepskyblue3"
     }
 
-    #boxplot Validations
-    if (boxLayer) {
-        if (any(is.null(boxColor),
-                length(boxColor) != 1,
-                !is.character(boxColor))) {
-            warning("boxColor must be of class character and must specify the name of the color or the rgb value. Assigning default value 'deepskyblue3'.")
-            boxColor <- "deepskyblue3"
-        } else if (.rgbaConversion(boxColor) == "invalid value") {
-            warning("boxColor specified is not valid. Assigning default value 'deepskyblue3'.")
-            boxColor <- "deepskyblue3"
-        }
-
-        if (any(is.null(boxTransparency),
-                !is.numeric(boxTransparency),
-                length(boxTransparency) != 1,
-                boxTransparency <= 0,
-                boxTransparency > 1)) {
-            warning("boxTransparency must be a singular numeric value and must be between 0 and 1. Assigning default value 0.5.")
-            boxTransparency <- 0.5
-        }
-    }
 
     # ViolinLayer Validations
     if (violinLayer) {
-        if (any(is.null(violinColor),
-                length(violinColor) != 1,
-                !is.character(violinColor))) {
-            warning("violinColor must be of class character and must specify the name of the color or the rgb value. Assigning default value 'goldenrod1'.")
-            violinColor <- "goldenrod1"
-        } else if (.rgbaConversion(violinColor) == "invalid value") {
-            warning("violinColor specified is not valid. Assigning default value 'goldenrod1'.")
-            violinColor <- "goldenrod1"
-        }
-
-        if (any(is.null(violinTransparency),
-                !is.numeric(violinTransparency),
-                length(violinTransparency) != 1,
-                violinTransparency <= 0,
-                violinTransparency > 1)) {
-            warning("violinTransparency must be a singular numeric value and must be between 0 and 1. Assigning default value 0.5.")
-            violinTransparency <- 0.5
-        }
+        # if (any(is.null(violinColor),
+        #         length(violinColor) != 1,
+        #         !is.character(violinColor))) {
+        #     warning("violinColor must be of class character and must specify the name of the color or the rgb value. Assigning default value 'goldenrod1'.")
+        #     violinColor <- "goldenrod1"
+        # } else if (.rgbaConversion(violinColor) == "invalid value") {
+        #     warning("violinColor specified is not valid. Assigning default value 'goldenrod1'.")
+        #     violinColor <- "goldenrod1"
+        # }
     }
 
-    #Mean layer validations
-    if (boxLayer &&
-        any(is.null(showMean),
-            length(showMean) != 1,
-            !is.logical(showMean))) {
-        warning("showMean must be a singular logical value. Assigning default value TRUE.")
-        showMean <- TRUE
-    }
+    showMean <- TRUE
 
     #point validations
-    if ((boxLayer || violinLayer) &&
-        any(is.null(showPoints),
+    if (any(is.null(showPoints),
             length(showPoints) != 1,
             !is.logical(showPoints))) {
         warning("showPoints must be a singular logical value. Assigning default value TRUE.")
@@ -327,14 +326,12 @@ obsPlot <- function(DGEdata,
                                     graphType           = "Boxplot",
                                     groupingFactors     = groupCol,
                                     boxplotColor        = boxColor,
-                                    boxplotDataPointTransparency = boxTransparency,
                                     boxplotMean         = showMean,
                                     boxplotWhiskersType = "single",
                                     showViolinBoxplot   = violinLayer,
-                                    showBoxplotIfViolin = boxLayer,
-                                    violinColor         = violinColor,
-                                    violinTransparency  = violinTransparency,
-                                    smpLabelRotate      = labelAngle,
+                                    showBoxplotIfViolin = TRUE,
+                                    violinColor         = boxColor,
+                                    smpLabelRotate      = 30,
                                     smpLabelScaleFontFactor = 1,
                                     smpTitle            = xlab,
                                     smpTitleFontStyle   = "bold",
@@ -369,14 +366,12 @@ obsPlot <- function(DGEdata,
                              graphType           = "Boxplot",
                              groupingFactors     = groupCol,
                              boxplotColor        = boxColor,
-                             boxplotDataPointTransparency = boxTransparency,
                              boxplotMean         = showMean,
                              boxplotWhiskersType = "single",
                              showViolinBoxplot   = violinLayer,
-                             showBoxplotIfViolin = boxLayer,
-                             violinColor         = violinColor,
-                             violinTransparency  = violinTransparency,
-                             smpLabelRotate      = labelAngle,
+                             showBoxplotIfViolin = TRUE,
+                             violinColor         = boxColor,
+                             smpLabelRotate      = 30,
                              smpLabelScaleFontFactor = 1,
                              smpTitle            = xlab,
                              smpTitleFontStyle   = "bold",
@@ -392,15 +387,20 @@ obsPlot <- function(DGEdata,
         }
     } else {
         .addGeoms <- function(obsPlot) {
-            if (boxLayer) {
-                obsPlot <- obsPlot + geom_boxplot(
-                    alpha = boxTransparency,
-                    color = boxColor,
-                    fill  = boxColor,
-                    outlier.shape = outlier.shape,
-                    outlier.size  = outlier.size
-                )
-            }
+            obsPlot <- obsPlot + geom_boxplot(
+                alpha = boxTransparency,
+                color = boxColor,
+                fill  = boxColor,
+                outlier.shape = outlier.shape,
+                outlier.size  = outlier.size
+            ) +
+            stat_summary(fun   = mean,
+                        geom  = "point",
+                        shape = "square",
+                        size  = 3,
+                        color = "goldenrod1",
+                        fill  = "red2",
+                        alpha = 0.7)
 
             if (violinLayer) {
                 obsPlot <- obsPlot + geom_violin(alpha = violinTransparency,
@@ -459,7 +459,7 @@ obsPlot <- function(DGEdata,
 
             # Rotate xaxis group labels
             if (labelAngle > 0) {
-                obsPlot <- obsPlot + theme(axis.text.x = element_text(angle = labelAngle, hjust = 1))
+                obsPlot <- obsPlot + theme(axis.text.x = element_text(angle = 30, hjust = 1))
             }
         } else {
             plotlist <- list()

@@ -3,6 +3,8 @@ context("DGEobj.plots - tests for ggplotMDS.R functions")
 
 test_that("obsPlot.R: obsPlot()", {
     obs_plot <- obsPlot(t_obj1,
+                        countsMatrix = "counts",
+                        convertCounts = NULL,
                         designTable   = "design",
                         group    = "replicategroup",
                         facetRow = 2)
