@@ -104,15 +104,30 @@ test_that("cdfPlot.R: cdfPlot()", {
                  regexp = msg)
 
     #plotType
-    msg <- "plotType must be either canvasXpress or ggplot."
-    expect_error(cdf_plot <- cdfPlot(top_table, plotType = "cx"),
-                 regexp = msg)
-    expect_error(cdf_plot <- cdfPlot(top_table, plotType = NULL),
-                 regexp = msg)
-    expect_error(cdf_plot <- cdfPlot(top_table, plotType = 1),
-                 regexp = msg)
-    expect_error(cdf_plot <- cdfPlot(top_table, plotType = c("canvasxpress","ggplot")),
-                 regexp = msg)
+    msg <- "plotType must be either canvasXpress or ggplot. Assigning default value 'CanvasXpress'."
+    expect_warning(cdf_plot <- cdfPlot(top_table, plotType = "cx"),
+                   regexp = msg)
+    expect_type(cdf_plot, "list")
+    expect_s3_class(cdf_plot$main, c("canvasXpress", "htmlwidget"))
+    expect_s3_class(cdf_plot$inset, c("canvasXpress", "htmlwidget"))
+
+    expect_warning(cdf_plot <- cdfPlot(top_table, plotType = NULL),
+                   regexp = msg)
+    expect_type(cdf_plot, "list")
+    expect_s3_class(cdf_plot$main, c("canvasXpress", "htmlwidget"))
+    expect_s3_class(cdf_plot$inset, c("canvasXpress", "htmlwidget"))
+
+    expect_warning(cdf_plot <- cdfPlot(top_table, plotType = 1),
+                   regexp = msg)
+    expect_type(cdf_plot, "list")
+    expect_s3_class(cdf_plot$main, c("canvasXpress", "htmlwidget"))
+    expect_s3_class(cdf_plot$inset, c("canvasXpress", "htmlwidget"))
+
+    expect_warning(cdf_plot <- cdfPlot(top_table, plotType = c("canvasxpress","ggplot")),
+                   regexp = msg)
+    expect_type(cdf_plot, "list")
+    expect_s3_class(cdf_plot$main, c("canvasXpress", "htmlwidget"))
+    expect_s3_class(cdf_plot$inset, c("canvasXpress", "htmlwidget"))
 
     #pvalCol
     msg <- "pvalCol column not found in contrastDF."

@@ -43,12 +43,12 @@ cdfPlot(
 
 \item{insetTitle}{Title for the inset plot (Optional)}
 
-\item{symbolSize}{Size of symbols for Significant and Not Significant points (default = c(2,1);}
+\item{symbolSize}{Size of symbols for Not Significant and  Significant points (default = c(2,1);}
 
-\item{symbolShape}{Shape of the symbols for Significant and Not Significant points (default = c("circle", "circle")
+\item{symbolShape}{Shape of the symbols for Not Significant and Significant points (default = c("circle", "circle")
 See \url{http://www.cookbook-r.com/Graphs/Shapes_and_line_types}}
 
-\item{symbolColor}{Color of symbols for Significant and Not Significant points (default = c("red3", "deepskyblue4"))
+\item{symbolColor}{Color of symbols for Not Significant and Significant points (default = c("red3", "deepskyblue4"))
 See \url{http://research.stowers-institute.org/efg/R/Color/Chart}}
 
 \item{transparency}{Controls the transparency of the plotted points. Value ranges between 0 -1 (default = 0.5)}
@@ -58,11 +58,11 @@ See \url{http://research.stowers-institute.org/efg/R/Color/Chart}}
 
 \item{refLineThickness}{Set thickness of the reference line (default = 1)}
 
-\item{viewportX}{(default = 0.15)}
+\item{viewportX}{x-location for the inset plot(default = 0.15)}
 
-\item{viewportY}{(default = 0.85)}
+\item{viewportY}{y-location for the inset plot(default = 0.85)}
 
-\item{viewportWidth}{(default = 0.35)}
+\item{viewportWidth}{width of the inset plot (default = 0.35)}
 
 \item{pvalMax}{Limit the range of the main plot (default = 0.10)}
 

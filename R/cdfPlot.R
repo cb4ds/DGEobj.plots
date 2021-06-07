@@ -35,18 +35,18 @@
 #' @param ylab Y axis label (default = p-value column name)
 #' @param title Plot title (Optional)
 #' @param insetTitle Title for the inset plot (Optional)
-#' @param symbolSize Size of symbols for Significant and Not Significant points (default = c(2,1);
-#' @param symbolShape Shape of the symbols for Significant and Not Significant points (default = c("circle", "circle")
+#' @param symbolSize Size of symbols for Not Significant and  Significant points (default = c(2,1);
+#' @param symbolShape Shape of the symbols for Not Significant and Significant points (default = c("circle", "circle")
 #'        See \url{http://www.cookbook-r.com/Graphs/Shapes_and_line_types}
-#' @param symbolColor Color of symbols for Significant and Not Significant points (default = c("red3", "deepskyblue4"))
+#' @param symbolColor Color of symbols for Not Significant and Significant points (default = c("red3", "deepskyblue4"))
 #'        See \url{http://research.stowers-institute.org/efg/R/Color/Chart}
 #' @param transparency Controls the transparency of the plotted points. Value ranges between 0 -1 (default = 0.5)
 #' @param referenceLine Color for an horizontal line drawn at the p-threshold
 #'   (default = NULL; NULL disables, set to desired color to enable)
 #' @param refLineThickness Set thickness of the reference line (default = 1)
-#' @param viewportX (default = 0.15)
-#' @param viewportY (default = 0.85)
-#' @param viewportWidth (default = 0.35)
+#' @param viewportX x-location for the inset plot(default = 0.15)
+#' @param viewportY y-location for the inset plot(default = 0.85)
+#' @param viewportWidth width of the inset plot (default = 0.35)
 #' @param footnote Optional string placed right justified at bottom of plot.
 #'
 #' @return A list containing main plot, inset plot for both plotType. For plotType ="ggplot" list contains a combined plot which
@@ -89,17 +89,19 @@ cdfPlot <- function(contrastDF,
                             nrow(contrastDF) > 0,
                             msg = "contrastDF must be specified as dataframe with a p-value column.")
 
-    assertthat::assert_that(!is.null(plotType),
-                            is.character(plotType),
-                            length(plotType) == 1,
-                            tolower(plotType) %in% c("canvasxpress", "ggplot"),
-                            msg = "plotType must be either canvasXpress or ggplot.")
-
     assertthat::assert_that(!is.null(pvalCol),
                             pvalCol %in% colnames(contrastDF),
                             msg = "pvalCol column not found in contrastDF.")
 
     plotType <- tolower(plotType)
+    if (any(is.null(plotType),
+                            !is.character(plotType),
+                            length(plotType) != 1,
+                            !tolower(plotType) %in% c("canvasxpress", "ggplot"))) {
+        warning("plotType must be either canvasXpress or ggplot. Assigning default value 'CanvasXpress'.")
+        plotType <- "canvasxpress"
+    }
+
     if (any(is.null(pThreshold),
             !is.numeric(pThreshold),
             length(pThreshold) != 1)) {
@@ -260,11 +262,9 @@ cdfPlot <- function(contrastDF,
     contrastDF$order <- NA
     contrastDF <- contrastDF %>%
         dplyr::mutate(group = dplyr::case_when(!!rlang::sym(pvalCol) <= pThreshold ~ "Significant",
-                                               !!rlang::sym(pvalCol) > pThreshold ~ "Not Significant"),
+                                               TRUE ~ "Not Significant"),
                       group = factor(group,
-                                     levels = c("Significant", "Not Significant")),
-                      order = dplyr::case_when(group == "Not Significant" ~ 1,
-                                               group == "Significant" ~ 2))
+                                     levels = c("Significant", "Not Significant")))
 
     contrastDF_subset <- contrastDF %>%
         dplyr::filter(!!rlang::sym(pvalCol) <= pvalMax)
@@ -293,7 +293,7 @@ cdfPlot <- function(contrastDF,
         }
 
         # Footnote
-        max.value <- max(pThreshold,max(contrastDF_subset[[y]]))
+        max.value <- max(pThreshold, max(contrastDF_subset[[y]]))
         maxY <- max.value + max.value*0.1
 
         cdfMain <- canvasXpress::canvasXpress(data              = cx.data.subset,
@@ -397,7 +397,7 @@ cdfPlot <- function(contrastDF,
         cdfPlot <- list(main = cdfMain, inset = cdfInset, combined = vp_plot)
     }
 
-    return(cdfPlot)
+    cdfPlot
 }
 
 get_plot_limits <- function(main_plot, viewportX, viewportY, viewportWidth) {
@@ -412,8 +412,8 @@ get_plot_limits <- function(main_plot, viewportX, viewportY, viewportWidth) {
     y_range_val <- yrange[[2]] - yrange[[1]]
     ymin <- yrange[[2]] - (0.02 * y_range_val)
     ymax <- ymin - (viewportWidth * y_range_val)
-    return(list("xmin" = xmin,
-                 "xmax" = xmax,
-                 "ymin" = ymin,
-                 "ymax" = ymax))
+    list("xmin" = xmin,
+         "xmax" = xmax,
+         "ymin" = ymin,
+         "ymax" = ymax)
 }
