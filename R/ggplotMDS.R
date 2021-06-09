@@ -90,11 +90,16 @@ ggplotMDS <- function(DGEdata,
                             !is.null(DGEdata),
                             class(DGEdata)[1] %in% c("DGEobj"),
                             msg = "DGEdata must be specified and must be of class 'DGEobj'.")
-    assertthat::assert_that(!is.null(plotType),
-                            tolower(plotType) %in% c("canvasxpress", "ggplot"),
-                            msg = "Plot type must be either canvasXpress or ggplot.")
 
-    plotType = tolower(plotType)
+    plotType <- tolower(plotType)
+    if (any(is.null(plotType),
+            !is.character(plotType),
+            length(plotType) != 1,
+            !tolower(plotType) %in% c("canvasxpress", "ggplot"))) {
+        warning("plotType must be either canvasXpress or ggplot. Assigning default value 'CanvasXpress'.")
+        plotType <- "canvasxpress"
+    }
+
     design <- NULL
     design_default <- TRUE
     if (!missing(designTable)) {
@@ -115,7 +120,7 @@ ggplotMDS <- function(DGEdata,
     }
 
     if (is.null(design)) {
-        warning("designTable is either missing or invalid and the default value 'design' is not present in the DGEdata. Unable to color,size or shape points on the plot")
+        warning("designTable is either missing or invalid and the default value 'design' is not present in the DGEdata. Unable to color,size or shape points on the plot.")
     }
 
     colorby_default <- TRUE
@@ -130,9 +135,17 @@ ggplotMDS <- function(DGEdata,
         colorBy <- NULL
     }
 
-    if (colorby_default && (!is.null(design)) && ('replicategroup' %in% colnames(design))) {
-        warning("colorBy value is either missing or invalid. Assigning default value 'replicategroup'.")
-        colorBy <- 'replicategroup'
+    if (colorby_default)  {
+        colorBy <- NULL
+        msg <- "colorBy value specified is invalid or missing. Assigning default value"
+        if (!is.null(design) && ('replicategroup' %in% colnames(design))) {
+            colorBy <- 'replicategroup'
+            msg <- paste(msg,"'ReplicateGroup'.")
+        } else {
+            colorBy <- NULL
+            msg <- paste(msg, "'NULL'.")
+        }
+        warning(msg)
     }
 
     if (!missing(shapeBy) && (!is.null(design))) {
@@ -167,32 +180,24 @@ ggplotMDS <- function(DGEdata,
 
     # Validate labels
     addLabels <- TRUE
-    addDefaultLabel <- FALSE
+    addDefaultLabel <- TRUE
 
     if (!missing(labels)) {
-        if (is.null(labels) || is.null(design)) {
+        if (is.null(labels)) {
             addLabels <- FALSE
-        } else if (!is.null(design) && !(tolower(labels) %in% colnames(design))) {
-            if ('replicategroup' %in% colnames(design)) {
-                addDefaultLabel <- TRUE
-                warning("labels should be a column name in design object. Assigning replicate groups as default value.")
-            } else {
-                addLabels <- FALSE
-            }
-        }
-    } else {
-        if ('replicategroup %in% colnames(design')) {
-            addDefaultLabel <- TRUE
+        } else if (!is.null(design) && (tolower(labels) %in% colnames(design))) {
+            addDefaultLabel <- FALSE
+        } else if (!is.null(design) && (!(tolower(labels) %in% colnames(design)))) {
+            warning("label specifed is either missing or invalid. Assigning default values.")
         }
     }
 
-    if (addLabels && addDefaultLabel) {
-        labels <- colnames(DGEdata)
+    if (addDefaultLabel) {
+        labels <- NULL
         # Get labels from ReplicateGroup if present
         if ("DGEobj" %in% class(DGEdata)) {
-            design <- DGEobj::getItem(DGEdata, "design")
-            if (exists("design") && (with(design, exists("ReplicateGroup")))) {
-                    labels <- "ReplicateGroup"
+            if (exists("design") && (with(design, exists("replicategroup")))) {
+                    labels <- "replicategroup"
             }
         }
     }
@@ -332,6 +337,7 @@ ggplotMDS <- function(DGEdata,
     byColor <- FALSE
 
     if (!is.null(colorBy)) {
+        colorBy <- tolower(colorBy)
         colorby_data <- design %>%
             dplyr::select(!!colorBy) %>%
             rename(ColorCode = !!colorBy) %>%
@@ -344,18 +350,28 @@ ggplotMDS <- function(DGEdata,
     }
 
     if (addLabels) {
-        labels_data <- design %>%
-            dplyr::select(!!labels) %>%
-            rename(Labels = !!labels) %>%
-            tibble::rownames_to_column("sampleID")
+        if (!is.null(labels)) {
+            labels <- tolower(labels)
+            labels_data <- design %>%
+                dplyr::select(!!labels) %>%
+                rename(Labels = !!labels) %>%
+                tibble::rownames_to_column("sampleID")
+            plot_data <- plot_data %>%
+                left_join(labels_data, by = "sampleID")
+        }
+        # else {
+        #     labels_data <- plot_data %>%
+        #         select("sampleID") %>%
+        #         mutate(Labels = sampleID)
+        # }
 
-        plot_data <- plot_data %>%
-            left_join(labels_data, by = "sampleID")
+
     }
 
     byShape <- FALSE
     bySize  <- FALSE
     if (!missing(shapeBy) && !is.null(shapeBy)) {
+        shapeBy <- tolower(shapeBy)
         shapeby_data <- design %>%
             dplyr::select(!!shapeBy) %>%
             rename(Shape = !!shapeBy) %>%
@@ -368,6 +384,7 @@ ggplotMDS <- function(DGEdata,
     }
 
     if (!missing(sizeBy) && !is.null(sizeBy)) {
+        sizeBy <- tolower(sizeBy)
         sizeby_data <- design %>%
             dplyr::select(!!sizeBy) %>%
             rename(Size = !!sizeBy) %>%
@@ -510,7 +527,7 @@ ggplotMDS <- function(DGEdata,
 #         scale_shape_manual(values = shapes)
 # }
 
-        if (!is.null(labels)) {
+        if (addLabels && (!is.null(labels))) {
                 mdsplot <- mdsplot +
                     ggrepel::geom_text_repel(aes(label = Labels), size = labelSize, max.overlaps = Inf)
         }

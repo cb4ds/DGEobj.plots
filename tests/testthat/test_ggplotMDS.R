@@ -105,18 +105,23 @@ test_that("ggplotMDS.R: ggplotMDS()", {
                  regexp = msg)
     expect_error(ggplotMDS(),
                  regexp = msg)
-    expect_error(ggplotMDS(DGEdata  = t_obj1,
-                           plotType = "cx",
-                           colorBy  = "ReplicateGroup"),
-                 regexp = "Plot type must be either canvasXpress or ggplot.")
-    expect_error(ggplotMDS(DGEdata  = t_obj1,
-                           plotType = NULL,
-                           colorBy  = "ReplicateGroup"),
-                 regexp = "Plot type must be either canvasXpress or ggplot.")
 
     #Testing optional parameters
+
+    #plotType
+    msg <- "plotType must be either canvasXpress or ggplot. Assigning default value 'CanvasXpress'."
+    expect_warning(ggplotMDS(DGEdata  = t_obj1,
+                           plotType = "cx",
+                           designTable = "design",
+                           colorBy  = "ReplicateGroup"),
+                 regexp = msg)
+    expect_warning(ggplotMDS(DGEdata  = t_obj1,
+                           plotType = NULL,
+                           designTable = "design",
+                           colorBy  = "ReplicateGroup"),
+                 regexp = msg)
     #designTable
-    msg <- "designTable specified is either invalid or missing in DGEdata. Assigning default value 'design'."
+    msg <- "designTable is either missing or invalid. Assigning default value 'design'."
     expect_warning(mds_plot <- ggplotMDS(DGEdata = t_obj1,
                                          colorBy = "ReplicateGroup"),
                    regexp = msg)
@@ -140,7 +145,7 @@ test_that("ggplotMDS.R: ggplotMDS()", {
                    regexp = msg)
     expect_s3_class(mds_plot$plot, c("canvasXpress", "htmlwidget"))
 
-    msg <- "designTable specified is either missing in DGEdata or invalid and the default value 'design' is not present in the DGEdata. Unable to color,size or shape points on the plot."
+    msg <- "designTable is either missing or invalid. Assigning default value 'design'."
     expect_warning(mds_plot <- ggplotMDS(DGEdata        = t_obj1,
                                          designTable    = NULL,
                                          colorBy        = NULL,
@@ -154,11 +159,11 @@ test_that("ggplotMDS.R: ggplotMDS()", {
     expect_warning(mds_plot <- ggplotMDS(DGEdata     = missing_design_obj,
                                          designTable = "design",
                                          colorBy     = "ReplicateGroup"),
-                   regexp = msg)
+                   regexp = "designTable is either missing or invalid and the default value 'design' is not present in the DGEdata. Unable to color,size or shape points on the plot")
     expect_s3_class(mds_plot$plot, c("canvasXpress", "htmlwidget"))
 
     #colorBy
-    msg <- "colorBy value specified is either missing in DGEdata or invalid. Assigning default value 'replicategroup'."
+    msg <- "colorBy value specified is invalid or missing. Assigning default value 'ReplicateGroup'."
     expect_warning(mds_plot <- ggplotMDS(DGEdata     = t_obj1,
                                          designTable = "design",
                                          colorBy     = "Replicate"),
@@ -176,7 +181,13 @@ test_that("ggplotMDS.R: ggplotMDS()", {
     expect_warning(mds_plot <- ggplotMDS(DGEdata     = missing_repgroup,
                                          designTable = "design",
                                          colorBy     = "replicate"),
-                   regexp = "colorBy specified is either missing in DGEdata or invalid and the default value 'replicategroup' is not present in the DGEdata. Unable to color points on the plot.")
+                   regexp = "colorBy value specified is invalid or missing. Assigning default value 'NULL'.")
+    expect_s3_class(mds_plot$plot, c("canvasXpress", "htmlwidget"))
+
+    expect_warning(mds_plot <- ggplotMDS(DGEdata     = t_obj1,
+                                         designTable = "design",
+                                         colorBy     = "replicate"),
+                   regexp = "colorBy value specified is invalid or missing. Assigning default value 'ReplicateGroup'.")
     expect_s3_class(mds_plot$plot, c("canvasXpress", "htmlwidget"))
 
     #shapeBy
@@ -223,17 +234,8 @@ test_that("ggplotMDS.R: ggplotMDS()", {
                                          sizeBy      = c("value1", "value2")),
                    regexp = msg)
 
-    missing_design_obj <- t_obj1
-    missing_design_obj[["design"]] <- NULL
-    expect_warning(mds_plot <- ggplotMDS(DGEdata     = missing_design_obj,
-                                         designTable = "design",
-                                         colorBy     = "ReplicateGroup",
-                                         sizeBy      = "ReplicateGroup",
-                                         plotType    = "ggplot"),
-                   msg <- "designTable specified is either missing in DGEdata or invalid and the default value 'design' is not present in the DGEdata. Unable to color,size or shape points on the plot.")
-
     #labels
-    msg <- "labels should be a column name in design object. Assigning replicate groups as default value."
+    msg <- "label specifed is either missing or invalid. Assigning default values."
     expect_warning(mds_plot <- ggplotMDS(DGEdata     = t_obj1,
                                          designTable = "design",
                                          colorBy     = "ReplicateGroup",
@@ -262,10 +264,9 @@ test_that("ggplotMDS.R: ggplotMDS()", {
     missing_repgroup_obj[["design"]][["ReplicateGroup"]] <- NULL
     expect_warning(mds_plot <- ggplotMDS(DGEdata     = missing_repgroup_obj,
                                          designTable = "design",
-                                         colorBy     = "ReplicateGroup",
                                          labels      = "ReplicateGroup",
                                          plotType    = "ggplot"),
-                   regexp = "labels should be a column name in design object. Assigning rownames of DGEdata as default value.")
+                   regexp = "label specifed is either missing or invalid. Assigning default values.")
     expect_s3_class(mds_plot$plot, c("gg", "ggplot"))
 
     missing_design_obj <- t_obj1
@@ -275,7 +276,7 @@ test_that("ggplotMDS.R: ggplotMDS()", {
                                          colorBy     = "ReplicateGroup",
                                          labels      = "ReplicateGroup",
                                          plotType    = "ggplot"),
-                   msg <- "designTable specified is either missing in DGEdata or invalid and the default value 'design' is not present in the DGEdata. Unable to color,size or shape points on the plot.")
+                   msg <- "designTable is either missing or invalid and the default value 'design' is not present in the DGEdata. Unable to color,size or shape points on the plot.")
     expect_s3_class(mds_plot$plot, c("gg", "ggplot"))
 
     #top

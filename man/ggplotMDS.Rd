@@ -7,8 +7,8 @@
 ggplotMDS(
   DGEdata,
   plotType = "canvasXpress",
-  colorBy = "ReplicateGroup",
-  designTable = "design",
+  colorBy,
+  designTable,
   shapeBy = NULL,
   sizeBy = NULL,
   top = Inf,
@@ -32,8 +32,6 @@ OR a DGEobj that contains a DGEList OR a log2cpm matrix. (Required)}
 \item{plotType}{Plot type must be canvasXpress or ggplot (Default to canvasXpress).}
 
 \item{colorBy}{A grouping vector to color by (e.g. ReplicateGroup) (Required)}
-
-\item{designTable}{Name of the design table in DGEobject (default = design)}
 
 \item{shapeBy}{A grouping vector to map to shape (Optional)}
 
