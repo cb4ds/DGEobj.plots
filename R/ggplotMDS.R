@@ -4,10 +4,7 @@
 #' canvasXpress or ggplot2 instead of base graphics.
 #'
 #' colorBy, shapeBy, and sizeBy are grouping variables that encode group info by
-#' color, shape, or size.  These are vectors that must be the same length as
-#' ncol(DGEdata). colorBy and sizeBy will plot as continuous color or size
-#' changes if a numeric vector is used. Convert the vector to a factor to
-#' treat as groups instead of continuous.
+#' color, shape, or size.  These are input as column names in the designTable.
 #'
 #' The underlying limma::plotMDS() function uses a default of top = 500 to use the top 500
 #' highest fold change genes for the analysis. Based on observed speed tests,
@@ -16,14 +13,14 @@
 #' allows for selection of a number close the number of differential genes in the
 #' input data.
 #'
-#' @param DGEdata A DGEList object taken after normalization
-#'   OR a DGEobj that contains a DGEList OR a log2cpm matrix. (Required)
+#' @param DGEdata A DGEobj that contains a DGEList OR a log2cpm matrix. (Required)
 #' @param plotType Plot type must be canvasXpress or ggplot (Default to canvasXpress).
-#' @param colorBy A grouping vector to color by (e.g. ReplicateGroup) (Required)
-#' @param shapeBy A grouping vector to map to shape (Optional)
-#' @param sizeBy A numeric vector to define point size (Optional)
+#' @param designTable Name of the design table object
+#' @param colorBy A column name in the design table.Points are colored by the values in that column (Required)
+#' @param shapeBy A column name in the design table.Points are colored by the values in that column (Optional)
+#' @param sizeBy A column name in the design table.Points are sized by the values in that column (Optional)
 #' @param top Number of most variant genes to include (Default = Inf)
-#' @param labels Text labels for the samples. These should be short
+#' @param labels A column name in the design table. Text labels for the samples. These should be short
 #'   abbreviations of the sample identifiers.
 #'   Default = ReplicateGroup or rownames of DGEdata. Set to NULL to disable
 #'   text labels.
@@ -34,7 +31,7 @@
 #' @param reflineColor Color for the horizontal and vertical reference lines
 #'   (default = "darkgoldenrod1")
 #' @param reflineSize Thickness of the reference lines (default = 0.5)
-#' @param symShape Set the default shape of the symbols if not mapped to a column (default = 19, solid circle)
+#' @param symShape Set the default shape of the symbols if not mapped to a column (default = circle)
 #' @param symSize Set the default size of the symbols if not mapped to a column
 #'   (default = 10)
 #' @param transparency Set transparency (default = 0.7)
@@ -66,26 +63,27 @@
 #' @importFrom stats as.dist
 #' @importFrom tibble rownames_to_column
 #' @importFrom dplyr rename left_join select
+#' @importFrom DGEobj getItem
 #'
 #' @export
 ggplotMDS <- function(DGEdata,
-                      plotType = "canvasXpress",
-                      colorBy,
-                      designTable,
-                      shapeBy = NULL,
-                      sizeBy = NULL,
-                      top = Inf,
-                      labels,
-                      labelSize = 3,
+                      plotType     = "canvasXpress",
+                      designTable  = "design",
+                      colorBy      = "ReplicateGroup",
+                      shapeBy      = NULL,
+                      sizeBy       = NULL,
+                      top          = Inf,
+                      labels       = "ReplicateGroup",
+                      labelSize    = 3,
                       title,
                       hlineIntercept,
                       vlineIntercept,
                       reflineColor = "red",
-                      reflineSize = 0.5,
-                      symShape = "circle",
-                      symSize = 10,
+                      reflineSize  = 0.5,
+                      symShape     = "circle",
+                      symSize      = 10,
                       transparency = 0.7,
-                      dim.plot = c(1, 2)) {
+                      dim.plot     = c(1, 2)) {
     assertthat::assert_that(!missing(DGEdata),
                             !is.null(DGEdata),
                             class(DGEdata)[1] %in% c("DGEobj"),
@@ -124,7 +122,7 @@ ggplotMDS <- function(DGEdata,
     }
 
     colorby_default <- TRUE
-    if (!missing(colorBy) && (!is.null(design))) {
+    if (!is.null(design)) {
         if (!is.null(colorBy) &&
             tolower(colorBy) %in% colnames(design)) {
             colorby_default <- FALSE
@@ -137,33 +135,32 @@ ggplotMDS <- function(DGEdata,
 
     if (colorby_default)  {
         colorBy <- NULL
-        msg <- "colorBy value specified is invalid or missing. Assigning default value"
+        msg     <- "colorBy value specified is invalid or missing. Assigning default value"
         if (!is.null(design) && ('replicategroup' %in% colnames(design))) {
             colorBy <- 'replicategroup'
-            msg <- paste(msg,"'ReplicateGroup'.")
+            msg     <- paste(msg,"'ReplicateGroup'.")
         } else {
             colorBy <- NULL
-            msg <- paste(msg, "'NULL'.")
+            msg     <- paste(msg, "'NULL'.")
         }
         warning(msg)
     }
 
-    if (!missing(shapeBy) && (!is.null(design))) {
-        if (!is.null(shapeBy) &&
-            !(tolower(shapeBy) %in% colnames(design))) {
-            warning("shapeBy should be a column in the design attribute of DGEdata. Assigning NULL as default value.")
-            shapeBy <- NULL
-        }
+
+    if ((!is.null(design)) &&
+        (!is.null(shapeBy)) &&
+        !(tolower(shapeBy) %in% colnames(design))) {
+        warning("shapeBy should be a column in the design attribute of DGEdata. Assigning NULL as default value.")
+        shapeBy <- NULL
     } else {
         shapeBy <- NULL
     }
 
-    if (!missing(sizeBy) && (!is.null(design))) {
-        if (!is.null(sizeBy) &&
-            !(tolower(sizeBy) %in% colnames(design))) {
-            warning("sizeBy should be a column in the design attribute of DGEdata. Assigning NULL as default value.")
-            sizeBy <- NULL
-        }
+    if ((!is.null(design)) &&
+        (!is.null(sizeBy)) &&
+        !(tolower(sizeBy) %in% colnames(design))) {
+        warning("sizeBy should be a column in the design attribute of DGEdata. Assigning NULL as default value.")
+        sizeBy <- NULL
     } else {
         sizeBy <- NULL
     }
@@ -179,17 +176,15 @@ ggplotMDS <- function(DGEdata,
     }
 
     # Validate labels
-    addLabels <- TRUE
+    addLabels       <- TRUE
     addDefaultLabel <- TRUE
 
-    if (!missing(labels)) {
-        if (is.null(labels)) {
-            addLabels <- FALSE
-        } else if (!is.null(design) && (tolower(labels) %in% colnames(design))) {
-            addDefaultLabel <- FALSE
-        } else if (!is.null(design) && (!(tolower(labels) %in% colnames(design)))) {
-            warning("label specifed is either missing or invalid. Assigning default values.")
-        }
+    if (is.null(labels)) {
+        addLabels <- FALSE
+    } else if (!is.null(design) && (tolower(labels) %in% colnames(design))) {
+        addDefaultLabel <- FALSE
+    } else if (!is.null(design) && (!(tolower(labels) %in% colnames(design)))) {
+        warning("label specifed is either missing or invalid. Assigning default values.")
     }
 
     if (addDefaultLabel) {
@@ -202,20 +197,20 @@ ggplotMDS <- function(DGEdata,
         }
     }
 
-    if (missing(sizeBy)) {
+    if (missing(sizeBy) || is.null(sizeBy)) {
         if (!missing(symSize) && any(is.null(symSize), length(symSize) != 1, !is.numeric(symSize))) {
             warning("symSize must be a singular numeric value. Assigning default value 10.")
             symSize <- 10
         }
     }
 
-    intercept_flag <- FALSE
+    intercept_flag   <- FALSE
     intercept_length <- 0
     if (!missing(hlineIntercept) && !is.null(hlineIntercept)) {
         intercept_flag <- TRUE
         if (!is.numeric(hlineIntercept)) {
             warning("hlineIntercept must be numeric. Ignoring hlineIntercept.")
-            hlineIntercept <- NULL
+            hlineIntercept   <- NULL
         } else {
             intercept_length <- length(hlineIntercept)
         }
@@ -225,7 +220,7 @@ ggplotMDS <- function(DGEdata,
         intercept_flag <- TRUE
         if (!is.numeric(vlineIntercept)) {
             warning("vlineIntercept must be numeric. Ignoring vlineIntercept.")
-            vlineIntercept <- NULL
+            vlineIntercept   <- NULL
         } else {
             intercept_length <- length(vlineIntercept)
         }
@@ -276,7 +271,6 @@ ggplotMDS <- function(DGEdata,
         }
     }
 
-
     if (plotType == "canvasxpress") {
         if (missing(shapeBy) || is.null(shapeBy)) {
             if (!missing(symShape) && any(length(symShape) != 1, !.is_valid_symbolShapes_cxplot(symShape))) {
@@ -290,7 +284,7 @@ ggplotMDS <- function(DGEdata,
     }
 
     if (plotType == "ggplot") {
-        if (!missing(labels)) {
+        if (addLabels) {
             if (any(!is.numeric(labelSize), length(labelSize) != 1, labelSize < 0)) {
                 warning("labelSize should be singular numeric value and greater than zero. Assigning default value 3.")
                 labelSize <- 3
@@ -298,7 +292,6 @@ ggplotMDS <- function(DGEdata,
         }
 
         #add valid shapes
-
         if ((missing(shapeBy) || is.null(shapeBy)) &&
             !missing(symShape) &&
             any(is.null(symShape),
@@ -307,7 +300,6 @@ ggplotMDS <- function(DGEdata,
             warning("symShape must be a singular value of class 'character' or numeric value. Refer help documentation for valid values. Assigning default value 'circle'.")
             symShape <- "circle"
             }
-
     }
 
     # ColorBlind palette:
@@ -319,7 +311,6 @@ ggplotMDS <- function(DGEdata,
         title <- "MDS Plot"
     }
 
-
     if ("DGEobj" %in% class(DGEdata)) {
         DGEdata <- DGEobj::getItem(DGEdata, "DGEList")
     }
@@ -330,22 +321,18 @@ ggplotMDS <- function(DGEdata,
                           plot = FALSE)
 
     # Pull the plotting data together
-
     plot_data <- merge(mds.data$x, mds.data$y, by = "row.names")
-    plot_data <- rename(plot_data,sampleID = Row.names)
+    plot_data <- dplyr::rename(plot_data,sampleID = Row.names)
 
     byColor <- FALSE
-
     if (!is.null(colorBy)) {
         colorBy <- tolower(colorBy)
         colorby_data <- design %>%
             dplyr::select(!!colorBy) %>%
-            rename(ColorCode = !!colorBy) %>%
+            dplyr::rename(ColorCode = !!colorBy) %>%
             tibble::rownames_to_column("sampleID")
-
         plot_data <- plot_data %>%
-            left_join(colorby_data, by = "sampleID")
-
+            dplyr::left_join(colorby_data, by = "sampleID")
         byColor <- TRUE
     }
 
@@ -354,18 +341,14 @@ ggplotMDS <- function(DGEdata,
             labels <- tolower(labels)
             labels_data <- design %>%
                 dplyr::select(!!labels) %>%
-                rename(Labels = !!labels) %>%
+                dplyr::rename(Labels = !!labels) %>%
                 tibble::rownames_to_column("sampleID")
             plot_data <- plot_data %>%
-                left_join(labels_data, by = "sampleID")
+                dplyr::left_join(labels_data, by = "sampleID")
+        } else {
+            plot_data <- plot_data %>%
+                mutate(Labels = sampleID)
         }
-        # else {
-        #     labels_data <- plot_data %>%
-        #         select("sampleID") %>%
-        #         mutate(Labels = sampleID)
-        # }
-
-
     }
 
     byShape <- FALSE
@@ -374,12 +357,10 @@ ggplotMDS <- function(DGEdata,
         shapeBy <- tolower(shapeBy)
         shapeby_data <- design %>%
             dplyr::select(!!shapeBy) %>%
-            rename(Shape = !!shapeBy) %>%
+            dplyr::rename(Shape = !!shapeBy) %>%
             tibble::rownames_to_column("sampleID")
-
         plot_data <- plot_data %>%
-            left_join(shapeby_data, by = "sampleID")
-
+            dplyr::left_join(shapeby_data, by = "sampleID")
         byShape <- TRUE
     }
 
@@ -387,19 +368,18 @@ ggplotMDS <- function(DGEdata,
         sizeBy <- tolower(sizeBy)
         sizeby_data <- design %>%
             dplyr::select(!!sizeBy) %>%
-            rename(Size = !!sizeBy) %>%
+            dplyr::rename(Size = !!sizeBy) %>%
             tibble::rownames_to_column("sampleID")
-
         plot_data <- plot_data %>%
-            left_join(sizeby_data, by = "sampleID")
-
+            dplyr::left_join(sizeby_data, by = "sampleID")
         bySize <- TRUE
     }
+
     rownames(plot_data) <- plot_data$sampleID;plot_data$sampleID <- NULL
-    xylab <- list(paste(mds.data$axislabel, mds.data$dim.plot[[1]], sep = " "),
-                  paste(mds.data$axislabel, mds.data$dim.plot[[2]], sep = " "))
-    citation <- paste("top ", mds.data$top, " genes : gene.selection = ",
-                    mds.data$gene.selection, sep = "")
+    xylab               <- list(paste(mds.data$axislabel, mds.data$dim.plot[[1]], sep = " "),
+                                paste(mds.data$axislabel, mds.data$dim.plot[[2]], sep = " "))
+    citation            <- paste("top ", mds.data$top, " genes : gene.selection = ",
+                                 mds.data$gene.selection, sep = "")
 
     colorCol <- NULL
     shapeCol <- NULL
@@ -417,13 +397,9 @@ ggplotMDS <- function(DGEdata,
         sizeCol <- "Size"
     }
 
-
     # PlotType
     if (plotType == "canvasxpress") {
         colors   <- lapply(colors, rgbaConversion)
-
-
-
         reflineColor <- lapply(reflineColor, .rgbaConversion)
         decorations  <- list()
         hlineIntercept_list <- list()
@@ -446,7 +422,6 @@ ggplotMDS <- function(DGEdata,
 
         intercept_list <- c(hlineIntercept_list, vlineIntercept_list)
         decorations    <- list(line = intercept_list)
-
         cx.data  <- plot_data %>%  dplyr::select(c(x, y))
         var.data <- plot_data %>% dplyr::select(-c(x, y))
 
@@ -461,7 +436,6 @@ ggplotMDS <- function(DGEdata,
                                                         t.showInfoSpan(e, o.display);
                                                     };
                                                 }; }}")
-
         mdsplot <- canvasXpress::canvasXpress(data                    = cx.data,
                                               varAnnot                = var.data,
                                               decorations             = decorations,
@@ -480,8 +454,8 @@ ggplotMDS <- function(DGEdata,
                                               citationScaleFontFactor = 0.8,
                                               events                  = events)
     } else {
-
         shapes <- .get_valid_symbolShapes_ggplot()[1:8]
+        sizes <- c(1:8)
         symColor <- "blue"
         mdsplot <- ggplot(plot_data, aes(x = x, y = y))
         geom_point_params <- list()
@@ -499,7 +473,7 @@ ggplotMDS <- function(DGEdata,
         }
 
         if (bySize) {
-            mdsplot <- mdsplot + aes(size = Size)
+            mdsplot <- mdsplot + aes(size = Size) + scale_size_manual(values = sizes)
         } else {
             geom_point_params[['size']] = symSize
         }
@@ -509,25 +483,7 @@ ggplotMDS <- function(DGEdata,
                                    position = "identity",
                                    params = geom_point_params)
 
-
-#
-# if (!byShape && !bySize) {
-#     mdsplot <- ggplot(plot_data, aes(x = x, y = y, color = ColorCode)) +
-#         geom_point(shape = symShape, size = symSize, alpha = transparency)
-# } else if (byShape && !bySize) {
-#     mdsplot <- ggplot(plot_data, aes(x = x, y = y, color = colorCol, shape = shapeCol)) +
-#         geom_point(size = symSize, alpha = transparency) +
-#         scale_shape_manual(values = shapes)
-# } else if (!byShape && bySize) {
-#     mdsplot <- ggplot(plot_data, aes(x = x, y = y, color = ColorCode, size = sizeCol)) +
-#         geom_point(shape = symShape, alpha = transparency)
-# } else if (byShape && bySize) {
-#     mdsplot <- ggplot(plot_data, aes(x = x, y = y, color = ColorCode, shape = shapeCol, size = sizeCol)) +
-#         geom_point(alpha = transparency) #+
-#         scale_shape_manual(values = shapes)
-# }
-
-        if (addLabels && (!is.null(labels))) {
+        if (addLabels) {
                 mdsplot <- mdsplot +
                     ggrepel::geom_text_repel(aes(label = Labels), size = labelSize, max.overlaps = Inf)
         }
@@ -656,12 +612,10 @@ MDS_var_explained <- function(mds,
     }
 
     mds.distances <- mds %$% distance.matrix %>% as.dist
-
     mdsvals <- mds.distances %>%
         {suppressWarnings(cmdscale(., k = ncol(mds$distance.matrix) - 1))} %>%
         magrittr::set_colnames(stringr::str_c("Dim", seq_len(ncol(.)))) %>%
         as.data.frame
-
     var_vec <- unname(apply((mdsvals %>% as.matrix), 2, stats::var)) %>%
         magrittr::divide_by(sum(.))
     var_explained <- data.frame(var    = var_vec,
@@ -685,7 +639,6 @@ MDS_var_explained <- function(mds,
     if (plotType == "canvasxpress") {
         rownames(plotdat) <- rownames(mdsvals[idx,][1:topN,])
         cx.data <- as.data.frame(t(plotdat))
-
         resultList$varexp <- canvasXpress::canvasXpress(data             = cx.data["var", ],
                                                         graphOrientation = "vertical",
                                                         graphType        = "Bar",
@@ -694,7 +647,6 @@ MDS_var_explained <- function(mds,
                                                         title            = varexp_title,
                                                         xAxisTitle       = ylab_ve,
                                                         smpTitle         = xlab)
-
         resultList$cumvar <- canvasXpress::canvasXpress(data             = cx.data["cumvar", ],
                                                         graphOrientation = "vertical",
                                                         graphType        = "Bar",

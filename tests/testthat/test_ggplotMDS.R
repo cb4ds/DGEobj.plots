@@ -22,9 +22,10 @@ test_that("ggplotMDS.R: ggplotMDS()", {
     #Testing optional parameters
     mds_plot <- ggplotMDS(DGEdata        = t_obj1,
                           designTable    = "design",
-                          colorBy        =  "ReplicateGroup",
-                          shapeBy        =  "ReplicateGroup",
-                          sizeBy         =  "ReplicateGroup",
+                          colorBy        = "ReplicateGroup",
+                          shapeBy        = "ReplicateGroup",
+                          sizeBy         = "ReplicateGroup",
+                          labels         = "ReplicateGroup",
                           hlineIntercept = c(1,0.25),
                           vlineIntercept = c(1,0.25),
                           top            = 10,
@@ -43,7 +44,7 @@ test_that("ggplotMDS.R: ggplotMDS()", {
     expect_s3_class(mds_plot$plot, c("canvasXpress", "htmlwidget"))
 
     mds_plot <- ggplotMDS(DGEdata        = t_obj1,
-                          designTable = "design",
+                          designTable    = "design",
                           colorBy        =  "ReplicateGroup",
                           shapeBy        = "ReplicateGroup",
                           plotType       = "ggplot",
@@ -110,15 +111,15 @@ test_that("ggplotMDS.R: ggplotMDS()", {
 
     #plotType
     msg <- "plotType must be either canvasXpress or ggplot. Assigning default value 'CanvasXpress'."
-    expect_warning(ggplotMDS(DGEdata  = t_obj1,
-                           plotType = "cx",
+    expect_warning(ggplotMDS(DGEdata   = t_obj1,
+                           plotType    = "cx",
                            designTable = "design",
-                           colorBy  = "ReplicateGroup"),
+                           colorBy     = "ReplicateGroup"),
                  regexp = msg)
-    expect_warning(ggplotMDS(DGEdata  = t_obj1,
-                           plotType = NULL,
+    expect_warning(ggplotMDS(DGEdata   = t_obj1,
+                           plotType    = NULL,
                            designTable = "design",
-                           colorBy  = "ReplicateGroup"),
+                           colorBy     = "ReplicateGroup"),
                  regexp = msg)
     #designTable
     msg <- "designTable is either missing or invalid. Assigning default value 'design'."
@@ -182,12 +183,6 @@ test_that("ggplotMDS.R: ggplotMDS()", {
                                          designTable = "design",
                                          colorBy     = "replicate"),
                    regexp = "colorBy value specified is invalid or missing. Assigning default value 'NULL'.")
-    expect_s3_class(mds_plot$plot, c("canvasXpress", "htmlwidget"))
-
-    expect_warning(mds_plot <- ggplotMDS(DGEdata     = t_obj1,
-                                         designTable = "design",
-                                         colorBy     = "replicate"),
-                   regexp = "colorBy value specified is invalid or missing. Assigning default value 'ReplicateGroup'.")
     expect_s3_class(mds_plot$plot, c("canvasXpress", "htmlwidget"))
 
     #shapeBy
@@ -444,7 +439,27 @@ test_that("ggplotMDS.R: ggplotMDS()", {
                                          colorBy        = "ReplicateGroup",
                                          plotType       = "ggplot",
                                          hlineIntercept = 1,
+                                         vlineIntercept = c(1,2),
+                                         reflineColor   = c("red", "blue")),
+                   regexp = "reflineColor must be either length 1 or the same as the intercept. Assigning default value 'red'.")
+    expect_s3_class(mds_plot$plot, c("gg", "ggplot"))
+
+    expect_warning(mds_plot <- ggplotMDS(DGEdata        = t_obj1,
+                                         designTable    = "design",
+                                         colorBy        = "ReplicateGroup",
+                                         plotType       = "ggplot",
+                                         hlineIntercept = 1,
                                          vlineIntercept = 1,
+                                         reflineSize    = c(1, 2)),
+                   regexp = "reflineSize must be either length 1 or the same as the intercept. Assigning default value '0.5'.")
+    expect_s3_class(mds_plot$plot, c("gg", "ggplot"))
+
+    expect_warning(mds_plot <- ggplotMDS(DGEdata        = t_obj1,
+                                         designTable    = "design",
+                                         colorBy        = "ReplicateGroup",
+                                         plotType       = "ggplot",
+                                         hlineIntercept = 1,
+                                         vlineIntercept = c(1,2),
                                          reflineSize    = c(1, 2)),
                    regexp = "reflineSize must be either length 1 or the same as the intercept. Assigning default value '0.5'.")
     expect_s3_class(mds_plot$plot, c("gg", "ggplot"))

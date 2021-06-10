@@ -7,12 +7,12 @@
 ggplotMDS(
   DGEdata,
   plotType = "canvasXpress",
-  colorBy,
-  designTable,
+  designTable = "design",
+  colorBy = "ReplicateGroup",
   shapeBy = NULL,
   sizeBy = NULL,
   top = Inf,
-  labels,
+  labels = "ReplicateGroup",
   labelSize = 3,
   title,
   hlineIntercept,
@@ -26,20 +26,21 @@ ggplotMDS(
 )
 }
 \arguments{
-\item{DGEdata}{A DGEList object taken after normalization
-OR a DGEobj that contains a DGEList OR a log2cpm matrix. (Required)}
+\item{DGEdata}{A DGEobj that contains a DGEList OR a log2cpm matrix. (Required)}
 
 \item{plotType}{Plot type must be canvasXpress or ggplot (Default to canvasXpress).}
 
-\item{colorBy}{A grouping vector to color by (e.g. ReplicateGroup) (Required)}
+\item{designTable}{Name of the design table object}
 
-\item{shapeBy}{A grouping vector to map to shape (Optional)}
+\item{colorBy}{A column name in the design table.Points are colored by the values in that column (Required)}
 
-\item{sizeBy}{A numeric vector to define point size (Optional)}
+\item{shapeBy}{A column name in the design table.Points are colored by the values in that column (Optional)}
+
+\item{sizeBy}{A column name in the design table.Points are sized by the values in that column (Optional)}
 
 \item{top}{Number of most variant genes to include (Default = Inf)}
 
-\item{labels}{Text labels for the samples. These should be short
+\item{labels}{A column name in the design table. Text labels for the samples. These should be short
 abbreviations of the sample identifiers.
 Default = ReplicateGroup or rownames of DGEdata. Set to NULL to disable
 text labels.}
@@ -57,7 +58,7 @@ text labels.}
 
 \item{reflineSize}{Thickness of the reference lines (default = 0.5)}
 
-\item{symShape}{Set the default shape of the symbols if not mapped to a column (default = 19, solid circle)}
+\item{symShape}{Set the default shape of the symbols if not mapped to a column (default = circle)}
 
 \item{symSize}{Set the default size of the symbols if not mapped to a column
 (default = 10)}
@@ -76,10 +77,7 @@ canvasXpress or ggplot2 instead of base graphics.
 }
 \details{
 colorBy, shapeBy, and sizeBy are grouping variables that encode group info by
-color, shape, or size.  These are vectors that must be the same length as
-ncol(DGEdata). colorBy and sizeBy will plot as continuous color or size
-changes if a numeric vector is used. Convert the vector to a factor to
-treat as groups instead of continuous.
+color, shape, or size.  These are input as column names in the designTable.
 
 The underlying limma::plotMDS() function uses a default of top = 500 to use the top 500
 highest fold change genes for the analysis. Based on observed speed tests,
