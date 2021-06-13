@@ -34,7 +34,7 @@ ggplotMDS(
 
 \item{colorBy}{A column name in the design table.Points are colored by the values in that column (Required)}
 
-\item{shapeBy}{A column name in the design table.Points are colored by the values in that column (Optional)}
+\item{shapeBy}{A column name in the design table.Points are shaped by the values in that column (Optional)}
 
 \item{sizeBy}{A column name in the design table.Points are sized by the values in that column (Optional)}
 
@@ -65,7 +65,8 @@ text labels.}
 
 \item{transparency}{Set transparency (default = 0.7)}
 
-\item{dim.plot}{Define which dimension to plot (default = c(1,2))}
+\item{dim.plot}{Define which dimension to plot. dim.plot should a numeric vector of
+length 2 and should be lesser than the number of columns in DGEobj. (default = c(1,2))}
 }
 \value{
 A list with two elements, the ggplot object and the MDS object returned
@@ -89,15 +90,15 @@ input data.
 \examples{
 \dontrun{
      # Plot the first two dimensions using all genes
-     myMDS_cxplot <- ggplotMDS(MyDGEList)
+     myMDS_cxplot <- ggplotMDS(MyDGEobj)
 
      # Plot the 2nd and 3rd dimensions using the top 1000 genes
-     myMDS_cxplot <- ggplotMDS(myDGEList, dim.plot = c(2, 3))
+     myMDS_cxplot <- ggplotMDS(MyDGEobj, dim.plot = c(2, 3))
      myMDS_cxplot[[1]]
 
      # MDSplot - ggplot
-     myMDS_ggplot <- ggplotMDS(MyDGEList, plotType = "ggplot")
-     myMDS_ggplot <- ggplotMDS(myDGEList, plotType = "ggplot", dim.plot = c(2, 3))
+     myMDS_ggplot <- ggplotMDS(MyDGEobj, plotType = "ggplot")
+     myMDS_ggplot <- ggplotMDS(MyDGEobj, plotType = "ggplot", dim.plot = c(2, 3))
      myMDS_ggplot[[1]]
 }
 

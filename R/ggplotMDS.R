@@ -17,7 +17,7 @@
 #' @param plotType Plot type must be canvasXpress or ggplot (Default to canvasXpress).
 #' @param designTable Name of the design table object
 #' @param colorBy A column name in the design table.Points are colored by the values in that column (Required)
-#' @param shapeBy A column name in the design table.Points are colored by the values in that column (Optional)
+#' @param shapeBy A column name in the design table.Points are shaped by the values in that column (Optional)
 #' @param sizeBy A column name in the design table.Points are sized by the values in that column (Optional)
 #' @param top Number of most variant genes to include (Default = Inf)
 #' @param labels A column name in the design table. Text labels for the samples. These should be short
@@ -35,7 +35,8 @@
 #' @param symSize Set the default size of the symbols if not mapped to a column
 #'   (default = 10)
 #' @param transparency Set transparency (default = 0.7)
-#' @param dim.plot Define which dimension to plot (default = c(1,2))
+#' @param dim.plot Define which dimension to plot. dim.plot should a numeric vector of
+#' length 2 and should be lesser than the number of columns in DGEobj. (default = c(1,2))
 #'
 #' @return A list with two elements, the ggplot object and the MDS object returned
 #'    by the plotMDS() function.
@@ -43,15 +44,15 @@
 #' @examples
 #' \dontrun{
 #'      # Plot the first two dimensions using all genes
-#'      myMDS_cxplot <- ggplotMDS(MyDGEList)
+#'      myMDS_cxplot <- ggplotMDS(MyDGEobj)
 #'
 #'      # Plot the 2nd and 3rd dimensions using the top 1000 genes
-#'      myMDS_cxplot <- ggplotMDS(myDGEList, dim.plot = c(2, 3))
+#'      myMDS_cxplot <- ggplotMDS(MyDGEobj, dim.plot = c(2, 3))
 #'      myMDS_cxplot[[1]]
 #'
 #'      # MDSplot - ggplot
-#'      myMDS_ggplot <- ggplotMDS(MyDGEList, plotType = "ggplot")
-#'      myMDS_ggplot <- ggplotMDS(myDGEList, plotType = "ggplot", dim.plot = c(2, 3))
+#'      myMDS_ggplot <- ggplotMDS(MyDGEobj, plotType = "ggplot")
+#'      myMDS_ggplot <- ggplotMDS(MyDGEobj, plotType = "ggplot", dim.plot = c(2, 3))
 #'      myMDS_ggplot[[1]]
 #' }
 #'
@@ -62,7 +63,7 @@
 #' @importFrom limma plotMDS
 #' @importFrom stats as.dist
 #' @importFrom tibble rownames_to_column
-#' @importFrom dplyr rename left_join select
+#' @importFrom dplyr rename left_join select mutate
 #' @importFrom DGEobj getItem
 #'
 #' @export
@@ -93,27 +94,26 @@ ggplotMDS <- function(DGEdata,
     if (any(is.null(plotType),
             !is.character(plotType),
             length(plotType) != 1,
-            !tolower(plotType) %in% c("canvasxpress", "ggplot"))) {
+            !plotType %in% c("canvasxpress", "ggplot"))) {
         warning("plotType must be either canvasXpress or ggplot. Assigning default value 'CanvasXpress'.")
         plotType <- "canvasxpress"
     }
 
     design <- NULL
     design_default <- TRUE
-    if (!missing(designTable)) {
-        if (!is.null(designTable) &&
-           (length(designTable) == 1) &&
-           (is.character(designTable)) &&
-           (designTable %in% names(DGEdata))) {
-            design_default    <- FALSE
-            design            <- DGEobj::getItem(DGEdata, designTable)
-            colnames(design)  <- tolower(colnames(design))
+    if (!is.null(designTable) &&
+        length(designTable) == 1 &&
+        is.character(designTable) &&
+        designTable %in% names(DGEdata)) {
+        design_default    <- FALSE
+        design            <- DGEobj::getItem(DGEdata, designTable)
+        colnames(design)  <- tolower(colnames(design))
         }
-    }
 
-    if (design_default && ('design' %in% names(DGEdata))) {
+
+    if (design_default && ("design" %in% names(DGEdata))) {
         warning("designTable is either missing or invalid. Assigning default value 'design'.")
-        design            <- DGEobj::getItem(DGEdata, 'design')
+        design            <- DGEobj::getItem(DGEdata, "design")
         colnames(design)  <- tolower(colnames(design))
     }
 
@@ -123,10 +123,7 @@ ggplotMDS <- function(DGEdata,
 
     colorby_default <- TRUE
     if (!is.null(design)) {
-        if (!is.null(colorBy) &&
-            tolower(colorBy) %in% colnames(design)) {
-            colorby_default <- FALSE
-        } else if (is.null(colorBy)) {
+        if (any(is.null(colorBy), !is.null(colorBy) && tolower(colorBy) %in% colnames(design))) {
             colorby_default <- FALSE
         }
     } else {
@@ -136,8 +133,8 @@ ggplotMDS <- function(DGEdata,
     if (colorby_default)  {
         colorBy <- NULL
         msg     <- "colorBy value specified is invalid or missing. Assigning default value"
-        if (!is.null(design) && ('replicategroup' %in% colnames(design))) {
-            colorBy <- 'replicategroup'
+        if (!is.null(design) && ("replicategroup" %in% colnames(design))) {
+            colorBy <- "replicategroup"
             msg     <- paste(msg,"'ReplicateGroup'.")
         } else {
             colorBy <- NULL
@@ -147,20 +144,22 @@ ggplotMDS <- function(DGEdata,
     }
 
 
-    if ((!is.null(design)) &&
-        (!is.null(shapeBy)) &&
+    if (!is.null(design)) {
+        if (!is.null(shapeBy) &&
         !(tolower(shapeBy) %in% colnames(design))) {
         warning("shapeBy should be a column in the design attribute of DGEdata. Assigning NULL as default value.")
         shapeBy <- NULL
+        }
     } else {
         shapeBy <- NULL
     }
 
-    if ((!is.null(design)) &&
-        (!is.null(sizeBy)) &&
+    if (!is.null(design)) {
+        if (!is.null(sizeBy) &&
         !(tolower(sizeBy) %in% colnames(design))) {
         warning("sizeBy should be a column in the design attribute of DGEdata. Assigning NULL as default value.")
         sizeBy <- NULL
+        }
     } else {
         sizeBy <- NULL
     }
@@ -307,8 +306,14 @@ ggplotMDS <- function(DGEdata,
     cbbPalette <- c("#56B4E9", "#009E73", "#0072B2", "#D55E00", "#CC79A7", "#E69F00",  "#F0E442", "#000000")
     colors <- cbbPalette
 
+
     if (missing(title)) {
         title <- "MDS Plot"
+    } else {
+        if (!is.character(title) || length(title) != 1) {
+            warning("Invaldid value specified for Title. Assigning default values 'MDS plot'.")
+            title <- "MDS Plot"
+        }
     }
 
     if ("DGEobj" %in% class(DGEdata)) {
@@ -347,7 +352,7 @@ ggplotMDS <- function(DGEdata,
                 dplyr::left_join(labels_data, by = "sampleID")
         } else {
             plot_data <- plot_data %>%
-                mutate(Labels = sampleID)
+                dplyr::mutate(Labels = sampleID)
         }
     }
 
@@ -463,19 +468,19 @@ ggplotMDS <- function(DGEdata,
         if (byColor) {
             mdsplot <- mdsplot + aes(color = ColorCode)
         } else {
-            geom_point_params[['color']] = symColor
+            geom_point_params[["color"]] = symColor
         }
 
         if (byShape) {
             mdsplot <- mdsplot + aes(shape = Shape) +  scale_shape_manual(values = shapes)
         } else {
-            geom_point_params[['shape']] = symShape
+            geom_point_params[["shape"]] = symShape
         }
 
         if (bySize) {
             mdsplot <- mdsplot + aes(size = Size) + scale_size_manual(values = sizes)
         } else {
-            geom_point_params[['size']] = symSize
+            geom_point_params[["size"]] = symSize
         }
 
         mdsplot <- mdsplot + layer(geom = "point",
@@ -526,7 +531,7 @@ ggplotMDS <- function(DGEdata,
                                             size = reflineSize)
         }
     }
-    return(list(plot = mdsplot, mdsobj = mds.data))
+    list(plot = mdsplot, mdsobj = mds.data)
 }
 
 
@@ -549,7 +554,7 @@ ggplotMDS <- function(DGEdata,
 #' @examples
 #' \dontrun{
 #'      # Plot the first two dimensions
-#'      MyMDS <- ggplotMDS(MyDGEList)
+#'      MyMDS <- ggplotMDS(MyDGEobj)
 #'      MyMDS[[1]]  #the MDS plot
 #'
 #'      # Then apply MDS_var_explained (the MDS object is MyMDS[[2]])
@@ -570,6 +575,7 @@ ggplotMDS <- function(DGEdata,
 #' @importFrom limma plotMDS
 #' @importFrom stats cmdscale var
 #' @importFrom canvasXpress canvasXpress
+#' @importFrom stringr str_c
 #'
 #' @export
 MDS_var_explained <- function(mds,
@@ -637,7 +643,6 @@ MDS_var_explained <- function(mds,
     ylab_cv <- "Cumulative Variance Explained"
 
     if (plotType == "canvasxpress") {
-        rownames(plotdat) <- rownames(mdsvals[idx,][1:topN,])
         cx.data <- as.data.frame(t(plotdat))
         resultList$varexp <- canvasXpress::canvasXpress(data             = cx.data["var", ],
                                                         graphOrientation = "vertical",
@@ -646,7 +651,8 @@ MDS_var_explained <- function(mds,
                                                         colors           = barColor,
                                                         title            = varexp_title,
                                                         xAxisTitle       = ylab_ve,
-                                                        smpTitle         = xlab)
+                                                        smpTitle         = xlab,
+                                                        smpLabelRotate   = 90)
         resultList$cumvar <- canvasXpress::canvasXpress(data             = cx.data["cumvar", ],
                                                         graphOrientation = "vertical",
                                                         graphType        = "Bar",
@@ -654,7 +660,8 @@ MDS_var_explained <- function(mds,
                                                         colors           = barColor,
                                                         title            = cumvar_title,
                                                         xAxisTitle       = ylab_cv,
-                                                        smpTitle         = xlab)
+                                                        smpTitle         = xlab,
+                                                        smpLabelRotate   = 90)
     } else {
         # Fraction variance for each dimension
         resultList$varexp <- ggplot(plotdat) +
@@ -676,7 +683,7 @@ MDS_var_explained <- function(mds,
     # Return the full data table too
     resultList$var_explained <- var_explained
 
-    return(resultList)
+    resultList
 }
 
 setBreaks <- function(limits){

@@ -38,7 +38,7 @@ it plots the first 10 dimensions or the first N dimensions totaling 90%.
 \examples{
 \dontrun{
      # Plot the first two dimensions
-     MyMDS <- ggplotMDS(MyDGEList)
+     MyMDS <- ggplotMDS(MyDGEobj)
      MyMDS[[1]]  #the MDS plot
 
      # Then apply MDS_var_explained (the MDS object is MyMDS[[2]])
