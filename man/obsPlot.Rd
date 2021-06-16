@@ -14,20 +14,33 @@ obsPlot(
   convert_normalize = "none",
   convert_prior.count = NULL,
   designTable = "design",
-  group = "replicategroup",
+  group = "ReplicateGroup",
   violinLayer = FALSE,
   showPoints = TRUE,
   xlab,
   ylab,
   title,
-  boxColor = "deepskyblue3",
+  color = "deepskyblue3",
   facet = TRUE,
-  facetRow,
   axisFree = TRUE
 )
 }
 \arguments{
 \item{plotType}{Can be canvasXpress or ggplot (default = canvasXpress)}
+
+\item{countsMatrix}{Name of the counts matrix in the DGEObj which will be used to render the plot.(default = counts)}
+
+\item{convertCounts}{A flag to indicate if counts matrix need to be converted or taken as is. Default value is NULL. This indicates
+countsMatrix need to be taken as is. To convert the counts matrix, specify the desired unit. Supported units include CPM,FPKM, FPK and TPM.
+This parameter is passed to DGEobj.utils::convertCounts}
+
+\item{convert_geneLength}{Parameter to pass to DGEobj.utils::convertCounts.}
+
+\item{convert_log}{Parameter to pass to DGEobj.utils::convertCounts. (default = FALSE)}
+
+\item{convert_normalize}{Parameter to pass to DGEobj.utils::convertCounts. (default = none)}
+
+\item{convert_prior.count}{Parameter to pass to DGEobj.utils::convertCounts. (default = NULL)}
 
 \item{designTable}{Name of the design table in the DGEObj from which the grouping column will be extracted. (default = design)}
 
@@ -35,7 +48,7 @@ obsPlot(
 
 \item{violinLayer}{Adds a violin layer (default = FALSE)}
 
-\item{showPoints}{Shows the datapoints on the plot only if boxLayer or violinLayer is enabled. (default = TRUE)}
+\item{showPoints}{Shows the datapoints on the plot (default = TRUE)}
 
 \item{xlab}{X axis label (defaults to group column name if not specified)}
 
@@ -43,30 +56,15 @@ obsPlot(
 
 \item{title}{Plot title (optional)}
 
-\item{boxColor}{Color for the boxplot layer (default = "deepskyblue3")}
+\item{color}{Color for the boxplot or the violin ploy (default = "deepskyblue3")}
 
 \item{facet}{Specifies whether to facet (TRUE) or print individual plots
 (FALSE)  (default = TRUE)}
-
-\item{facetRow}{Explicitly set the number of rows for the facet plot.
-Default behavior will automatically set the columns.}
 
 \item{axisFree}{Specify same scale or independent scales for each subplot (default = TRUE;
 Allowed values: TRUE and FALSE)}
 
 \item{data}{A  DGEObject. The countsMatrix in the DGEObject is extracted to plot the data. (required)}
-
-\item{boxLayer}{Adds a boxplot layer (default = TRUE)}
-
-\item{showMean}{Show the mean of the points on the plot only if boxLayer is enabled. (default = TRUE)}
-
-\item{boxTransparency}{Transparency for the box layer (default = 0.5)}
-
-\item{violinColor}{Color for the violin layer (default = "yellow")}
-
-\item{violinTransparency}{Transparency for the violin layer (default = 0.5)}
-
-\item{labelAngle}{Angle to set the sample labels on the X axis. (default =  30; range = 0-90)}
 }
 \value{
 Plot of type canvasXpress or ggplot. If Facet = TRUE (default) returns a faceted object. If
@@ -74,18 +72,14 @@ Plot of type canvasXpress or ggplot. If Facet = TRUE (default) returns a faceted
   by observation (gene) names.
 }
 \description{
-Provides a summary plot (box/violin/points) for each observation (gene), showing data for each
+Provides a summary plot (box/violin) for each observation (gene), showing data for each
 experiment group. The plot can optionally include either one or both of the boxplot and violinplot layer
-can additionally choose to display points and/or mean of all the points on the plot.  The boxLayer and the
+ and can additionally choose to display points on the plot. The boxLayer and the
 violin layer can be customized to have the desired transparency, colors etc. By default, the violinLayer is
-not displayed and only the boxplot, points and the mean on the plots can be seen.
-}
-\details{
-Also, by default, the plots are faceted.  Faceting the plot can be turned off to return a list of individual
-plots for each gene.
-
-Input is a dataframe or matrix of intensity values with geneID row names and sample name column names,
-e.g. from log2cpm. Group must also be specified as the plots are grouped by this attribute.
+not displayed and only the boxplot, points and the mean on the plots can be seen. Also, by default,
+the plots are faceted.  Faceting the plot can be turned off to return a list of individual
+plots for each gene. Input is a DGEobj with a Counts Matrix. User can also provide input parameters to convert
+ the counts matrix to other desired units.
 }
 \examples{
 \dontrun{
@@ -98,7 +92,6 @@ e.g. from log2cpm. Group must also be specified as the plots are grouped by this
   # Faceted violin plot
   obsPlot(DGEobj,
            violinLayer = TRUE,
-           boxLayer = FALSE,
            designTable = "design",
            group = "replicategroup")
 
@@ -111,4 +104,7 @@ e.g. from log2cpm. Group must also be specified as the plots are grouped by this
   myplots[[2]]
 }
 
+}
+\seealso{
+\link[DGEobj.utils]{convertCounts}
 }
