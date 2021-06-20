@@ -150,20 +150,9 @@ addFootnote <- function(my.ggp,
 }
 
 rgbaConversion <- function(color, alpha = 0.5){
-    rgbastr <- NULL
-    if (!is.character(color)) {
-        rgbastr <- "invalid value"
-    }
-    tryCatch({
-        rgbaVal <- paste(c(col2rgb(color), alpha), collapse = ",")
-        rgbastr <- paste0("rgba(", rgbaVal, ")")
-    }, error = function(e) {
-        warning(paste("Ïnvalid color specified",color))
-    })
-    if (is.null(rgbastr)) {
-        rgbastr <- "invalid value"
-    }
-    return(rgbastr)
+    rgbaVal <- paste(c(col2rgb(color), alpha), collapse = ",")
+    rgbaStr <- paste0("rgba(", rgbaVal, ")")
+    return(rgbaStr)
 }
 
 cxSupportedLineFit <- function(linefit) {
