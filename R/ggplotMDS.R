@@ -404,7 +404,7 @@ ggplotMDS <- function(DGEdata,
 
     # PlotType
     if (plotType == "canvasxpress") {
-        colors   <- lapply(colors, rgbaConversion)
+        colors   <- lapply(colors, .rgbaConversion)
         reflineColor <- lapply(reflineColor, .rgbaConversion)
         decorations  <- list()
         hlineIntercept_list <- list()
