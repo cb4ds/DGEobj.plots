@@ -1,13 +1,16 @@
 #' Function obsPlot
 #'
 #' Provides a summary plot (box/violin) for each observation (gene), showing data for each
-#' experiment group. The plot can optionally include either one or both of the boxplot and violinplot layer
-#'  and can additionally choose to display points on the plot. The boxLayer and the
-#' violin layer can be customized to have the desired transparency, colors etc. By default, the violinLayer is
-#' not displayed and only the boxplot, points and the mean on the plots can be seen. Also, by default,
-#' the plots are faceted.  Faceting the plot can be turned off to return a list of individual
-#' plots for each gene. Input is a DGEobj with a Counts Matrix. User can also provide input parameters to convert
-#'  the counts matrix to other desired units.
+#' experiment group.
+#'
+#' The plot can optionally include boxplot, violinplot or both and can additionally choose to display points on the plot.
+#' The boxLayer and the violin layer can be customized to have the desired transparency, colors etc.
+#'
+#' By default, the violinLayer is not displayed and only the boxplot, points and the mean on the plots can be seen.
+#' Also, by default, the plots are faceted.
+#'
+#' Faceting the plot can be turned off to return a list of individual plots for each gene. Input is a DGEobj with a
+#' Counts Matrix. User can also provide input parameters to convert the counts matrix to other desired units.
 #'
 #' @param data A  DGEObject. The countsMatrix in the DGEObject is extracted to plot the data. (required)
 #' @param plotType Can be canvasXpress or ggplot (default = canvasXpress)
@@ -58,6 +61,12 @@
 #'                      facet = FALSE)
 #'   # Plot one from the list
 #'   myplots[[2]]
+#'
+#'   #ggplot
+#'   obsPlot(DGEobj,
+#'           designTable = "design",
+#'           group = "replicategroup",
+#'           plotType = "ggplot")
 #' }
 #'
 #' @import ggplot2 magrittr
@@ -66,6 +75,7 @@
 #' @importFrom assertthat assert_that
 #' @importFrom canvasXpress canvasXpress
 #' @importFrom stringr str_c
+#' @importFrom rlang sym
 #'
 #' @export
 obsPlot <- function(DGEdata,
@@ -168,23 +178,26 @@ obsPlot <- function(DGEdata,
 
         if (any(is.null(designTable),
                 !is.character(designTable),
+                length(designTable) != 1,
                 !(designTable %in% names(DGEdata)))) {
             if ("design" %in% names(DGEdata)) {
                 designTable <- "design"
-                warning("designTable specified is not present in DGEobj. Assigning default value of type 'design'.")
             } else if (!is.null(getType(DGEdata,"design"))) {
                 designTable <- names(getType(DGEdata,"design"))
             }
+            warning(paste0("designTable specified is not present in DGEobj. Assigning default value '", designTable,"'."))
         }
 
     design            <- DGEobj::getItem(DGEdata, designTable)
     colnames(design)  <- tolower(colnames(design))
     group_default     <- NULL
-    if (tolower("ReplicateGroup") %in% colnames(design)) {
+    if ("replicategroup" %in% colnames(design)) {
         group_default <- "replicategroup"
     }
 
     if (any(is.null(group),
+            !is.character(group),
+            length(group) != 1,
             !(tolower(group) %in% colnames(design)))) {
         if (!is.null(group_default)) {
             warning("group must be specified and should be one of the columns in the design object in DGEdata. Assigning ",
@@ -205,14 +218,12 @@ obsPlot <- function(DGEdata,
     colnames(group.data) <- "group"
     group.data$sample    <- rownames(group.data);rownames(group.data) <- NULL
     data <- dplyr::left_join(data, group.data, by = "sample" )
-    #data <- data %>% filter(GeneID %in% unique(data$GeneID)[1:20])
 
     plotByCol <- "GeneID"
     valueCol  <- "value"
     groupCol  <- "group"
 
     #input validations
-    plotType <- tolower(plotType)
     facet_chart_limit <- 40
 
     if (any(is.null(facet),
@@ -311,8 +322,8 @@ obsPlot <- function(DGEdata,
     if (plotType == "canvasxpress") {
         if (facet) {
             numcol   <- ((data[[plotByCol]] %>% unique %>% length) / numrow) %>% ceiling
-            cx_data  <- data %>% select(!!rlang::sym(valueCol)) %>% t() %>% as.data.frame()
-            smp_data <- data %>% select(-!!rlang::sym(valueCol))
+            cx_data  <- data %>% dplyr::select(!!rlang::sym(valueCol)) %>% t() %>% as.data.frame()
+            smp_data <- data %>% dplyr::select(-!!rlang::sym(valueCol))
             rownames(smp_data) <- colnames(cx_data)
             obsPlot  <- canvasXpress(data               = cx_data,
                                     smpAnnot            = smp_data,
@@ -336,7 +347,8 @@ obsPlot <- function(DGEdata,
                                     title               = title,
                                     showLegend          = FALSE,
                                     layoutTopology      = paste0(numrow, "X", numcol),
-                                    segregateSamplesBy  = plotByCol)
+                                    segregateSamplesBy  = plotByCol,
+                                    afterRender         = list(list('sortSamplesByCategory', list("group"))))
         } else {
             plotlist   <- list()
             plotby_vec <- unique(data[[plotByCol]])
@@ -344,11 +356,11 @@ obsPlot <- function(DGEdata,
                 data_subset <- data %>%
                     filter(!!rlang::sym(plotByCol) == x)
                 cx_data <- data_subset %>%
-                    select(!!rlang::sym(valueCol)) %>%
+                    dplyr::select(!!rlang::sym(valueCol)) %>%
                     t() %>%
                     as.data.frame()
                 smp_data <- data_subset %>%
-                    select(-!!rlang::sym(valueCol))
+                    dplyr::select(-!!rlang::sym(valueCol))
                 rownames(smp_data) <- colnames(cx_data)
                 title <- x
 
@@ -372,7 +384,8 @@ obsPlot <- function(DGEdata,
                              xAxisTitle          = ylab,
                              title               = title,
                              xAxis2Show          = FALSE,
-                             showLegend          = FALSE)
+                             showLegend          = FALSE,
+                             afterRender         = list(list('sortSamplesByCategory', list("group"))))
             })
         }
     } else {
@@ -449,5 +462,5 @@ obsPlot <- function(DGEdata,
             obsPlot <- plotlist
         }
     }
-    return(obsPlot)
+    obsPlot
 }

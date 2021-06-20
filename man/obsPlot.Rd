@@ -73,13 +73,17 @@ Plot of type canvasXpress or ggplot. If Facet = TRUE (default) returns a faceted
 }
 \description{
 Provides a summary plot (box/violin) for each observation (gene), showing data for each
-experiment group. The plot can optionally include either one or both of the boxplot and violinplot layer
- and can additionally choose to display points on the plot. The boxLayer and the
-violin layer can be customized to have the desired transparency, colors etc. By default, the violinLayer is
-not displayed and only the boxplot, points and the mean on the plots can be seen. Also, by default,
-the plots are faceted.  Faceting the plot can be turned off to return a list of individual
-plots for each gene. Input is a DGEobj with a Counts Matrix. User can also provide input parameters to convert
- the counts matrix to other desired units.
+experiment group.
+}
+\details{
+The plot can optionally include boxplot, violinplot or both and can additionally choose to display points on the plot.
+The boxLayer and the violin layer can be customized to have the desired transparency, colors etc.
+
+By default, the violinLayer is not displayed and only the boxplot, points and the mean on the plots can be seen.
+Also, by default, the plots are faceted.
+
+Faceting the plot can be turned off to return a list of individual plots for each gene. Input is a DGEobj with a
+Counts Matrix. User can also provide input parameters to convert the counts matrix to other desired units.
 }
 \examples{
 \dontrun{
@@ -102,6 +106,12 @@ plots for each gene. Input is a DGEobj with a Counts Matrix. User can also provi
                      facet = FALSE)
   # Plot one from the list
   myplots[[2]]
+
+  #ggplot
+  obsPlot(DGEobj,
+          designTable = "design",
+          group = "replicategroup",
+          plotType = "ggplot")
 }
 
 }

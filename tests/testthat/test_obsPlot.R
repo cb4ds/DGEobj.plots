@@ -127,43 +127,75 @@ test_that("obsPlot.R: obsPlot()", {
                  regexp = msg)
 
     obj_no_counts <- rmItem(t_obj1_subset, "counts")
-    expect_error(obs_plot <- obsPlot(obj_no_counts,
+    expect_error(suppressWarnings(obs_plot <- obsPlot(obj_no_counts,
                                      designTable = "design",
-                                     group       = "replicategroup"),
-                 msg = "counts matrix must be available in DGEdata to plot the data.")
+                                     group       = "replicategroup")),
+                 regexp = "counts matrix must be available in DGEdata to plot the data.")
 
     expect_warning(obs_plot <- obsPlot(t_obj1),
-                   msg = "A large number of charts/facets has/have been requested and may take significant time to generate.  It is suggested that less than 40 charts/facets are requested at a time.")
+                   regexp = "A large number of charts/facets has/have been requested and may take significant time to generate.  It is suggested that less than 40 charts/facets are requested at a time.")
+    expect_s3_class(obs_plot, c("canvasXpress", "htmlwidget"))
+
+    msg <- "group must be specified and should be one of the columns in the design object in DGEdata. Assigning replicategroup as the default value."
+    expect_warning(obs_plot <- obsPlot(t_obj1_subset,
+                                       group = "notavalidname"),
+                 regexp = msg)
     expect_s3_class(obs_plot, c("canvasXpress", "htmlwidget"))
 
     expect_warning(obs_plot <- obsPlot(t_obj1_subset,
-                                       group = "notavalidname"),
-                 msg = "group must be specified and should be one of the columns in the design object in DGEdata. Assigning replicategroup as the default value.")
+                                       group = 1),
+                   regexp = msg)
+    expect_s3_class(obs_plot, c("canvasXpress", "htmlwidget"))
+
+    expect_warning(obs_plot <- obsPlot(t_obj1_subset,
+                                       group = c("notavalidname", "invalidname")),
+                   regexp = msg)
     expect_s3_class(obs_plot, c("canvasXpress", "htmlwidget"))
 
     obj_no_rep_group <- t_obj1_subset
     obj_no_rep_group$design$ReplicateGroup <- NULL
     expect_error(obsPlot(obj_no_rep_group,
                          group = "notavalidgroup"),
-                 msg = "group must be specified and should be one of the columns in the designTable in DGEdata.")
+                 regexp = "group must be specified and should be one of the columns in the designTable in DGEdata.")
 
-    obj_no_design        <- t_obj1_subset
-    obj_no_design$design <- NULL
-    expect_error(obsPlot(obj_no_design,
+    obj_no_design <- rmItem(t_obj1_subset, "design")
+    expect_error(suppressWarnings(obsPlot(obj_no_design,
                          designTable = "design",
-                         group       = "replicategroup"),
-                 msg = "designTable specified is not present in DGEobj.")
+                         group       = "replicategroup")),
+                 regexp = "design table must be available in DGEdata to plot the data.")
 
+    msg <- "designTable specified is not present in DGEobj. Assigning default value 'design'."
     expect_warning(obs_plot <- obsPlot(t_obj1_subset,
                                        designTable = "notavalidname",
                                        group       = "replicategroup"),
-                   msg = "designTable specified is not present in DGEobj. Assigning default value 'design'.")
+                   regexp = msg)
+    expect_s3_class(obs_plot, c("canvasXpress", "htmlwidget"))
+
+    expect_warning(obs_plot <- obsPlot(t_obj1_subset,
+                                       designTable = 1,
+                                       group       = "replicategroup"),
+                   regexp = msg)
+    expect_s3_class(obs_plot, c("canvasXpress", "htmlwidget"))
+
+    expect_warning(obs_plot <- obsPlot(t_obj1_subset,
+                                       designTable = c("invalidname", "notavalidname"),
+                                       group       = "replicategroup"),
+                   regexp = msg)
+    expect_s3_class(obs_plot, c("canvasXpress", "htmlwidget"))
+
+    design_data <- getItem(t_obj1_subset, "design")
+    t_obj1_updated_design <- rmItem(t_obj1_subset,"design")
+    t_obj1_updated_design <- addItem(t_obj1_updated_design, item = design_data, itemName = "design_new", itemType = "design")
+    expect_warning(obs_plot <- obsPlot(t_obj1_updated_design,
+                                       designTable = c("invalidname", "notavalidname"),
+                                       group       = "replicategroup"),
+                   regexp = "designTable specified is not present in DGEobj. Assigning default value 'design_new'.")
     expect_s3_class(obs_plot, c("canvasXpress", "htmlwidget"))
 
     obj_no_rep_group <- t_obj1_subset
     obj_no_rep_group$design$ReplicateGroup <- NULL
     expect_error(obsPlot(obj_no_rep_group),
-                 msg = "group must be specified and should be one of the columns in the designTable in DGEdata.")
+                 regexp = "group must be specified and should be one of the columns in the designTable in DGEdata.")
 
     #Testing optional parameters
     #plotType
@@ -272,6 +304,11 @@ test_that("obsPlot.R: obsPlot()", {
                                       convert_prior.count = c(1,2)),
                    regexp = msg)
     expect_s3_class(obs_plot, c("canvasXpress", "htmlwidget"))
+
+    #group
+
+
+    #designTable
 
     #facet
     msg <- "facet must be a singular logical value. Assigning default value TRUE."
