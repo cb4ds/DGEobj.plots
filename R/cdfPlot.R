@@ -189,7 +189,7 @@ cdfPlot <- function(contrastDF,
         decorations <- list()
         if (!is.null(referenceLine)) {
             referenceLine <- rgbaConversion(referenceLine, alpha = alpha)
-            decorations <- getCxPlotDecorations(decorations = decorations,
+            decorations <- .getCxPlotDecorations(decorations = decorations,
                                                 color = referenceLine,
                                                 width = refLineThickness,
                                                 y     = pThreshold)

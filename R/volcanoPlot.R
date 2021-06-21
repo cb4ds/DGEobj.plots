@@ -225,18 +225,18 @@ volcanoPlot <- function(contrastDF,
         }
         if (!is.null(pthresholdLine)) {
             pthresholdLine <- rgbaConversion(pthresholdLine, alpha = alpha)
-            decorations <- getCxPlotDecorations(decorations = decorations,
+            decorations <- .getCxPlotDecorations(decorations = decorations,
                                                 color = pthresholdLine,
                                                 width = refLineThickness,
                                                 x     = -log10(pthreshold))
         }
 
         if (!is.null(foldChangeLines)) {
-            decorations <- getCxPlotDecorations(decorations = decorations,
+            decorations <- .getCxPlotDecorations(decorations = decorations,
                                                 color = symbolFill[which(groupNames == "Increased")],
                                                 width = refLineThickness,
                                                 x     = foldChangeLines)
-            decorations <- getCxPlotDecorations(decorations = decorations,
+            decorations <- .getCxPlotDecorations(decorations = decorations,
                                                 color = symbolFill[which(groupNames == "Decreased")],
                                                 width = refLineThickness,
                                                 x     = -1*foldChangeLines)
