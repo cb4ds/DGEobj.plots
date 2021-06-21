@@ -29,6 +29,8 @@ Imports:
     magrittr,
     stats,
     stringr,
+    tibble,
+    tidyr,
     utils,
     edgeR,
     limma  (>= 3.38),
