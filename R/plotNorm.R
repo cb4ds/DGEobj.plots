@@ -46,9 +46,14 @@ plotNorm <- function(DGEdata,
                             !is.null(DGEdata),
                             any(c("matrix", "DGEobj") %in% class(DGEdata)),
                             msg = "DGEdata must be of either class 'matrix' or 'DGEobj'.")
-    assertthat::assert_that(length(plotType) == 1,
-                            plotType %in% c("canvasxpress", "ggplot"),
-                            msg = "plotType must be either canvasXpress or ggplot.")
+    if (any(is.null(plotType),
+            !is.character(plotType),
+            length(plotType) != 1,
+            !plotType %in% c("canvasxpress", "ggplot"))) {
+        warning("plotType must be either canvasXpress or ggplot. Assigning default value 'CanvasXpress'.")
+        plotType <- "canvasxpress"
+    }
+
     if (any(is.null(plotCategory),
             !plotCategory %in% c("box", "density"),
             length(plotCategory) != 1)) {

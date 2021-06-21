@@ -127,10 +127,13 @@ profilePlot <- function(contrastDF,
                             nrow(contrastDF) > 0,
                             msg = "contrastDF must be specified as dataframe with LogIntensity and LogRatio columns and optionally a p-value")
     plotType <- tolower(plotType)
-    assertthat::assert_that(is.character(plotType),
-                            length(plotType) == 1,
-                            plotType %in% c("canvasxpress", "ggplot"),
-                            msg = "plotType must be either canvasXpress or ggplot.")
+    if (any(is.null(plotType),
+            !is.character(plotType),
+            length(plotType) != 1,
+            !plotType %in% c("canvasxpress", "ggplot"))) {
+        warning("plotType must be either canvasXpress or ggplot. Assigning default value 'CanvasXpress'.")
+        plotType <- "canvasxpress"
+    }
     # Make sure specified columns exist
     assertthat::assert_that(!is.null(logRatioCol),
                             logRatioCol %in% colnames(contrastDF),

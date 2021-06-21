@@ -88,15 +88,15 @@ test_that("profilePlot.R: profilePlot()", {
     expect_error(profilePlot(data.frame()),
                  regexp = msg)
     ## plotType
-    msg <- "plotType must be either canvasXpress or ggplot."
-    expect_error(profilePlot(contrastDF, plotType = "xyz"),
-                 regexp = msg)
-    expect_error(profilePlot(contrastDF, plotType = NULL),
-                 regexp = msg)
-    expect_error(profilePlot(contrastDF, plotType = 123),
-                 regexp = msg)
-    expect_error(profilePlot(contrastDF, plotType = c("canvasXpress", "ggplot")),
-                 regexp = msg)
+    msg <- "plotType must be either canvasXpress or ggplot. Assigning default value 'CanvasXpress'."
+    expect_warning(profilePlot(contrastDF, plotType = "xyz"),
+                   regexp = msg)
+    expect_warning(profilePlot(contrastDF, plotType = NULL),
+                   regexp = msg)
+    expect_warning(profilePlot(contrastDF, plotType = 123),
+                   regexp = msg)
+    expect_warning(profilePlot(contrastDF, plotType = c("canvasXpress", "ggplot")),
+                   regexp = msg)
     ## logRatioCol
     msg <- "logRatioCol column not found in contrastDF."
     expect_error(profilePlot(contrastDF, logRatioCol = "xyz"),

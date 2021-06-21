@@ -96,17 +96,17 @@ test_that("plotNorm.R: plotNorm()", {
     ## normalize
     msg <- "normalize must be one of 'TMM', 'RLE', 'upperquartile', or 'none'. Setting default value 'tmm'"
     expect_warning(plotNorm(t_obj1, normalize = NULL),
-                 regexp = msg)
+                   regexp = msg)
     expect_warning(plotNorm(t_obj1, normalize = "xyz"),
-                 regexp = msg)
+                   regexp = msg)
     expect_warning(plotNorm(t_obj1, normalize = c("TMM", "RLE")),
-                 regexp = msg)
+                   regexp = msg)
     ## plotType
-    msg <- "plotType must be either canvasXpress or ggplot."
-    expect_error(plotNorm(t_obj1, plotType = "myplot"),
-                 regexp = msg)
-    expect_error(plotNorm(t_obj1, plotType = NULL),
-                 regexp = msg)
-    expect_error(plotNorm(t_obj1, plotType = c("canvasXpress", "ggplot")),
-                 regexp = msg)
+    msg <- "plotType must be either canvasXpress or ggplot. Assigning default value 'CanvasXpress'."
+    expect_warning(plotNorm(t_obj1, plotType = "myplot"),
+                   regexp = msg)
+    expect_warning(plotNorm(t_obj1, plotType = NULL),
+                   regexp = msg)
+    expect_warning(plotNorm(t_obj1, plotType = c("canvasXpress", "ggplot")),
+                   regexp = msg)
 })
