@@ -242,6 +242,7 @@ cdfPlot <- function(contrastDF,
             dplyr::left_join(ssc)
 
         # Plot subset percent of the data for the main plot
+        group <- NULL
         cdfMain <- ggplot(contrastDFsubset, aes_string(x = x, y = y)) +
             aes(shape = group, size = group, color = group, fill = group, order = order) +
             # Scale lines tell it to use the actual values, not treat them as factors

@@ -82,7 +82,7 @@
 #' }
 #'
 #' @import ggplot2
-#' @importFrom dplyr mutate arrange filter select rename_with summarise
+#' @importFrom dplyr mutate arrange filter select rename_with summarise across everything
 #' @importFrom assertthat assert_that
 #' @importFrom canvasXpress canvasXpress
 #' @importFrom magrittr set_rownames
@@ -249,6 +249,8 @@ comparePlot <- function(compareDF,
     }
 
     if (all(c("xp","yp") %in% colnames(compareDF))) {
+        xp <- NULL
+        yp <- NULL
         sigMeasurePlot <- TRUE
         compareDF <- compareDF %>%
             dplyr::mutate(group = ifelse(xp <= pThreshold,
@@ -260,7 +262,7 @@ comparePlot <- function(compareDF,
 
     y_range <- compareDF %>%
         dplyr::select(ylabel) %>%
-        dplyr::summarise(across(everything(), list(min, max))) %>%
+        dplyr::summarise(dplyr::across(dplyr::everything(), list(min, max))) %>%
         dplyr::rename_with(~ c("min", "max"))
     if (plotType == "canvasxpress") {
         # adding transparency to colors
@@ -339,6 +341,7 @@ comparePlot <- function(compareDF,
                            alpha = transparency) +
                 coord_equal(xlim = c(-scalemax, scalemax), ylim = c(-scalemax, scalemax))
         } else {
+            group <- NULL
             compPlot <- compareDF %>%
                 ggplot(aes_string(x = xlabel, y = ylabel)) +
                 aes(shape = group, size = group,
@@ -462,8 +465,9 @@ comparePrep <- function(contrastList,
 }
 
 construct_comparator_data <- function(data, commonIDs) {
+    geneid <- NULL
+    data$geneid <- rownames(data)
     data %>%
-        dplyr::mutate(geneid = rownames(.)) %>%
         dplyr::filter(geneid %in% commonIDs) %>%
         dplyr::arrange(geneid)
 }

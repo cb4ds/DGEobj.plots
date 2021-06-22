@@ -85,7 +85,8 @@ plotPvalHist <- function(P.Val,
     sample_names <- colnames(P.Val)
 
     # Set up Tall format
-    P.Val$GeneID = rownames(P.Val)
+    GeneID <- NULL
+    P.Val$GeneID  <-  rownames(P.Val)
     P.Val <- P.Val %>% tidyr::gather(key = "levels", value = "pval", -GeneID)
 
     title <- "P-value Histograms"
@@ -100,6 +101,7 @@ plotPvalHist <- function(P.Val,
                        }; }}")
 
         if (facet) {
+            pval <- NULL
             cx.data <- P.Val %>% dplyr::select(pval)
             var.annot <- P.Val %>% dplyr::select(-pval)
             plotlist  <- canvasXpress::canvasXpress(data                 = cx.data,
@@ -119,6 +121,7 @@ plotPvalHist <- function(P.Val,
                                                     events               = events)
         } else {
             plotlist <- lapply(sample_names, function(sample) {
+                pval <- NULL
                 pval_subset <- dplyr::filter(P.Val, grepl(sample, levels))
                 cx.data <- pval_subset %>% dplyr::select(pval)
                 var.annot <- pval_subset %>% dplyr::select(-pval)
@@ -144,6 +147,7 @@ plotPvalHist <- function(P.Val,
             numcol <- 3
             numrow <- (samples_num / numcol) %>% ceiling
 
+            pval <- NULL
             plotlist <- ggplot2::ggplot(data = P.Val, aes(x = pval)) +
                 ggplot2::geom_histogram(alpha    = transparency,
                                         fill     = color,
@@ -158,6 +162,7 @@ plotPvalHist <- function(P.Val,
             plotlist <- lapply(sample_names, function(sample) {
                 pval_subset <- dplyr::filter(P.Val, grepl(sample, levels))
 
+                pval <- NULL
                 hist_pval <- ggplot2::ggplot(data = pval_subset, aes(x = pval)) +
                     ggplot2::geom_histogram(alpha = transparency,
                                             fill = color,

@@ -61,6 +61,7 @@
 #' @importFrom assertthat assert_that
 #' @importFrom limma plotMDS
 #' @importFrom stats as.dist
+#' @importFrom grDevices col2rgb
 #'
 #' @export
 ggplotMDS <- function(DGEdata,
@@ -249,6 +250,13 @@ ggplotMDS <- function(DGEdata,
             shapes <- ggShapes
         }
 
+        x <- NULL
+        y <- NULL
+        ColorCode <- NULL
+        Shape <- NULL
+        Size <- NULL
+        Labels <- NULL
+
         if (byShape == FALSE & bySize == FALSE) {
             mdsplot <- ggplot(xydat, aes(x = x, y = y, color = ColorCode)) +
                 geom_point(shape = symShape, size = symSize, alpha = alpha)
@@ -370,15 +378,16 @@ MDS_var_explained <- function(mds,
         mds <- limma::plotMDS(mds, plot = FALSE)
     }
 
+    distance.matrix <- NULL
+
     mds.distances <- mds %$% distance.matrix %>% as.dist
 
-    mdsvals <- mds.distances %>%
-        {suppressWarnings(cmdscale(., k = ncol(mds$distance.matrix) - 1))} %>%
-        magrittr::set_colnames(stringr::str_c("Dim", seq_len(ncol(.)))) %>%
+    mdsvals <- {suppressWarnings(cmdscale(mds.distances, k = ncol(mds$distance.matrix) - 1))}
+    mdsvals <- magrittr::set_colnames(mdsvals, stringr::str_c("Dim", seq_len(ncol(mdsvals)))) %>%
         as.data.frame
 
-    var_vec <- unname(apply((mdsvals %>% as.matrix), 2, stats::var)) %>%
-        magrittr::divide_by(sum(.))
+    var_vec <- unname(apply((mdsvals %>% as.matrix), 2, stats::var))
+    var_vec <- magrittr::divide_by(var_vec, sum(var_vec))
     var_explained <- data.frame(var    = var_vec,
                                 cumvar = cumsum(var_vec),
                                 dim    = seq_along(var_vec))
@@ -426,6 +435,7 @@ MDS_var_explained <- function(mds,
                                                         xAxisTitle       = xlab,
                                                         smpTitle         = ylab_cv)
     } else {
+        cumvar <- NULL
         # Fraction variance for each dimension
         resultList$varexp <- ggplot(plotdat) +
             aes(x = dim, y = var) +

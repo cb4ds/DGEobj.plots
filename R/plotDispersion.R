@@ -204,6 +204,8 @@ plotDispersion <- function(DGEdata,
 
 
     } else {
+        AveLogCPM <- NULL
+        Dispersion <- NULL
         MyDispPlot <- ggplot(plotdata, aes(x = AveLogCPM, y = Dispersion)) +
             geom_point(size  = symbolSize,
                        shape = symbolShape,

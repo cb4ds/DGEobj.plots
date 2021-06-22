@@ -104,6 +104,10 @@ plotNorm <- function(DGEdata,
 }
 
 build_cx_density_plot <- function(data, title) {
+    SampleID <- NULL
+    Log2CPM <- NULL
+    GeneID <- NULL
+    Normalization <- NULL
     plot.data <- data %>%
         tidyr::spread(SampleID, Log2CPM)
     cx.data <- plot.data %>%
@@ -144,6 +148,10 @@ build_cx_density_plot <- function(data, title) {
 }
 
 build_cx_box_plot <- function(data, title) {
+    SampleID <- NULL
+    Log2CPM <- NULL
+    GeneID <- NULL
+    Normalization <- NULL
     plot.data <- data %>%
         tidyr::spread(SampleID, Log2CPM)
     cx.data <- plot.data %>%
@@ -196,6 +204,9 @@ build_cx_box_plot <- function(data, title) {
 
 
 build_gg_density_plot <- function(data, title) {
+    SampleID <- NULL
+    Log2CPM <- NULL
+    Normalization <- NULL
     data %>%
         ggplot(aes(x = Log2CPM, color = SampleID)) +
         geom_density() +
@@ -206,6 +217,9 @@ build_gg_density_plot <- function(data, title) {
 }
 
 build_gg_box_plot <- function(data, title) {
+    SampleID <- NULL
+    Log2CPM <- NULL
+    Normalization <- NULL
     data %>%
         ggplot(aes(x = SampleID, y = Log2CPM, color = SampleID)) +
         geom_boxplot(alpha = 0.5) +
@@ -217,9 +231,11 @@ build_gg_box_plot <- function(data, title) {
 }
 
 build_normalized_data <- function(counts, normalize = "None") {
-    DGEobj.utils::convertCounts(counts, unit = "cpm", log = TRUE, normalize = normalize) %>%
-        as.data.frame() %>%
-        dplyr::mutate(GeneID = rownames(.)) %>%
+    GeneID <- NULL
+    data <- DGEobj.utils::convertCounts(counts, unit = "cpm", log = TRUE, normalize = normalize) %>%
+        as.data.frame()
+    data$GeneID <- rownames(data)
+    data %>%
         tidyr::gather(key = "SampleID", val = "Log2CPM", -GeneID) %>%
         dplyr::mutate(Normalization = normalize)
 }

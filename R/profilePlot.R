@@ -280,6 +280,8 @@ profilePlot <- function(contrastDF,
     # Capture the labels from the colname
     xlabel <- make.names(logIntCol)
     ylabel <- make.names(logRatioCol)
+    Group <- NULL
+    negLog10P <- NULL
     # Now make the columnames suitable for use with aes_string
     colnames(contrastDF)[colnames(contrastDF) %in% logIntCol] <- xlabel
     colnames(contrastDF)[colnames(contrastDF) %in% logRatioCol] <- ylabel

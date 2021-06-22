@@ -287,7 +287,7 @@ volcanoPlot <- function(contrastDF,
 
         contrastDF <- contrastDF %>%
             dplyr::left_join(ssc)
-
+        group <- NULL
         volcanoPlot <- ggplot(contrastDF, aes_string(x = x, y = y)) +
             aes(shape = group, size = group,
                 color = group, fill = group,
@@ -307,6 +307,7 @@ volcanoPlot <- function(contrastDF,
 
         # Optional Decorations
         if (sizeByIntensity) {
+            LogInt <- NULL
             volcanoPlot <- volcanoPlot + aes(size = LogInt) +
                 scale_size_continuous()
         }
