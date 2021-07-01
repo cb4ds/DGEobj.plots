@@ -4,9 +4,9 @@
 #' data items in the DGEobj.
 #'
 #' @param dgeObj DGEobj to find the parent/child relationships between data items.
-#' @param plotType Plot type must be canvasXpress or ggplot (Default to canvasXpress).
+#' @param plotType Plot type must be canvasXpress or ggplot (default = canvasXpress).
 #' @param directed Passed to igraph::graph_from_data_frame. Indicates if the graph should
-#'     be directed or not. Default = TRUE.
+#'     be directed or not. (default = TRUE)
 #'
 #' @return A class igraph network object for plotType ggplot and canvasxpress network plot for plotType canvasxpress.
 #'
@@ -21,73 +21,76 @@
 #'   # Prepare an iGraph object for plotting
 #'   mynet <- mapDGEobj(dgeObj, plotType = "ggplot")
 #'
-#'   # Define a layout
-#'   lay.sug <- layout_with_sugiyama(mynet)
-#'
-#'   # 2D Plot
-#'   plot(mynet,
-#'        plotType = "ggplot",
-#'        edge.arrow.size = .3,
-#'        vertex.color = "dodgerblue2",
-#'        vertex.frame.color = "dodgerblue4",
-#'        layout = lay.sug$layout)
-#'
-#'   # 2D Plot; colorby the basetype attribute
-#'   pal <- brewer.pal(length(unique(V(mynet)$basetype)), "Set1")
-#'   myPallet <- pal[as.numeric(as.factor(vertex_attr(mynet, "basetype")))]
-#'
-#'   plot(mynet,
-#'        plotType = "ggplot",
-#'        edge.arrow.size = .3,
-#'        vertex.color = myPallet,
-#'        vertex.label.family = "Helvetica",
-#'        layout=lay.sug$layout)
-#'
-#'   # 2D Interactive plot
-#'   plotHandle <- tkplot(net,
-#'                        vertex.color = myPallet,
-#'                        vertex.frame.color = "dodgerblue4",
-#'                        canvas.width = 800,
-#'                        canvas.height = 800,
-#'                        layout = lay.sug$layout)
-#'   tk_close(plotHandle)
-#' }
-#'
 #' @import magrittr
 #' @importFrom assertthat assert_that
 #' @importFrom igraph graph_from_data_frame
 #' @importFrom canvasXpress canvasXpress
 #' @importFrom htmlwidgets JS
+#' @importFrom dplyr filter rename
+#' @importFron tibble rownames_to_column
 #'
 #' @export
 mapDGEobj <- function(dgeObj,
                       plotType = "canvasXpress",
                       directed = TRUE) {
 
-    assertthat::assert_that("DGEobj" %in% class(dgeObj),
-                            msg = "dgeObj must be of class 'DGEobj'.")
-    assertthat::assert_that(plotType %in% c("canvasXpress", "ggplot"),
-                            msg = "Plot type must be either canvasXpress or ggplot.")
+    assertthat::assert_that(!missing(dgeObj),
+                            !is.null(dgeObj),
+                            "DGEobj" %in% class(dgeObj),
+                            msg = "dgeObj must be specified and must be of class 'DGEobj'.")
 
-    child <- names(dgeObj)
-    parent <- attr(dgeObj, "parent") %>% as.character()
-    type <- attr(dgeObj, "type") %>% as.character()
-    basetype <- attr(dgeObj, "basetype") %>% as.character()
-    edges <- as.data.frame(cbind(parent = parent,
-                                 child = child),
-                           stringsAsFactors = FALSE)
-    # Remove incomplete edges (children without parents)
-    idx <- lapply(parent, nchar) != 0
-    edges <- edges[idx,]
+    plotType <- tolower(plotType)
+    if (any(is.null(plotType),
+            !is.character(plotType),
+            length(plotType) != 1,
+            !tolower(plotType) %in% c("canvasxpress", "ggplot"))) {
+        warning("plotType must be either canvasXpress or ggplot. Assigning default value 'CanvasXpress'.")
+        plotType <- "canvasxpress"
+    }
 
-    nodes <- data.frame(node = names(dgeObj),
-                        type = as.character(type),
-                        basetype = as.character(basetype))
+    if (any(is.null(directed),
+            !is.logical(directed),
+            length(directed) != 1)) {
+        warning("directed must be a singular logical value. Assigning default value TRUE.")
+        directed <- TRUE
+    }
 
-    if (plotType == "canvasXpress") {
+    child <- names(dgeObj) %>%
+        as.data.frame()
+    colnames(child) <- "child"
 
+    parent <- data.frame(attr(dgeObj, "parent")) %>%
+        t() %>%
+        as.data.frame() %>%
+        dplyr::rename(parent = V1) %>%
+        dplyr::filter(nchar(parent) > 0) %>%
+        tibble::rownames_to_column("child")
+
+    assertthat::assert_that(all(parent$parent %in% child$child),
+                            all(parent$child %in% child$child),
+                            length(unique(parent$child)) == nrow(parent),
+                            msg = "A valid DGEobj needs to be specified. Node can have a maximum of one parent only.")
+
+    type <- attr(dgeObj, "type") %>%
+        as.data.frame() %>%
+        t() %>%
+        as.data.frame() %>%
+        dplyr::rename(Type = V1) %>%
+        tibble::rownames_to_column("child")
+
+    basetype <- attr(dgeObj, "basetype") %>%
+        as.data.frame() %>%
+        t() %>%
+        as.data.frame() %>%
+        dplyr::rename(BaseType = V1) %>%
+        tibble::rownames_to_column("child")
+
+    nodes <- left_join(type, basetype, by = "child")
+    edges <- parent
+
+    if (plotType == "canvasxpress") {
         colnames(nodes) <- c("id", "Type", "BaseType")
-        colnames(edges) <- c("id1", "id2")
+        colnames(edges) <- c("id2", "id1")
 
         events <- htmlwidgets::JS("{ 'mousemove' : function(o, e, t) {
                                                 if (o != null && o != false) {
@@ -107,6 +110,7 @@ mapDGEobj <- function(dgeObj,
 
         mapDGEplot <- canvasXpress::canvasXpress(data              = list(nodeData = nodes, edgeData = edges),
                                                  colorNodeBy       = "Type",
+                                                 labelNodePosition = "left",
                                                  edgeWidth         = 2,
                                                  graphType         = "Network",
                                                  nodeSize          = 30,
