@@ -10,16 +10,15 @@
 #'
 #' @return A class igraph network object for plotType ggplot and canvasxpress network plot for plotType canvasxpress.
 #'
+#'
 #' @examples
 #' \dontrun{
-#'   library(igraph)
-#'   library(RColorBrewer)
-#'
 #'   # Prepare canvasxpress network plot
 #'   mynet <- mapDGEobj(dgeObj)
 #'
 #'   # Prepare an iGraph object for plotting
 #'   mynet <- mapDGEobj(dgeObj, plotType = "ggplot")
+#'   }
 #'
 #' @import magrittr
 #' @importFrom assertthat assert_that
@@ -27,7 +26,7 @@
 #' @importFrom canvasXpress canvasXpress
 #' @importFrom htmlwidgets JS
 #' @importFrom dplyr filter rename
-#' @importFron tibble rownames_to_column
+#' @importFrom tibble rownames_to_column
 #'
 #' @export
 mapDGEobj <- function(dgeObj,
