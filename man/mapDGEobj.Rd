@@ -21,3 +21,13 @@ A class igraph network object for plotType ggplot and canvasxpress network plot 
 Reads a DGEobj and produces a node pair file defining parent/child relationships between
 data items in the DGEobj.
 }
+\examples{
+\dontrun{
+  # Prepare canvasxpress network plot
+  mynet <- mapDGEobj(dgeObj)
+
+  # Prepare an iGraph object for plotting
+  mynet <- mapDGEobj(dgeObj, plotType = "ggplot")
+  }
+
+}
