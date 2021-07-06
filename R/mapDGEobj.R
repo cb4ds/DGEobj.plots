@@ -58,16 +58,29 @@ mapDGEobj <- function(dgeObj,
         as.data.frame()
     colnames(child) <- "child"
 
-    parent <- data.frame(attr(dgeObj, "parent")) %>%
+
+    parent_list <- attr(dgeObj, "parent")
+    mul_parent <- setNames(data.frame(matrix(ncol = 2, nrow = 0)), c("child", "parent"))
+    for (i in names(parent_list)) {
+        if (length(parent_list[[i]]) > 1) {
+           for (j in unlist(parent_list[[i]])) {
+               mul_parent <- rbind(mul_parent, data.frame(child = i, parent = j))
+           }
+           parent_list[[i]] <- NULL
+        }
+    }
+
+    parent <- data.frame(parent_list) %>%
         t() %>%
         as.data.frame() %>%
         dplyr::rename(parent = V1) %>%
         dplyr::filter(nchar(parent) > 0) %>%
         tibble::rownames_to_column("child")
+    parent <- rbind(parent, mul_parent)
+    edges  <- parent[c("parent", "child")]
 
     assertthat::assert_that(all(parent$parent %in% child$child),
                             all(parent$child %in% child$child),
-                            length(unique(parent$child)) == nrow(parent),
                             msg = "A valid DGEobj needs to be specified. Node can have a maximum of one parent only.")
 
     type <- attr(dgeObj, "type") %>%
@@ -85,11 +98,11 @@ mapDGEobj <- function(dgeObj,
         tibble::rownames_to_column("child")
 
     nodes <- left_join(type, basetype, by = "child")
-    edges <- parent
+
 
     if (plotType == "canvasxpress") {
         colnames(nodes) <- c("id", "Type", "BaseType")
-        colnames(edges) <- c("id2", "id1")
+        colnames(edges) <- c("id1", "id2")
 
         events <- htmlwidgets::JS("{ 'mousemove' : function(o, e, t) {
                                                 if (o != null && o != false) {
@@ -112,7 +125,8 @@ mapDGEobj <- function(dgeObj,
                                                  labelNodePosition = "left",
                                                  edgeWidth         = 2,
                                                  graphType         = "Network",
-                                                 nodeSize          = 30,
+                                                 nodeSize          = 20,
+                                                 nodeFontSize      = 10,
                                                  networkLayoutType = "forceDirected",
                                                  events            = events)
 

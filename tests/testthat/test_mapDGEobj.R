@@ -2,8 +2,7 @@ context("DGEobj.plots - tests for mapDGEobj.R functions")
 
 
 test_that('mapDGEobj.R: mapDGEobj()', {
-  #  t_obj1 <- readRDS("/efs/bms_shared/data/cdb/APJ_LAD_Heart_18Jan2017.RDS")
-
+    t_obj1 <- readRDS("/efs/bms_shared/data/cdb/APJ_LAD_Heart_18Jan2017.RDS")
     map_DGEobj <- mapDGEobj(t_obj1)
     expect_s3_class(map_DGEobj, c("canvasXpress", "htmlwidget"))
 
@@ -21,13 +20,7 @@ test_that('mapDGEobj.R: mapDGEobj()', {
     expect_error(mapDGEobj(iris),
                  regexp = msg)
 
-    t_obj1 <- readRDS(system.file("exampleObj.RDS", package = "DGEobj", mustWork = TRUE))
-    msg <- "A valid DGEobj needs to be specified. Node can have a maximum of one parent only."
-    expect_error(mapDGEobj(t_obj1),
-                 regexp = msg)
-
     #Optional parameters
-    t_obj1 <- readRDS("/efs/bms_shared/data/cdb/APJ_LAD_Heart_18Jan2017.RDS")
     #plotType
     msg <- "plotType must be either canvasXpress or ggplot. Assigning default value 'CanvasXpress'."
     expect_warning( map_DGEobj <- mapDGEobj(t_obj1,
