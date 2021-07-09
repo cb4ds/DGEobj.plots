@@ -334,26 +334,24 @@ profilePlot <- function(contrastDF,
 
                                                   }
                                                 }; }}")
-        if (missing(geneSymCol) && sizeBySignificance) {
+        if (sizeBySignificance) {
             var.annot <- contrastDF %>%
                 dplyr::select(Group, negLog10P)
-            sizeBy <- "negLog10P"
             showSizeLegend <- TRUE
-        } else if (!missing(geneSymCol) && !sizeBySignificance) {
-            var.annot <- contrastDF %>%
-                dplyr::select(c(Group,geneSymCol))
-            sizeBy <- "Group"
-            showSizeLegend <- FALSE
-        } else if (!missing(geneSymCol) && sizeBySignificance) {
-            var.annot <- contrastDF %>%
-                dplyr::select(Group, geneSymCol, negLog10P)
             sizeBy <- "negLog10P"
-            showSizeLegend <- TRUE
         } else {
             var.annot <- contrastDF %>%
                 dplyr::select(Group)
-            sizeBy  <- "Group"
             showSizeLegend <- FALSE
+            sizeBy  <- "Group"
+        }
+
+        if (!missing(geneSymCol)) {
+            var.annot <- merge(var.annot, contrastDF %>%
+                                   dplyr::select(!!dplyr::sym(geneSymCol)),
+                               by = 0)
+            rownames(var.annot) <- var.annot$Row.names
+            var.annot$Row.names <- NULL
         }
 
         showLoessFit <- FALSE
