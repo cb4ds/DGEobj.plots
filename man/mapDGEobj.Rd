@@ -28,6 +28,7 @@ data items in the DGEobj.
 
   # Prepare an iGraph object for plotting
   mynet <- mapDGEobj(dgeObj, plotType = "ggplot")
+  plot(mynet)
   }
 
 }

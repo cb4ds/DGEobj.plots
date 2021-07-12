@@ -18,6 +18,7 @@
 #'
 #'   # Prepare an iGraph object for plotting
 #'   mynet <- mapDGEobj(dgeObj, plotType = "ggplot")
+#'   plot(mynet)
 #'   }
 #'
 #' @import magrittr
@@ -120,19 +121,18 @@ mapDGEobj <- function(dgeObj,
                                                     };
                                                 }; }}")
 
-        mapDGEplot <- canvasXpress::canvasXpress(data              = list(nodeData = nodes, edgeData = edges),
-                                                 colorNodeBy       = "Type",
-                                                 labelNodePosition = "left",
-                                                 edgeWidth         = 2,
-                                                 graphType         = "Network",
-                                                 nodeSize          = 20,
-                                                 nodeFontSize      = 10,
-                                                 networkLayoutType = "forceDirected",
-                                                 events            = events)
+        canvasXpress::canvasXpress(data              = list(nodeData = nodes, edgeData = edges),
+                                   colorNodeBy       = "Type",
+                                   labelNodePosition = "left",
+                                   edgeWidth         = 2,
+                                   graphType         = "Network",
+                                   nodeSize          = 20,
+                                   nodeFontSize      = 10,
+                                   networkLayoutType = "forceDirected",
+                                   events            = events)
 
     } else {
-        mapDGEplot <- igraph::graph_from_data_frame(d = edges, vertices = nodes, directed = directed)
+        igraph::graph_from_data_frame(d = edges, vertices = nodes, directed = directed)
     }
 
-    return(mapDGEplot)
 }
